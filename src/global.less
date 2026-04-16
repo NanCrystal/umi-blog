@@ -1,0 +1,188 @@
+/* ===================================================
+   全局 antd 暗色透明主题覆盖
+   src/global.less 由 umi3 自动全局注入，无需额外配置
+   所有选择器展开（不嵌套），确保特异性足够覆盖 antd
+   =================================================== */
+
+/* ---------- 遮罩 ---------- */
+.ant-modal-mask {
+  background-color: rgba(0, 0, 0, 0.72) !important;
+}
+
+/* ---------- 弹窗主体：毛玻璃 ---------- */
+.ant-modal-content {
+  background: rgba(12, 12, 22, 0.82) !important;
+  backdrop-filter: blur(22px) !important;
+  -webkit-backdrop-filter: blur(22px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65) !important;
+  padding: 0 !important;
+}
+
+/* ---------- Header ---------- */
+.ant-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px 12px 0 0 !important;
+  padding: 16px 24px !important;
+}
+.ant-modal-header .ant-modal-title {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
+
+/* ---------- Body ---------- */
+.ant-modal-body {
+  color: rgba(255, 255, 255, 0.65) !important;
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+}
+
+/* ---------- confirm 专有 ---------- */
+.ant-modal-confirm-title {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}
+.ant-modal-confirm-content {
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-size: 14px !important;
+  margin-top: 6px !important;
+}
+.ant-modal-confirm .anticon {
+  color: rgba(255, 200, 100, 0.85) !important;
+}
+/* confirm body 区域背景 */
+.ant-modal-confirm .ant-modal-body {
+  padding: 28px 24px 16px !important;
+}
+
+/* ---------- Footer ---------- */
+.ant-modal-footer {
+  background: transparent !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+  padding: 12px 24px !important;
+}
+
+/* ---------- 关闭 X ---------- */
+.ant-modal-close-x {
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+.ant-modal-close:hover .ant-modal-close-x {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* ==============================================
+   弹窗按钮 - 全部覆盖，优先级用双类名提升
+   ============================================== */
+
+/* 继续编辑 / 取消（默认按钮） */
+.ant-modal-confirm-btns .ant-btn.ant-btn-default,
+.ant-modal-footer .ant-btn.ant-btn-default {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+.ant-modal-confirm-btns .ant-btn.ant-btn-default:hover,
+.ant-modal-footer .ant-btn.ant-btn-default:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* 确定（primary 按钮） */
+.ant-modal-confirm-btns .ant-btn.ant-btn-primary,
+.ant-modal-footer .ant-btn.ant-btn-primary {
+  background: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+.ant-modal-confirm-btns .ant-btn.ant-btn-primary:hover,
+.ant-modal-footer .ant-btn.ant-btn-primary:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  color: #fff !important;
+}
+
+/* 确认离开（dangerous primary） */
+.ant-modal-confirm-btns .ant-btn.ant-btn-primary.ant-btn-dangerous,
+.ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-dangerous {
+  background: rgba(220, 60, 60, 0.18) !important;
+  background-color: rgba(220, 60, 60, 0.18) !important;
+  border: 1px solid rgba(255, 100, 100, 0.32) !important;
+  color: rgba(255, 150, 150, 0.9) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+.ant-modal-confirm-btns .ant-btn.ant-btn-primary.ant-btn-dangerous:hover,
+.ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-dangerous:hover {
+  background: rgba(220, 60, 60, 0.3) !important;
+  background-color: rgba(220, 60, 60, 0.3) !important;
+  border-color: rgba(255, 100, 100, 0.55) !important;
+  color: #ffaaaa !important;
+}
+
+/* ==============================================
+   antd message 全局提示暗色
+   ============================================== */
+.ant-message-notice-content {
+  background: rgba(12, 12, 22, 0.85) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55) !important;
+}
+.ant-message-notice-content .anticon {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+.ant-message-notice-content .anticon-check-circle {
+  color: rgba(100, 220, 140, 0.9) !important;
+}
+.ant-message-notice-content .anticon-warning {
+  color: rgba(255, 200, 80, 0.9) !important;
+}
+.ant-message-notice-content .anticon-close-circle {
+  color: rgba(255, 110, 110, 0.9) !important;
+}
+
+/* ======================================================
+   全局基础响应式
+   ====================================================== */
+
+/* 确保所有页面在移动端正确缩放 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 移动端 Modal 宽度自适应 */
+@media (max-width: 480px) {
+  .ant-modal {
+    max-width: calc(100vw - 32px) !important;
+    margin: 0 auto !important;
+  }
+  .ant-modal-content {
+    border-radius: 10px !important;
+  }
+  .ant-modal-confirm-btns {
+    display: flex;
+    gap: 8px;
+  }
+  .ant-modal-confirm-btns .ant-btn {
+    flex: 1;
+    margin: 0 !important;
+  }
+}

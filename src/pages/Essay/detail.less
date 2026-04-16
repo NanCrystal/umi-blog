@@ -1,0 +1,112 @@
+/* ============================================================
+   DetailPage - 星空暗色主题，全文垂直居中，超高可滚动
+   ============================================================ */
+
+.detail-wrapper {
+  min-height: calc(100vh - 60px);
+  padding: 80px 16px 60px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* 内容主体：最大宽度居中 */
+.detail-inner {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 标题 */
+.detail-title {
+  font-size: 26px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  margin: 0 0 10px;
+  line-height: 1.4;
+  letter-spacing: 0.03em;
+}
+
+/* 时间（原"作者"位置） */
+.detail-date {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: center;
+  margin: 0 0 28px;
+}
+
+/* 封面图 */
+.detail-cover {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 36px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.55);
+
+  img {
+    width: 100%;
+    display: block;
+    object-fit: cover;
+    max-height: 420px;
+  }
+}
+
+/* 正文区域：整体居中 */
+.detail-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 每段独立一行，水平居中 */
+.detail-para {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 2;
+  text-align: center;
+  margin: 0;
+  padding: 2px 0;
+  letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media (max-width: 768px) {
+  .detail-wrapper {
+    padding: 72px 16px 48px;
+  }
+
+  .detail-title {
+    font-size: 22px;
+  }
+
+  .detail-cover img {
+    max-height: 280px;
+  }
+
+  .detail-para {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-wrapper {
+    padding: 68px 12px 40px;
+  }
+
+  .detail-title {
+    font-size: 19px;
+  }
+
+  .detail-cover img {
+    max-height: 220px;
+  }
+}

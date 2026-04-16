@@ -5,7 +5,7 @@ interface PropsType {}
 
 const Index: React.FC<PropsType> = (props) => {
   useEffect(() => {}, []);
-  return <div className={styles['Index']}></div>;
+  return <div className={styles['Index']}>222222222222</div>;
 };
 
 export default Index;

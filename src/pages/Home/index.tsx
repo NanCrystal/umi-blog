@@ -12,7 +12,7 @@ const HomePage = (props: IRouteComponentProps) => {
         <section>
           <Lottie loop animationData={cycleJson} play style={{ width: 600 }} />
         </section>
-        <section className={styles['home_btn_container']}>
+        {/* <section className={styles['home_btn_container']}>
           <Lottie
             loop
             animationData={shakyButtonJson}
@@ -22,7 +22,7 @@ const HomePage = (props: IRouteComponentProps) => {
           <div className={styles['home_btn']} onClick={handleIn}>
             欢迎访问
           </div>
-        </section>
+        </section> */}
       </main>
     </div>
   );
