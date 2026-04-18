@@ -42,6 +42,13 @@
       left: 0;
     }
   }
+
+  .cat-btn {
+    position: fixed;
+    left: 36px;
+    bottom: 72px;
+    z-index: 99;
+  }
 }
 
 /* 平板 */
@@ -52,10 +59,16 @@
         width: 80vw !important;
         max-width: 400px !important;
       }
+
       .home_btn_container :global(> *) {
         width: 56vw !important;
         max-width: 200px !important;
       }
+    }
+
+    .cat-btn {
+      left: 16px;
+      bottom: 24px;
     }
   }
 }

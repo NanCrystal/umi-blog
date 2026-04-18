@@ -1,0 +1,141 @@
+/* ============================================================
+   Comment 页 - 星空留言墙
+   ============================================================ */
+
+/* 整页容器 */
+.comment-page {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* ── 气泡层 ── */
+.bubbles-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ── 单个气泡 ── */
+.bubble {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: auto;
+
+  /* 从小放大再淡出：scale 0.2 → 1.15 → 0 */
+  animation: bubbleFloat linear infinite both;
+  opacity: 0;
+  transform-origin: center center;
+}
+
+@keyframes bubbleFloat {
+  0% {
+    opacity: 0;
+    transform: scale(0.15);
+  }
+  15% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  75% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.25);
+  }
+}
+
+.bubble-text {
+  color: rgba(255, 255, 255, 0.72);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 12px rgba(160, 200, 255, 0.35);
+  user-select: none;
+}
+
+.bubble-del {
+  font-size: 14px;
+  color: rgba(255, 100, 100, 0.5);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 2px;
+  transition: color 0.15s;
+  user-select: none;
+
+  &:hover {
+    color: rgba(255, 80, 80, 0.9);
+  }
+}
+
+/* ── 底部输入框 ── */
+.input-bar {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 88vw;
+  max-width: 480px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 40px;
+  padding: 10px 12px 10px 20px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+}
+
+.input-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  line-height: 1.6;
+  max-height: 80px;
+  overflow-y: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.22);
+  }
+}
+
+.send-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(110, 195, 255, 0.2);
+  color: rgba(110, 195, 255, 0.9);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+
+  &:hover:not(.disabled) {
+    background: rgba(110, 195, 255, 0.35);
+    color: #fff;
+  }
+
+  &.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}

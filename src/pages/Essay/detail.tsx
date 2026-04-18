@@ -2,15 +2,17 @@ import React, { useEffect } from 'react';
 import { useLocation, history } from 'umi';
 import styles from './detail.less';
 
-interface EssayItem {
-  value: number;
+// 后端 Article 字段
+interface ArticleItem {
+  id: number;
   title: string;
-  desc: string;
-  date: string;
+  content: string;
+  cover: string | null;
+  createdAt: string;
 }
 
 interface LocationState {
-  data?: EssayItem;
+  data?: ArticleItem;
 }
 
 const EssayDetailPage: React.FC = () => {
@@ -18,7 +20,6 @@ const EssayDetailPage: React.FC = () => {
   const state: LocationState = (location.state as LocationState) || {};
   const item = state.data;
 
-  // 如果没有数据，返回列表
   useEffect(() => {
     if (!item) {
       history.replace('/essay');
@@ -27,16 +28,21 @@ const EssayDetailPage: React.FC = () => {
 
   if (!item) return null;
 
-  // 空格/换行都作为段落分隔
-  const paragraphs = item.desc
-    .split(/\s+/)
+  // 换行/空格分割正文为段落
+  const paragraphs = item.content
+    .split(/\n+/)
     .map((s) => s.trim())
     .filter(Boolean);
 
-  let coverSrc = '';
-  try {
-    coverSrc = require(`../../assets/images/${item.value}.jpg`);
-  } catch {}
+  // 格式化时间
+  const formatDate = (iso: string) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return `发表于 ${d.getFullYear()}年${String(d.getMonth() + 1).padStart(
+      2,
+      '0',
+    )}月${String(d.getDate()).padStart(2, '0')}日`;
+  };
 
   return (
     <div className={styles['detail-wrapper']}>
@@ -45,16 +51,16 @@ const EssayDetailPage: React.FC = () => {
         <h1 className={styles['detail-title']}>{item.title}</h1>
 
         {/* 时间 */}
-        <p className={styles['detail-date']}>{item.date}</p>
+        <p className={styles['detail-date']}>{formatDate(item.createdAt)}</p>
 
         {/* 封面图 */}
-        {coverSrc && (
+        {item.cover && (
           <div className={styles['detail-cover']}>
-            <img src={coverSrc} alt={item.title} />
+            <img src={item.cover} alt={item.title} />
           </div>
         )}
 
-        {/* 正文：每段单独一行，垂直居中 */}
+        {/* 正文 */}
         <div className={styles['detail-content']}>
           {paragraphs.map((para, i) => (
             <p key={i} className={styles['detail-para']}>

@@ -80,7 +80,51 @@
 .card-date {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.28);
+}
+
+/* 底部：时间 + 操作按钮 */
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-top: 4px;
+}
+
+/* admin 操作区 */
+.card-actions {
+  display: flex;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.essay-card:hover .card-actions {
+  opacity: 1;
+}
+
+.action-edit,
+.action-delete {
+  font-size: 13px;
+  padding: 3px 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.action-edit {
+  color: rgba(255, 255, 255, 0.5);
+  &:hover {
+    color: #4fc3f7;
+    background: rgba(79, 195, 247, 0.12);
+  }
+}
+
+.action-delete {
+  color: rgba(255, 255, 255, 0.5);
+  &:hover {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.12);
+  }
 }
 
 /* =============================================
@@ -118,4 +162,14 @@
     grid-template-columns: 1fr;
     gap: 12px;
   }
+}
+
+/* ── 空状态 ── */
+.empty-wrap {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
 }

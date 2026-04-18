@@ -4,6 +4,7 @@ import { Layout, Modal } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import {
   PlusOutlined,
+  MessageOutlined,
   ExclamationCircleOutlined,
   MenuOutlined,
   CloseOutlined,
@@ -17,12 +18,6 @@ const headerList: any = [
   { label: '装逼', path: '/essay', value: 2 },
 ];
 
-const pathTabMap: Record<string, number> = {
-  '/home': 0,
-  '/document': 1,
-  '/essay': 2,
-};
-
 const HomeLayout = (props: IRouteComponentProps) => {
   const { children } = props;
   const location = useLocation();
@@ -30,7 +25,16 @@ const HomeLayout = (props: IRouteComponentProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const isAddPage = location.pathname === '/add';
-  const activeTab = isAddPage ? -1 : pathTabMap[location.pathname] ?? 0;
+
+  // 匹配 activeTab，支持子路由高亮
+  const getActiveTab = (path: string) => {
+    if (path.startsWith('/essay')) return 2;
+    if (path.startsWith('/document')) return 1;
+    if (path.startsWith('/home')) return 0;
+    return -1;
+  };
+
+  const activeTab = isAddPage ? -1 : getActiveTab(location.pathname);
 
   const tokenVal = localStorage.getItem('token');
   const isAdmin = tokenVal === '121414';
@@ -195,6 +199,20 @@ const HomeLayout = (props: IRouteComponentProps) => {
       {isAdmin && !isAddPage && (
         <div className={styles['add-btn']} onClick={handleAdd}>
           <PlusOutlined />
+        </div>
+      )}
+
+      {/* 留言入口（全员可见） */}
+      {!isAddPage && (
+        <div
+          className={`${styles['comment-btn']}${
+            location.pathname === '/comment'
+              ? ` ${styles['comment-btn-active']}`
+              : ''
+          }`}
+          onClick={() => confirmLeave(() => history.push('/comment'))}
+        >
+          <MessageOutlined />
         </div>
       )}
     </Layout>

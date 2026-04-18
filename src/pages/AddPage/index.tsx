@@ -1,44 +1,64 @@
 import React, { useState, useEffect } from 'react';
-import { Input, Upload, Button, message, Modal } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Input, Upload, Button, message, Modal, Spin } from 'antd';
+import { PlusOutlined, LoadingOutlined } from '@ant-design/icons';
 import { history, useLocation } from 'umi';
 import styles from './index.less';
+import {
+  getArticlesDetail,
+  createArticle,
+  updateArticle,
+  uploadImage,
+} from '@/services/article';
 
 const { TextArea } = Input;
 
+// 后端 Article 字段
+interface ArticleData {
+  id?: number;
+  title: string;
+  content: string;
+  cover: string | null;
+  createdAt?: string;
+}
+
 interface LocationState {
-  editMode?: boolean;
-  data?: {
-    title: string;
-    desc: string;
-    date: string;
-    value: number;
-  };
+  /** 'add' = HomeLayout 新建按钮  |  'edit' = Essay 列表点击编辑 */
+  from?: 'add' | 'edit';
+  data?: ArticleData;
 }
 
 const AddPage: React.FC = () => {
   const location = useLocation() as any;
   const state: LocationState = (location.state as LocationState) || {};
 
+  const isEdit = state.from === 'edit' && !!state.data?.id;
+
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [coverUrl, setCoverUrl] = useState<string>('');
   const [wordCount, setWordCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [imgUploading, setImgUploading] = useState(false);
   const [published, setPublished] = useState(false);
 
-  // 回显数据
+  // 编辑模式：调用接口获取详情回显
   useEffect(() => {
-    if (state.editMode && state.data) {
-      const d = state.data;
-      setTitle(d.title || '');
-      setContent(d.desc || '');
-      setWordCount((d.desc || '').length);
-      // 如果有本地图片可以回显
-      try {
-        const imgSrc = require(`../../assets/images/${d.value}.jpg`);
-        setCoverUrl(imgSrc);
-      } catch {}
+    if (isEdit && state.data?.id) {
+      setLoading(true);
+      getArticlesDetail(state.data.id)
+        .then((res: any) => {
+          const d: ArticleData = Array.isArray(res) ? res[0] : res?.data ?? res;
+          if (d) {
+            setTitle(d.title || '');
+            setContent(d.content || '');
+            setWordCount((d.content || '').length);
+            if (d.cover) setCoverUrl(d.cover);
+          }
+        })
+        .catch(() => message.error('获取文章详情失败'))
+        .finally(() => setLoading(false));
     }
+    // from === 'add' 时不调接口，保持空白
   }, []);
 
   const now = new Date();
@@ -53,14 +73,28 @@ const AddPage: React.FC = () => {
     setWordCount(e.target.value.length);
   };
 
-  const handleCoverChange = (info: any) => {
+  // 封面上传：先本地预览，同时上传到后端拿 URL
+  const handleCoverChange = async (info: any) => {
     const file: File = info.file;
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setCoverUrl(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return false;
+
+    // 本地预览
+    const reader = new FileReader();
+    reader.onload = (e) => setCoverUrl(e.target?.result as string);
+    reader.readAsDataURL(file);
+
+    // 上传到后端
+    setImgUploading(true);
+    try {
+      const result = await uploadImage(file);
+      // 后端返回 { url: '/uploads/xxx.jpg' }，拼上后端地址
+      const fullUrl = `http://localhost:3000${result.url}`;
+      setCoverUrl(fullUrl);
+      message.success('封面上传成功');
+    } catch {
+      message.error('封面上传失败，将使用本地预览');
+    } finally {
+      setImgUploading(false);
     }
     return false;
   };
@@ -72,13 +106,11 @@ const AddPage: React.FC = () => {
       content: '当前内容尚未发表，离开后将丢失所有编辑内容。',
       okText: '确认离开',
       cancelText: '继续编辑',
-      onOk: () => {
-        history.push('/home');
-      },
+      onOk: () => history.push('/home'),
     });
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!title.trim()) {
       message.warning('请输入文章标题');
       return;
@@ -87,20 +119,45 @@ const AddPage: React.FC = () => {
       message.warning('请输入正文内容');
       return;
     }
+
     const articleData = {
       title,
       content,
-      cover: coverUrl,
-      createTime: currentTime,
-      wordCount,
+      cover: coverUrl || null,
     };
-    console.log('发表文章:', articleData);
-    setPublished(true);
-    message.success('发表成功！');
-    setTimeout(() => {
-      history.push('/home');
-    }, 800);
+
+    try {
+      setPublished(true);
+      if (isEdit && state.data?.id) {
+        // 编辑模式：PUT 更新
+        await updateArticle(state.data.id, articleData);
+        message.success('更新成功！');
+      } else {
+        // 新建模式：POST 创建
+        await createArticle(articleData);
+        message.success('发表成功！');
+      }
+      setTimeout(() => history.push('/essay'), 800);
+    } catch {
+      message.error('操作失败，请重试');
+      setPublished(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div
+        className={styles['add-page']}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div className={styles['add-page']}>
@@ -133,12 +190,14 @@ const AddPage: React.FC = () => {
             {coverUrl ? (
               <div className={styles['cover-preview']}>
                 <img src={coverUrl} alt="封面" />
-                <div className={styles['cover-mask']}>更换封面</div>
+                <div className={styles['cover-mask']}>
+                  {imgUploading ? <LoadingOutlined /> : '更换封面'}
+                </div>
               </div>
             ) : (
               <div className={styles['cover-upload-btn']}>
-                <PlusOutlined />
-                <span>添加封面</span>
+                {imgUploading ? <LoadingOutlined /> : <PlusOutlined />}
+                <span>{imgUploading ? '上传中...' : '添加封面'}</span>
               </div>
             )}
           </Upload>
@@ -159,9 +218,9 @@ const AddPage: React.FC = () => {
           type="primary"
           className={styles['publish-btn']}
           onClick={handlePublish}
-          disabled={published}
+          disabled={published || imgUploading}
         >
-          发表
+          {isEdit ? '更新' : '发表'}
         </Button>
       </div>
     </div>

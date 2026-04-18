@@ -4,6 +4,7 @@ const DocumentPage = '@/pages/Document/index';
 const EssayPage = '@/pages/Essay/index';
 const EssayDetailPage = '@/pages/Essay/detail';
 const AddPage = '@/pages/AddPage/index';
+const CommentPage = '@/pages/Comment/index';
 
 export default [
   // 根路径精确匹配，跳转到登录页
@@ -22,6 +23,7 @@ export default [
       { exact: true, path: '/essay', component: EssayPage },
       { exact: true, path: '/essay/detail', component: EssayDetailPage },
       { exact: true, path: '/add', component: AddPage },
+      { exact: true, path: '/comment', component: CommentPage },
       // 未匹配路由重定向到首页
       { redirect: '/home' },
     ],
