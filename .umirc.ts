@@ -17,6 +17,10 @@ export default defineConfig({
       changeOrigin: true,
       pathRewrite: { '^/api': '' },
     },
+    '/uploads': {
+      target: 'http://localhost:3000', // 将前端对 /uploads 的请求代理到 Nest 后端
+      changeOrigin: true,
+    },
   },
   chainWebpack(memo) {
     memo.module

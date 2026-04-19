@@ -2,29 +2,23 @@ import React, { useEffect, useState } from 'react';
 import styles from './index.less';
 import { history } from 'umi';
 import { Modal, message } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import Lottie from 'react-lottie-player';
 import emptyJson from '@/assets/json/empty.json';
-import { getArticlesList, deleteArticle } from '@/services/article';
+import {
+  getWallPaperList,
+  deleteWallPaper,
+  WallPaperItem,
+} from '@/services/wallpaper';
 
-// 后端 Article 模型字段
-interface ArticleItem {
-  id: number;
-  title: string;
-  content: string;
-  cover: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-const EssayPage: React.FC = () => {
-  const [list, setList] = useState<ArticleItem[]>([]);
+const WallPaperPage: React.FC = () => {
+  const [list, setList] = useState<WallPaperItem[]>([]);
   const [loading, setLoading] = useState(true);
   const isAdmin = localStorage.getItem('token') === '121414';
 
   const fetchList = () => {
     setLoading(true);
-    getArticlesList()
+    getWallPaperList()
       .then((res: any) => {
         const data = Array.isArray(res) ? res : res?.data || [];
         setList(data);
@@ -36,19 +30,16 @@ const EssayPage: React.FC = () => {
     fetchList();
   }, []);
 
-  // 点击卡片主体 -> 详情
-  const handleView = (item: ArticleItem) => {
-    history.push('/essay/detail', { data: item });
+  const handleView = (item: WallPaperItem) => {
+    history.push('/wallpaper/detail', { data: item });
   };
 
-  // 点击编辑 -> AddPage 回显
-  const handleEdit = (e: React.MouseEvent, item: ArticleItem) => {
+  const handleEdit = (e: React.MouseEvent, item: WallPaperItem) => {
     e.stopPropagation();
-    history.push('/add', { from: 'edit', data: item });
+    history.push('/wallpaper/edit', { from: 'edit', data: item });
   };
 
-  // 点击删除 -> 二次确认 -> 调接口 -> 刷新列表
-  const handleDelete = (e: React.MouseEvent, item: ArticleItem) => {
+  const handleDelete = (e: React.MouseEvent, item: WallPaperItem) => {
     e.stopPropagation();
     Modal.confirm({
       title: '确认删除',
@@ -58,7 +49,7 @@ const EssayPage: React.FC = () => {
       okButtonProps: { danger: true },
       onOk: async () => {
         try {
-          await deleteArticle(item.id);
+          await deleteWallPaper(item.id);
           message.success('删除成功');
           fetchList();
         } catch {
@@ -68,7 +59,10 @@ const EssayPage: React.FC = () => {
     });
   };
 
-  // 格式化时间
+  const handleAdd = () => {
+    history.push('/wallpaper/edit', { from: 'add' });
+  };
+
   const formatDate = (iso: string) => {
     if (!iso) return '';
     const d = new Date(iso);
@@ -78,13 +72,7 @@ const EssayPage: React.FC = () => {
     )}月${String(d.getDate()).padStart(2, '0')}日`;
   };
 
-  // 截取正文前 80 字作为摘要
-  const getDesc = (content: string) => {
-    if (!content) return '';
-    return content.length > 80 ? content.slice(0, 80) + '...' : content;
-  };
-
-  if (!loading && list.length === 0) {
+  if (!loading && list.length === 0 && !isAdmin) {
     return (
       <div className={styles['empty-wrap']}>
         <Lottie animationData={emptyJson} play loop style={{ width: 600 }} />
@@ -93,19 +81,33 @@ const EssayPage: React.FC = () => {
   }
 
   return (
-    <div className={styles['essay-wrapper']}>
-      <div className={styles['essay-main']}>
+    <div className={styles['wallpaper-wrapper']}>
+      <div className={styles['wallpaper-main']}>
+        {/* 新增固定卡片框 */}
+        {isAdmin && (
+          <div
+            className={`${styles['wallpaper-card']} ${styles['add-card']}`}
+            onClick={handleAdd}
+          >
+            <div className={styles['add-content']}>
+              <PlusOutlined className={styles['add-icon']} />
+              <div className={styles['add-text']}>新增壁纸</div>
+            </div>
+          </div>
+        )}
+
+        {/* 壁纸列表 */}
         {list.map((item) => (
           <div
             key={item.id}
-            className={styles['essay-card']}
+            className={styles['wallpaper-card']}
             onClick={() => handleView(item)}
           >
             <div className={styles['card-cover']}>
               {item.cover ? (
                 <img
                   src={`https://cdn.tauol.online${item.cover}`}
-                  alt={item.title}
+                  alt={item.title || 'wallpaper'}
                 />
               ) : (
                 <div className={styles['card-cover-placeholder']} />
@@ -113,7 +115,6 @@ const EssayPage: React.FC = () => {
             </div>
             <div className={styles['card-body']}>
               <div className={styles['card-title']}>{item.title}</div>
-              <div className={styles['card-desc']}>{getDesc(item.content)}</div>
               <div className={styles['card-footer']}>
                 <div className={styles['card-date']}>
                   {formatDate(item.createdAt)}
@@ -145,4 +146,4 @@ const EssayPage: React.FC = () => {
   );
 };
 
-export default EssayPage;
+export default WallPaperPage;

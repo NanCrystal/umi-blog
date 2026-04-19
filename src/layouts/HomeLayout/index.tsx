@@ -16,6 +16,7 @@ const headerList: any = [
   { label: '主页', path: '/home', value: 0 },
   { label: '吐槽', path: '/document', value: 1 },
   { label: '装逼', path: '/essay', value: 2 },
+  { label: '壁纸', path: '/wallpaper', value: 3 },
 ];
 
 const HomeLayout = (props: IRouteComponentProps) => {
@@ -28,6 +29,7 @@ const HomeLayout = (props: IRouteComponentProps) => {
 
   // 匹配 activeTab，支持子路由高亮
   const getActiveTab = (path: string) => {
+    if (path.startsWith('/wallpaper')) return 3;
     if (path.startsWith('/essay')) return 2;
     if (path.startsWith('/document')) return 1;
     if (path.startsWith('/home')) return 0;
@@ -203,7 +205,7 @@ const HomeLayout = (props: IRouteComponentProps) => {
       )}
 
       {/* 留言入口（全员可见） */}
-      {!isAddPage && (
+      {!isAddPage && location.pathname !== '/comment' && (
         <div
           className={`${styles['comment-btn']}${
             location.pathname === '/comment'

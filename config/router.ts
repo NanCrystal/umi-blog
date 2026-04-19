@@ -5,6 +5,9 @@ const EssayPage = '@/pages/Essay/index';
 const EssayDetailPage = '@/pages/Essay/detail';
 const AddPage = '@/pages/AddPage/index';
 const CommentPage = '@/pages/Comment/index';
+const WallPaperPage = '@/pages/WallPaper/index';
+const WallPaperEditPage = '@/pages/WallPaper/edit';
+const WallPaperDetailPage = '@/pages/WallPaper/detail';
 
 export default [
   // 根路径精确匹配，跳转到登录页
@@ -21,6 +24,13 @@ export default [
       { exact: true, path: '/home', component: HomePage },
       { exact: true, path: '/document', component: DocumentPage },
       { exact: true, path: '/essay', component: EssayPage },
+      { exact: true, path: '/wallpaper', component: WallPaperPage },
+      { exact: true, path: '/wallpaper/edit', component: WallPaperEditPage },
+      {
+        exact: true,
+        path: '/wallpaper/detail',
+        component: WallPaperDetailPage,
+      },
       { exact: true, path: '/essay/detail', component: EssayDetailPage },
       { exact: true, path: '/add', component: AddPage },
       { exact: true, path: '/comment', component: CommentPage },

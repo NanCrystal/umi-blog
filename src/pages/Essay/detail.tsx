@@ -56,7 +56,10 @@ const EssayDetailPage: React.FC = () => {
         {/* 封面图 */}
         {item.cover && (
           <div className={styles['detail-cover']}>
-            <img src={item.cover} alt={item.title} />
+            <img
+              src={`https://cdn.tauol.online${item.cover}`}
+              alt={item.title}
+            />
           </div>
         )}
 

@@ -87,8 +87,8 @@ const AddPage: React.FC = () => {
     setImgUploading(true);
     try {
       const result = await uploadImage(file);
-      // 后端返回 { url: '/uploads/xxx.jpg' }，拼上后端地址
-      const fullUrl = `http://localhost:3000${result.url}`;
+      // 直接使用相对路径，.umirc.ts 已配置 /uploads 代理
+      const fullUrl = result.url;
       setCoverUrl(fullUrl);
       message.success('封面上传成功');
     } catch {

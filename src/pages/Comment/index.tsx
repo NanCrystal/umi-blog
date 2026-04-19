@@ -29,7 +29,7 @@ function buildConfigs(list: CommentItem[]): BubbleConfig[] {
     top: Math.random() * 70 + 10, // 10~80vh
     delay: Math.random() * 6, // 0~6s 错落
     duration: Math.random() * 3 + 4, // 4~7s 每轮
-    fontSize: Math.random() * 6 + 13, // 13~19px
+    fontSize: Math.random() * 6 + 16, // 16~22px
   }));
 }
 

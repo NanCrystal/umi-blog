@@ -1,0 +1,121 @@
+.detail-wrapper {
+  padding: 76px 32px 32px;
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+}
+
+.loading-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.detail-header {
+  position: absolute;
+  top: 76px;
+  left: 32px;
+  z-index: 10;
+
+  .header-left {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.65);
+    transition: color 0.2s;
+    font-size: 16px;
+
+    &:hover {
+      color: rgba(255, 255, 255, 1);
+    }
+
+    .back-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+.detail-content {
+  padding: 0;
+  /* 去除之前的 border 和 background */
+}
+
+.title-section {
+  text-align: center;
+  margin-bottom: 32px;
+
+  .title {
+    font-size: 24px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 12px;
+  }
+
+  .meta {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.45);
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+  }
+}
+
+/* 封面自己单独展示一行 */
+.cover-row {
+  width: 100%;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  overflow: hidden;
+
+  .cover-image {
+    width: 100%;
+    display: block;
+    cursor: pointer;
+  }
+}
+
+/* 其他图片一行两张 */
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+
+  .image-item {
+    width: 100%;
+    /* 按照手机壁纸的格式，大概是 9:16 或类似比例 */
+    aspect-ratio: 9 / 16;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
+
+    .wallpaper-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      cursor: pointer;
+    }
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 600px) {
+  .detail-wrapper {
+    padding: 60px 16px 16px;
+  }
+
+  .detail-header {
+    top: 60px;
+    left: 16px;
+  }
+
+  .detail-content {
+    padding: 16px;
+  }
+
+  .images-grid {
+    gap: 12px;
+  }
+}
