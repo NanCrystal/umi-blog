@@ -128,6 +128,26 @@ const WallPaperEditPage: React.FC = () => {
     onChange: ({ fileList }) => {
       setCoverFileList(fileList);
     },
+    itemRender: (originNode, file) => {
+      const url = file.url || file.response?.url;
+      if (url) {
+        const fullUrl = url.startsWith('http')
+          ? url
+          : `https://cdn.tauol.online${url}`;
+        return (
+          <div
+            className="ant-upload-list-item ant-upload-list-item-done"
+            style={{ padding: 8 }}
+          >
+            <img
+              src={fullUrl}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+        );
+      }
+      return originNode;
+    },
   };
 
   const uploadImagesProps: UploadProps = {
@@ -137,6 +157,26 @@ const WallPaperEditPage: React.FC = () => {
     multiple: true,
     onChange: ({ fileList }) => {
       setImagesFileList(fileList);
+    },
+    itemRender: (originNode, file) => {
+      const url = file.url || file.response?.url;
+      if (url) {
+        const fullUrl = url.startsWith('http')
+          ? url
+          : `https://cdn.tauol.online${url}`;
+        return (
+          <div
+            className="ant-upload-list-item ant-upload-list-item-done"
+            style={{ padding: 8 }}
+          >
+            <img
+              src={fullUrl}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+        );
+      }
+      return originNode;
     },
   };
 

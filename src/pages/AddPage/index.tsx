@@ -189,7 +189,14 @@ const AddPage: React.FC = () => {
           >
             {coverUrl ? (
               <div className={styles['cover-preview']}>
-                <img src={coverUrl} alt="封面" />
+                <img
+                  src={
+                    coverUrl.startsWith('http')
+                      ? coverUrl
+                      : `https://cdn.tauol.online${coverUrl}`
+                  }
+                  alt="封面"
+                />
                 <div className={styles['cover-mask']}>
                   {imgUploading ? <LoadingOutlined /> : '更换封面'}
                 </div>
