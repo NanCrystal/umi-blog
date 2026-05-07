@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { history, useLocation } from 'umi';
-import { Form, Input, Button, Upload, message, Divider, Spin } from 'antd';
-import { PlusOutlined, LoadingOutlined } from '@ant-design/icons';
+import { Input, Button, Upload, message, Divider } from 'antd';
+import {
+  PlusOutlined,
+  LoadingOutlined,
+  CloseCircleFilled,
+} from '@ant-design/icons';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { createWallPaper, updateWallPaper } from '@/services/wallpaper';
 import { uploadImageFull } from '@/services/upload';
@@ -18,6 +22,10 @@ const WallPaperEditPage: React.FC = () => {
   const [imagesFileList, setImagesFileList] = useState<UploadFile[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const imagesInputRef = useRef<HTMLInputElement>(null);
+  const replacingIndexRef = useRef<number>(-1); // -1 表示封面，>=0 表示 images 的索引
 
   useEffect(() => {
     if (isEdit && editData) {
@@ -110,7 +118,6 @@ const WallPaperEditPage: React.FC = () => {
     const { file, onSuccess, onError } = options;
     try {
       const res = await uploadImageFull(file as File);
-      // 直接使用后端返回的相对路径，.umirc.ts 已经配置了代理
       const fullUrl = res.url;
       const thumbFullUrl = res.thumbUrl || fullUrl;
       onSuccess({ url: fullUrl, thumbUrl: thumbFullUrl });
@@ -118,6 +125,115 @@ const WallPaperEditPage: React.FC = () => {
       onError(err);
       message.error('上传失败');
     }
+  };
+
+  // 点击图片替换：触发隐藏的 file input
+  const handleCoverClick = () => {
+    replacingIndexRef.current = -1;
+    coverInputRef.current?.click();
+  };
+
+  const handleImageClick = (index: number) => {
+    replacingIndexRef.current = index;
+    imagesInputRef.current?.click();
+  };
+
+  // 隐藏 input 的 change 处理
+  const handleCoverReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const res = await uploadImageFull(file);
+      const fullUrl = res.url;
+      const thumbFullUrl = res.thumbUrl || fullUrl;
+      setCoverFileList([
+        {
+          uid: '-1',
+          name: file.name,
+          status: 'done',
+          url: fullUrl,
+          response: { url: fullUrl, thumbUrl: thumbFullUrl },
+        },
+      ]);
+    } catch {
+      message.error('上传失败');
+    }
+    // 重置 input 以便再次选择同一文件
+    e.target.value = '';
+  };
+
+  const handleImageReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const idx = replacingIndexRef.current;
+    try {
+      const res = await uploadImageFull(file);
+      const fullUrl = res.url;
+      const thumbFullUrl = res.thumbUrl || fullUrl;
+      setImagesFileList((prev) => {
+        const next = [...prev];
+        next[idx] = {
+          uid: prev[idx].uid,
+          name: file.name,
+          status: 'done',
+          url: fullUrl,
+          response: { url: fullUrl, thumbUrl: thumbFullUrl },
+        };
+        return next;
+      });
+    } catch {
+      message.error('上传失败');
+    }
+    e.target.value = '';
+  };
+
+  const handleCoverRemove = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCoverFileList([]);
+  };
+
+  const handleImageRemove = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setImagesFileList((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // 渲染可交互的图片项
+  const renderImageItem = (
+    file: UploadFile,
+    onReplace: () => void,
+    onRemove: (e: React.MouseEvent) => void,
+  ) => {
+    if (file.status === 'uploading') {
+      return (
+        <div
+          className={`${styles['image-item']} ant-upload-list-item ant-upload-list-item-uploading`}
+        >
+          <LoadingOutlined
+            style={{ fontSize: 24, color: 'rgba(255,255,255,0.5)' }}
+          />
+        </div>
+      );
+    }
+    const url = file.url || file.response?.url || '';
+    const fullUrl = url.startsWith('http')
+      ? url
+      : url
+      ? `https://cdn.tauol.online${url}`
+      : '';
+    return (
+      <div
+        className={`${styles['image-item']} ant-upload-list-item ant-upload-list-item-done`}
+      >
+        <img src={fullUrl} className={styles['image-item-img']} />
+        <div className={styles['image-item-overlay']}>
+          <span className={styles['image-item-action']}>点击替换</span>
+        </div>
+        <CloseCircleFilled
+          className={styles['image-item-remove']}
+          onClick={onRemove}
+        />
+      </div>
+    );
   };
 
   const uploadCoverProps: UploadProps = {
@@ -128,26 +244,7 @@ const WallPaperEditPage: React.FC = () => {
     onChange: ({ fileList }) => {
       setCoverFileList(fileList);
     },
-    itemRender: (originNode, file) => {
-      const url = file.url || file.response?.url;
-      if (url) {
-        const fullUrl = url.startsWith('http')
-          ? url
-          : `https://cdn.tauol.online${url}`;
-        return (
-          <div
-            className="ant-upload-list-item ant-upload-list-item-done"
-            style={{ padding: 8 }}
-          >
-            <img
-              src={fullUrl}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </div>
-        );
-      }
-      return originNode;
-    },
+    showUploadList: false,
   };
 
   const uploadImagesProps: UploadProps = {
@@ -158,26 +255,7 @@ const WallPaperEditPage: React.FC = () => {
     onChange: ({ fileList }) => {
       setImagesFileList(fileList);
     },
-    itemRender: (originNode, file) => {
-      const url = file.url || file.response?.url;
-      if (url) {
-        const fullUrl = url.startsWith('http')
-          ? url
-          : `https://cdn.tauol.online${url}`;
-        return (
-          <div
-            className="ant-upload-list-item ant-upload-list-item-done"
-            style={{ padding: 8 }}
-          >
-            <img
-              src={fullUrl}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </div>
-        );
-      }
-      return originNode;
-    },
+    showUploadList: false,
   };
 
   const handleCancel = () => {
@@ -198,24 +276,53 @@ const WallPaperEditPage: React.FC = () => {
 
         <div className={styles['cover-section']}>
           <Upload {...uploadCoverProps} className={styles['large-upload']}>
-            {coverFileList.length < 1 && (
+            {coverFileList.length < 1 ? (
               <div className={styles['upload-btn-content']}>
                 <PlusOutlined style={{ fontSize: '24px' }} />
                 <div style={{ marginTop: 8, fontSize: '14px' }}>添加封面</div>
               </div>
+            ) : (
+              renderImageItem(
+                coverFileList[0],
+                handleCoverClick,
+                handleCoverRemove,
+              )
             )}
           </Upload>
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleCoverReplace}
+          />
         </div>
 
         <Divider className={styles['divider']} />
 
         <div className={styles['images-section']}>
-          <Upload {...uploadImagesProps}>
-            <div className={styles['upload-btn-content']}>
-              <PlusOutlined style={{ fontSize: '20px' }} />
-              <div style={{ marginTop: 8 }}>添加壁纸</div>
-            </div>
-          </Upload>
+          <div className={styles['images-grid']}>
+            {imagesFileList.map((file, index) =>
+              renderImageItem(
+                file,
+                () => handleImageClick(index),
+                (e) => handleImageRemove(index, e),
+              ),
+            )}
+            <Upload {...uploadImagesProps}>
+              <div className={styles['upload-btn-content']}>
+                <PlusOutlined style={{ fontSize: '20px' }} />
+                <div style={{ marginTop: 8 }}>添加壁纸</div>
+              </div>
+            </Upload>
+          </div>
+          <input
+            ref={imagesInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleImageReplace}
+          />
         </div>
       </div>
 
