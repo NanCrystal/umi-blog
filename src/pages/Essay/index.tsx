@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styles from './index.less';
 import { history } from 'umi';
 import { Modal, message } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import Lottie from 'react-lottie-player';
 import emptyJson from '@/assets/json/empty.json';
 import { getArticlesList, deleteArticle } from '@/services/article';
@@ -68,6 +68,10 @@ const EssayPage: React.FC = () => {
     });
   };
 
+  const handleAdd = () => {
+    history.push('/add', { from: 'essay' });
+  };
+
   // 格式化时间
   const formatDate = (iso: string) => {
     if (!iso) return '';
@@ -95,6 +99,17 @@ const EssayPage: React.FC = () => {
   return (
     <div className={styles['essay-wrapper']}>
       <div className={styles['essay-main']}>
+        {isAdmin && (
+          <div
+            className={`${styles['essay-card']} ${styles['add-card']}`}
+            onClick={handleAdd}
+          >
+            <div className={styles['add-content']}>
+              <PlusOutlined className={styles['add-icon']} />
+              <div className={styles['add-text']}>新增文章</div>
+            </div>
+          </div>
+        )}
         {list.map((item) => (
           <div
             key={item.id}

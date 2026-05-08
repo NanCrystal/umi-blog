@@ -63,6 +63,11 @@ const WallPaperPage: React.FC = () => {
     history.push('/wallpaper/edit', { from: 'add' });
   };
 
+  const getImageUrl = (path?: string) => {
+    if (!path) return '';
+    return path.startsWith('http') ? path : `https://cdn.tauol.online${path}`;
+  };
+
   const formatDate = (iso: string) => {
     if (!iso) return '';
     const d = new Date(iso);
@@ -74,8 +79,10 @@ const WallPaperPage: React.FC = () => {
 
   if (!loading && list.length === 0 && !isAdmin) {
     return (
-      <div className={styles['empty-wrap']}>
-        <Lottie animationData={emptyJson} play loop style={{ width: 600 }} />
+      <div className={styles['wallpaper-wrapper']}>
+        <div className={styles['empty-wrap']}>
+          <Lottie animationData={emptyJson} play loop style={{ width: 600 }} />
+        </div>
       </div>
     );
   }
@@ -83,7 +90,6 @@ const WallPaperPage: React.FC = () => {
   return (
     <div className={styles['wallpaper-wrapper']}>
       <div className={styles['wallpaper-main']}>
-        {/* 新增固定卡片框 */}
         {isAdmin && (
           <div
             className={`${styles['wallpaper-card']} ${styles['add-card']}`}
@@ -96,7 +102,6 @@ const WallPaperPage: React.FC = () => {
           </div>
         )}
 
-        {/* 壁纸列表 */}
         {list.map((item) => (
           <div
             key={item.id}
@@ -106,7 +111,7 @@ const WallPaperPage: React.FC = () => {
             <div className={styles['card-cover']}>
               {item.cover ? (
                 <img
-                  src={`https://cdn.tauol.online${item.cover}`}
+                  src={getImageUrl(item.cover)}
                   alt={item.title || 'wallpaper'}
                 />
               ) : (

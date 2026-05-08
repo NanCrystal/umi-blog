@@ -88,6 +88,63 @@
   }
 }
 
+/* 头像按钮 */
+.avatar-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+
+  &:hover {
+    background: rgba(79, 195, 247, 0.15);
+    border-color: rgba(79, 195, 247, 0.4);
+    color: #4fc3f7;
+  }
+}
+
+/* 头像下拉菜单覆盖样式 */
+:global(.avatar-dropdown-overlay) {
+  .ant-dropdown-menu {
+    background: rgba(12, 18, 28, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 4px;
+    backdrop-filter: blur(16px);
+
+    .ant-dropdown-menu-item {
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 13px;
+      transition: background 0.15s, color 0.15s;
+
+      &:hover {
+        background: rgba(79, 195, 247, 0.1);
+        color: rgba(255, 255, 255, 0.95);
+      }
+
+      .ant-dropdown-menu-item-icon {
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 14px;
+      }
+    }
+
+    .ant-dropdown-menu-item-divider {
+      background: rgba(255, 255, 255, 0.06);
+      margin: 2px 8px;
+    }
+  }
+}
+
 /* 汉堡按钮（移动端显示） */
 .hamburger {
   display: none;
@@ -197,7 +254,7 @@
 .comment-btn {
   position: fixed;
   right: 36px;
-  bottom: 84px;
+  bottom: calc(100vh / 3);
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -264,7 +321,7 @@
 
   .comment-btn {
     right: 16px;
-    bottom: 80px;
+    bottom: calc(100vh / 3);
     width: 44px;
     height: 44px;
     font-size: 17px;

@@ -1,13 +1,16 @@
 import styles from './index.less';
 import { history, useLocation } from 'umi';
-import { Layout, Modal } from 'antd';
+import { Layout, Modal, Dropdown } from 'antd';
+import type { MenuProps } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import {
-  PlusOutlined,
   MessageOutlined,
   ExclamationCircleOutlined,
   MenuOutlined,
   CloseOutlined,
+  UserOutlined,
+  SettingOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons';
 
 const { Header, Footer, Content } = Layout;
@@ -109,15 +112,39 @@ const HomeLayout = (props: IRouteComponentProps) => {
     confirmLeave(() => history.push(val.path));
   };
 
-  const handleAdd = () => history.push('/add');
-
   const handleLogout = () => {
-    setMenuOpen(false);
-    confirmLeave(() => {
-      localStorage.removeItem('token');
-      history.push('/login');
+    Modal.confirm({
+      title: '确认退出登录？',
+      icon: <ExclamationCircleOutlined />,
+      okText: '退出',
+      cancelText: '取消',
+      okButtonProps: { danger: true },
+      onOk: () => {
+        localStorage.removeItem('token');
+        history.push('/login');
+      },
     });
   };
+
+  const handleAdmin = () => {
+    confirmLeave(() => history.push('/admin/wallpaper'));
+  };
+
+  const dropdownItems: MenuProps['items'] = [
+    {
+      key: 'admin',
+      icon: <SettingOutlined />,
+      label: '后台管理',
+      onClick: handleAdmin,
+    },
+    { type: 'divider' },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: '退出登录',
+      onClick: handleLogout,
+    },
+  ];
 
   return (
     <Layout className="home-wrapper">
@@ -151,9 +178,22 @@ const HomeLayout = (props: IRouteComponentProps) => {
                 <span>{item.label}</span>
               </div>
             ))}
-            <div className={styles['header-item']} onClick={handleLogout}>
-              <span>退出</span>
-            </div>
+            {isAdmin ? (
+              <Dropdown
+                menu={{ items: dropdownItems }}
+                trigger={['click']}
+                placement="bottomRight"
+                overlayClassName={styles['avatar-dropdown-overlay']}
+              >
+                <div className={styles['avatar-btn']}>
+                  <UserOutlined />
+                </div>
+              </Dropdown>
+            ) : (
+              <div className={styles['header-item']} onClick={handleLogout}>
+                <span>退出</span>
+              </div>
+            )}
           </div>
 
           {/* 移动端汉堡按钮 */}
@@ -180,6 +220,17 @@ const HomeLayout = (props: IRouteComponentProps) => {
               {item.label}
             </div>
           ))}
+          {isAdmin && (
+            <div
+              className={styles['mobile-menu-item']}
+              onClick={() => {
+                setMenuOpen(false);
+                handleAdmin();
+              }}
+            >
+              后台管理
+            </div>
+          )}
           <div className={styles['mobile-menu-item']} onClick={handleLogout}>
             退出
           </div>
@@ -197,12 +248,6 @@ const HomeLayout = (props: IRouteComponentProps) => {
           </a>
         </div>
       </Footer> */}
-
-      {isAdmin && !isAddPage && (
-        <div className={styles['add-btn']} onClick={handleAdd}>
-          <PlusOutlined />
-        </div>
-      )}
 
       {/* 留言入口（全员可见） */}
       {!isAddPage && location.pathname !== '/comment' && (

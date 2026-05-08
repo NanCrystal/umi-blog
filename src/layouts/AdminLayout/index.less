@@ -1,0 +1,93 @@
+.admin-layout {
+  min-height: 100vh;
+  background: #0c0e14 !important;
+}
+
+.admin-sider {
+  background: rgba(12, 18, 28, 0.95) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+  overflow: auto;
+}
+
+.admin-sider-header {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-sider-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: 1px;
+}
+
+.admin-menu {
+  background: transparent !important;
+  border-inline-end: none !important;
+  margin-top: 8px;
+
+  :global(.ant-menu-item) {
+    height: 48px;
+    line-height: 48px;
+    margin: 4px 8px;
+    padding: 0 16px !important;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 14px;
+    transition: all 0.2s;
+
+    &:hover {
+      color: rgba(255, 255, 255, 0.9) !important;
+      background: rgba(255, 255, 255, 0.06) !important;
+    }
+
+    .ant-menu-item-icon {
+      font-size: 16px;
+    }
+  }
+
+  :global(.ant-menu-item.ant-menu-item-selected) {
+    color: #fff !important;
+    background: rgba(79, 195, 247, 0.18) !important;
+  }
+}
+
+// // 全局覆盖 antd 默认的 #e6f7ff 选中背景色
+// :global(.ant-menu:not(.ant-menu-horizontal) .ant-menu-item-selected) {
+//   background-color: transparent !important;
+// }
+
+.admin-content-layout {
+  margin-left: 220px;
+  background: transparent !important;
+  min-height: 100vh;
+}
+
+.admin-content {
+  padding: 24px;
+  min-height: 100vh;
+  background: transparent !important;
+}
+
+@media (max-width: 768px) {
+  .admin-sider {
+    display: none;
+  }
+
+  .admin-content-layout {
+    margin-left: 0;
+  }
+
+  .admin-content {
+    padding: 16px;
+  }
+}

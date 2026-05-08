@@ -9,6 +9,37 @@
   gap: 20px;
 }
 
+/* 新增卡片 */
+.add-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+  min-height: 200px;
+
+  .add-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.45);
+    transition: color 0.3s;
+
+    .add-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .add-text {
+      font-size: 15px;
+      font-weight: 500;
+    }
+  }
+
+  &:hover .add-content {
+    color: #4fc3f7;
+  }
+}
+
 /* 单张卡片 */
 .essay-card {
   background: rgba(255, 255, 255, 0.04);
