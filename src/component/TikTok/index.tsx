@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Button, Modal, message, Progress } from 'antd';
+import { Button, Modal, message, Progress, DatePicker } from 'antd';
+import moment from 'moment';
 import { isTimeoutError } from '@/utils/utils';
 import {
   addPendingPublish,
@@ -15,6 +16,8 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
   const [loggingIn, setLoggingIn] = useState(false);
   const [currentItem, setCurrentItem] = useState<any>(null);
   const [progress, setProgress] = useState(0);
+  const [mode, setMode] = useState<'now' | 'scheduled' | null>(null);
+  const [publishDate, setPublishDate] = useState<moment.Moment | null>(null);
   const publishAbortRef = useRef<AbortController | null>(null);
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -54,6 +57,8 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
     setCurrentItem(data);
     setVisible(true);
     setSubmitting(false);
+    setMode(null);
+    setPublishDate(null);
     setChecking(true);
     try {
       const { checkDouyinLoginStatus } = require('@/services/wallpaper');
@@ -67,12 +72,13 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
   };
 
   const handleClose = () => {
-    // 关闭弹窗但不中断正在进行的发布请求
     if (!publishAbortRef.current) {
       setCurrentItem(null);
     }
     setVisible(false);
     setLoggingIn(false);
+    setMode(null);
+    setPublishDate(null);
   };
 
   /** 弹窗关闭时重置进度（不中断请求） */
@@ -100,7 +106,7 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
     }
   };
 
-  const handlePublish = async () => {
+  const handlePublish = async (scheduledTime?: string) => {
     if (!currentItem) return;
     const abortController = new AbortController();
     publishAbortRef.current = abortController;
@@ -120,10 +126,13 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
       const { syncWallPaperToDouyin } = require('@/services/wallpaper');
       const result = await syncWallPaperToDouyin(currentItem.id, {
         signal: abortController.signal,
+        scheduledAt: scheduledTime || undefined,
       });
       stopProgress(100);
       message.success(
-        `「${result?.title || currentItem.title}」已发布到抖音图文`,
+        `「${result?.title || currentItem.title}」已${
+          scheduledTime ? '加入抖音定时发布排期' : '发布到抖音图文'
+        }`,
       );
       // 更新为成功状态（刷新后端数据后会替换）
       updatePendingPublish(pendingRecord.tempId, { status: 'SUCCESS' });
@@ -157,6 +166,20 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
       setSubmitting(false);
       publishAbortRef.current = null;
     }
+  };
+
+  const handleScheduledPublish = async () => {
+    if (!currentItem) return;
+    if (!publishDate) {
+      message.warning('请选择定时发布时间');
+      return;
+    }
+    if (publishDate.isBefore(moment())) {
+      message.warning('发布时间必须晚于当前时间');
+      return;
+    }
+    // 定时发布走同样的发布流程，只是带上时间参数
+    await handlePublish(publishDate.toISOString());
   };
 
   React.useImperativeHandle(item?._ref, () => ({ open: handleOpen }), []);
@@ -211,49 +234,165 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
             </div>
           ) : (
             <div>
-              {submitting && (
-                <div style={{ marginBottom: 16 }}>
-                  <Progress
-                    percentPosition={{ align: 'start', type: 'inner' }}
-                    percent={Math.round(progress)}
-                    status={progress >= 100 ? undefined : 'active'}
-                    strokeColor="#25F4EE"
-                    format={(pct) =>
-                      pct! >= 100
-                        ? '发布完成！'
-                        : `正在发布... ${Math.round(pct!)}%`
-                    }
-                  />
-                  <div style={{ color: '#999', fontSize: 12, marginTop: 8 }}>
-                    {progress >= 100
-                      ? '发布完成，正在关闭窗口...'
-                      : '发布过程可能需要较长时间，您可以关闭此窗口，发布将在后台继续进行。'}
+              {!mode ? (
+                <>
+                  <div style={{ color: '#666', marginBottom: 16 }}>
+                    选择「立即发布」将立刻发布到抖音图文；选择「定时发布」将在指定日期
+                    09:00 自动发布。
                   </div>
+                  <div style={{ display: 'flex', gap: 16 }}>
+                    <div
+                      style={{
+                        flex: 1,
+                        padding: 16,
+                        border: '1px solid #e8e8e8',
+                        borderRadius: 8,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                      }}
+                      onClick={() => setMode('now')}
+                    >
+                      <div style={{ fontSize: 24 }}>🚀</div>
+                      <div style={{ fontWeight: 600, marginTop: 4 }}>
+                        立即发布
+                      </div>
+                      <div
+                        style={{ fontSize: 12, color: '#999', marginTop: 4 }}
+                      >
+                        立即发布到抖音图文
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        flex: 1,
+                        padding: 16,
+                        border: '1px solid #e8e8e8',
+                        borderRadius: 8,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                      }}
+                      onClick={() => setMode('scheduled')}
+                    >
+                      <div style={{ fontSize: 24 }}>📅</div>
+                      <div style={{ fontWeight: 600, marginTop: 4 }}>
+                        定时发布
+                      </div>
+                      <div
+                        style={{ fontSize: 12, color: '#999', marginTop: 4 }}
+                      >
+                        选择日期后定时自动发布
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : mode === 'now' ? (
+                <div>
+                  {submitting && (
+                    <div style={{ marginBottom: 16 }}>
+                      <Progress
+                        percentPosition={{ align: 'start', type: 'inner' }}
+                        percent={Math.round(progress)}
+                        status={progress >= 100 ? undefined : 'active'}
+                        strokeColor="#25F4EE"
+                        format={(pct) =>
+                          pct! >= 100
+                            ? '发布完成！'
+                            : `正在发布... ${Math.round(pct!)}%`
+                        }
+                      />
+                      <div
+                        style={{ color: '#999', fontSize: 12, marginTop: 8 }}
+                      >
+                        {progress >= 100
+                          ? '发布完成，正在关闭窗口...'
+                          : '发布过程可能需要较长时间，您可以关闭此窗口，发布将在后台继续进行。'}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ marginBottom: submitting ? 16 : 0 }}>
+                    将以图文形式发布到抖音，包含封面在内的{' '}
+                    {currentItem?.images?.length
+                      ? currentItem.images.length + 1
+                      : 1}{' '}
+                    张图片。发布后可在抖音创作者中心查看。
+                  </div>
+                  {!submitting && (
+                    <div className={styles['btn-wrap']}>
+                      <Button onClick={() => setMode(null)}>返回选择</Button>
+                      <Button
+                        type="primary"
+                        className={styles['action-btn']}
+                        loading={submitting}
+                        onClick={handlePublish}
+                      >
+                        确认立即发布
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              )}
-              <div style={{ marginBottom: submitting ? 16 : 0 }}>
-                将以图文形式发布到抖音，包含封面在内的{' '}
-                {currentItem?.images?.length
-                  ? currentItem.images.length + 1
-                  : 1}{' '}
-                张图片。发布后可在抖音创作者中心查看。
-              </div>
-              {!submitting && (
-                <div className={styles['btn-wrap']}>
-                  <Button
-                    className={styles['cancel-btn']}
-                    onClick={handleClose}
-                  >
-                    取消
-                  </Button>
-                  <Button
-                    type="primary"
-                    className={styles['action-btn']}
-                    loading={submitting}
-                    onClick={handlePublish}
-                  >
-                    确认发布到抖音
-                  </Button>
+              ) : (
+                <div>
+                  {submitting && (
+                    <div style={{ marginBottom: 16 }}>
+                      <Progress
+                        percentPosition={{ align: 'start', type: 'inner' }}
+                        percent={Math.round(progress)}
+                        status={progress >= 100 ? undefined : 'active'}
+                        strokeColor="#25F4EE"
+                        format={(pct) =>
+                          pct! >= 100
+                            ? '发布完成！'
+                            : `正在处理... ${Math.round(pct!)}%`
+                        }
+                      />
+                      <div
+                        style={{ color: '#999', fontSize: 12, marginTop: 8 }}
+                      >
+                        {progress >= 100
+                          ? '处理完成，正在关闭窗口...'
+                          : '处理过程可能需要较长时间，您可以关闭此窗口，任务将在后台继续进行。'}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ marginBottom: submitting ? 16 : 12 }}>
+                    选择定时发布时间
+                  </div>
+                  {!submitting && (
+                    <>
+                      <DatePicker
+                        showTime={{ format: 'HH:mm' }}
+                        placeholder="请选择"
+                        style={{ width: '100%', marginBottom: 12 }}
+                        value={publishDate}
+                        disabledDate={(current) =>
+                          current && current < moment().startOf('day')
+                        }
+                        onChange={(val) => setPublishDate(val)}
+                      />
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: '#666',
+                          marginBottom: 16,
+                        }}
+                      >
+                        将在选定时间自动发布到抖音图文。
+                      </div>
+                    </>
+                  )}
+                  {!submitting && (
+                    <div className={styles['btn-wrap']}>
+                      <Button onClick={() => setMode(null)}>返回选择</Button>
+                      <Button
+                        type="primary"
+                        className={styles['action-btn']}
+                        loading={submitting}
+                        onClick={handleScheduledPublish}
+                      >
+                        确认定时发布
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

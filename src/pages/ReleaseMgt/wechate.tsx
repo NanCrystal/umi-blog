@@ -211,6 +211,7 @@ const WechatTab: React.FC = () => {
                     发布日期：{formatScheduleDisplay(schedule.publishDate)}
                   </span>
                   <span>计划 ID：{schedule.id}</span>
+                  <span>发布状态：{statusMeta.text}</span>
                   <span>最后更新：{formatDateTime(latestTime)}</span>
                   {schedule.publishId ? (
                     <span>发布单号：{schedule.publishId}</span>

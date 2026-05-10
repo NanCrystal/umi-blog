@@ -220,10 +220,17 @@ export async function douyinLogin() {
   return result;
 }
 
-export async function syncWallPaperToDouyin(id: number) {
+export async function syncWallPaperToDouyin(
+  id: number,
+  options?: { signal?: AbortSignal; scheduledAt?: string },
+) {
   const result: any = await request(`/wallpapers/${id}/sync/douyin`, {
     method: 'POST',
     timeout: 120000,
+    data: options?.scheduledAt
+      ? { scheduledAt: options.scheduledAt }
+      : undefined,
+    ...(options?.signal ? { getSignal: () => options.signal } : {}),
   });
 
   if (result?.statusCode >= 400 || result?.error) {
@@ -273,11 +280,14 @@ export async function xiaohongshuLogin() {
 
 export async function syncWallPaperToXiaohongshu(
   id: number,
-  options?: { signal?: AbortSignal },
+  options?: { signal?: AbortSignal; scheduledAt?: string },
 ) {
   const result: any = await request(`/wallpapers/${id}/sync/xiaohongshu`, {
     method: 'POST',
     timeout: 120000,
+    data: options?.scheduledAt
+      ? { scheduledAt: options.scheduledAt }
+      : undefined,
     ...(options?.signal ? { signal: options.signal } : {}),
   });
 
@@ -290,6 +300,44 @@ export async function syncWallPaperToXiaohongshu(
 
   if (!result?.success) {
     throw new Error('小红书图文发布失败，请重试');
+  }
+
+  return result;
+}
+
+export async function scheduleWallPaperDouyinPublish(
+  id: number,
+  publishDate: string,
+) {
+  const result: any = await request(`/wallpapers/${id}/publish/douyin`, {
+    method: 'POST',
+    data: { publishDate },
+  });
+
+  if (result?.statusCode >= 400 || result?.error) {
+    const errorMessage = Array.isArray(result?.message)
+      ? result.message.join('，')
+      : result?.message || '创建抖音定时发布失败';
+    throw new Error(errorMessage);
+  }
+
+  return result;
+}
+
+export async function scheduleWallPaperXiaohongshuPublish(
+  id: number,
+  publishDate: string,
+) {
+  const result: any = await request(`/wallpapers/${id}/publish/xiaohongshu`, {
+    method: 'POST',
+    data: { publishDate },
+  });
+
+  if (result?.statusCode >= 400 || result?.error) {
+    const errorMessage = Array.isArray(result?.message)
+      ? result.message.join('，')
+      : result?.message || '创建小红书定时发布失败';
+    throw new Error(errorMessage);
   }
 
   return result;

@@ -1,23 +1,19 @@
 import React, { useState } from 'react';
-import { Button, Modal, message } from 'antd';
-import {
-  getTodayDateString,
-  getDefaultPublishDate,
-  formatScheduleDisplay,
-  isTimeoutError,
-} from '@/utils/utils';
+import { Button, Modal, message, DatePicker } from 'antd';
+import moment from 'moment';
+import { isTimeoutError } from '@/utils/utils';
 
 const WeChateComponent: React.FC<any> = ({ item }) => {
   const [visible, setVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [mode, setMode] = useState<'draft' | 'publish' | null>(null);
-  const [publishDate, setPublishDate] = useState(getDefaultPublishDate());
+  const [publishDate, setPublishDate] = useState<moment.Moment | null>(null);
   const [currentItem, setCurrentItem] = useState<any>(null);
 
   const handleOpen = (data: any) => {
     setCurrentItem(data);
     setMode(null);
-    setPublishDate(getDefaultPublishDate());
+    setPublishDate(null);
     setVisible(true);
   };
 
@@ -25,7 +21,7 @@ const WeChateComponent: React.FC<any> = ({ item }) => {
     setVisible(false);
     setCurrentItem(null);
     setMode(null);
-    setPublishDate(getDefaultPublishDate());
+    setPublishDate(null);
     setSubmitting(false);
   };
 
@@ -65,7 +61,7 @@ const WeChateComponent: React.FC<any> = ({ item }) => {
       message.warning('请选择公众号发布日期');
       return;
     }
-    if (publishDate < getTodayDateString()) {
+    if (publishDate.isBefore(moment(), 'day')) {
       message.warning('发布日期不能早于今天');
       return;
     }
@@ -74,17 +70,16 @@ const WeChateComponent: React.FC<any> = ({ item }) => {
       const {
         scheduleWallPaperWechatPublish,
       } = require('@/services/wallpaper');
+      const dateStr = publishDate.format('YYYY-MM-DD');
       const result = await scheduleWallPaperWechatPublish(
         currentItem.id,
-        publishDate,
+        dateStr,
       );
-      const finalPublishDate = result?.publishDate || publishDate;
+      const finalPublishDate = result?.publishDate || dateStr;
       message.success(
-        `「${
-          currentItem.title
-        }」已加入公众号正式发布排期（${formatScheduleDisplay(
+        `「${currentItem.title}」已加入公众号正式发布排期（${moment(
           finalPublishDate,
-        )}），可前往发布管理查看`,
+        ).format('YYYY年MM月DD日')}），可前往发布管理查看`,
       );
       handleClose();
     } catch (error: any) {
@@ -195,18 +190,14 @@ const WeChateComponent: React.FC<any> = ({ item }) => {
           ) : (
             <div>
               <div style={{ marginBottom: 12 }}>选择正式群发日期</div>
-              <input
-                type="date"
-                min={getTodayDateString()}
+              <DatePicker
+                placeholder="请选择"
+                style={{ width: '100%', marginBottom: 12 }}
                 value={publishDate}
-                onChange={(e) => setPublishDate(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  border: '1px solid #d9d9d9',
-                  borderRadius: 6,
-                  marginBottom: 12,
-                }}
+                disabledDate={(current) =>
+                  current && current < moment().startOf('day')
+                }
+                onChange={(val) => setPublishDate(val)}
               />
               <div style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
                 将在所选日期的 09:00
