@@ -43,7 +43,9 @@ const AdminLayout: React.FC<IRouteComponentProps> = (props) => {
           onClick={() => history.push('/home')}
           style={{ cursor: 'pointer' }}
         >
-          <span className={styles['admin-sider-title']}>管理后台</span>
+          <span className={styles['admin-sider-title']}>
+            N.Crystal✨管理后台
+          </span>
         </div>
         <Menu
           mode="inline"

@@ -160,6 +160,8 @@ const WechatTab: React.FC = () => {
     <div className={styles['schedule-list']}>
       {schedules.map((schedule) => {
         const statusMeta = getScheduleStatusMeta(schedule.status);
+        // 壁纸是否已被删除（无关联壁纸实体）
+        const isWallpaperDeleted = !schedule.wallpaper;
         const wallpaperTitle =
           schedule.wallpaper?.title || `壁纸 #${schedule.wallpaperId}`;
         const wallpaperCover = getImageUrl(schedule.wallpaper?.cover);
@@ -170,14 +172,19 @@ const WechatTab: React.FC = () => {
           schedule.scheduledAt;
 
         return (
-          <div key={schedule.id} className={styles['schedule-item']}>
+          <div
+            key={schedule.id}
+            className={`${styles['schedule-item']} ${
+              isWallpaperDeleted ? styles['schedule-item-deleted'] : ''
+            }`}
+          >
             <div className={styles['schedule-item-main']}>
               <div className={styles['schedule-item-cover']}>
                 {wallpaperCover ? (
                   <img src={wallpaperCover} alt={wallpaperTitle} />
                 ) : (
                   <div className={styles['schedule-item-cover-placeholder']}>
-                    待发布
+                    {isWallpaperDeleted ? '已删除' : '待发布'}
                   </div>
                 )}
               </div>
@@ -185,6 +192,11 @@ const WechatTab: React.FC = () => {
                 <div className={styles['schedule-item-top']}>
                   <div className={styles['schedule-item-title']}>
                     {wallpaperTitle}
+                    {isWallpaperDeleted && (
+                      <span className={styles['schedule-deleted-tag']}>
+                        已删除
+                      </span>
+                    )}
                   </div>
                   <span
                     className={`${styles['schedule-status']} ${
@@ -217,30 +229,32 @@ const WechatTab: React.FC = () => {
                 )}
               </div>
             </div>
-            <div className={styles['schedule-item-actions']}>
-              <Button
-                size="small"
-                onClick={() => handleViewWallpaper(schedule.wallpaper)}
-              >
-                查看壁纸
-              </Button>
-              <Button
-                size="small"
-                onClick={() => handleSyncDraft(schedule)}
-                loading={syncDraftLoadingId === schedule.id}
-              >
-                同步草稿
-              </Button>
-              <Button
-                size="small"
-                danger
-                onClick={() => handleCancelSchedule(schedule)}
-                loading={cancelingScheduleId === schedule.id}
-                disabled={!canCancelSchedule(schedule.status)}
-              >
-                取消排期
-              </Button>
-            </div>
+            {!isWallpaperDeleted && (
+              <div className={styles['schedule-item-actions']}>
+                <Button
+                  size="small"
+                  onClick={() => handleViewWallpaper(schedule.wallpaper)}
+                >
+                  查看壁纸
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => handleSyncDraft(schedule)}
+                  loading={syncDraftLoadingId === schedule.id}
+                >
+                  同步草稿
+                </Button>
+                <Button
+                  size="small"
+                  danger
+                  onClick={() => handleCancelSchedule(schedule)}
+                  loading={cancelingScheduleId === schedule.id}
+                  disabled={!canCancelSchedule(schedule.status)}
+                >
+                  取消排期
+                </Button>
+              </div>
+            )}
           </div>
         );
       })}

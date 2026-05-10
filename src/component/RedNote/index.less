@@ -1,0 +1,52 @@
+/* 按钮容器 */
+.btn-wrap {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* 取消按钮 - 毛玻璃风格 */
+.cancel-btn {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 6px;
+  height: 36px;
+  padding: 0 20px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(8px);
+  transition: background 0.2s, color 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    color: rgba(255, 255, 255, 0.75) !important;
+  }
+}
+
+/* 主要操作按钮 - 毛玻璃风格 */
+.action-btn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 6px;
+  height: 36px;
+  padding: 0 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.06);
+  transition: background 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.18) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    color: #fff !important;
+    box-shadow: 0 0 24px rgba(255, 255, 255, 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}

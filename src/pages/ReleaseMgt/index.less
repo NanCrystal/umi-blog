@@ -3,50 +3,6 @@
   margin: 0 auto;
 }
 
-.release-page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 24px;
-  padding: 24px 26px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(79, 195, 247, 0.12);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(14px);
-}
-
-.release-page-eyebrow {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #7fd4ff;
-}
-
-.release-page-title {
-  margin-top: 10px;
-  font-size: 28px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.94);
-}
-
-.release-page-desc {
-  margin-top: 10px;
-  max-width: 720px;
-  font-size: 14px;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.56);
-}
-
-.release-page-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
 .schedule-board {
   padding: 20px;
   border-radius: 18px;
@@ -112,6 +68,10 @@
   border-radius: 14px;
   background: rgba(8, 17, 29, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.schedule-item-deleted {
+  opacity: 0.65;
 }
 
 .schedule-item-main {
@@ -213,6 +173,21 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+.schedule-deleted-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  margin-left: 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 143, 143, 0.85);
+  background: rgba(255, 143, 143, 0.12);
+  border: 1px solid rgba(255, 143, 143, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .schedule-item-meta {
   display: flex;
   flex-wrap: wrap;
@@ -253,21 +228,6 @@
 }
 
 @media (max-width: 768px) {
-  .release-page-header {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 18px;
-  }
-
-  .release-page-actions {
-    flex-direction: column;
-    align-items: stretch;
-
-    :global(.ant-btn) {
-      width: 100%;
-    }
-  }
-
   .schedule-board {
     padding: 16px;
   }

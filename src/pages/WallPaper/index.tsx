@@ -20,7 +20,7 @@ const WallPaperPage: React.FC = () => {
     setLoading(true);
     getWallPaperList()
       .then((res: any) => {
-        const data = Array.isArray(res) ? res : res?.data || [];
+        const data = Array.isArray(res) ? res : res?.list || [];
         setList(data);
       })
       .finally(() => setLoading(false));

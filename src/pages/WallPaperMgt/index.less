@@ -401,3 +401,185 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── 批量操作栏 ── */
+
+.table-panel-with-actions {
+  position: relative;
+}
+
+.batch-actions-bar {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: rgba(255, 59, 48, 0.95);
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  animation: fadeInScale 0.2s ease-out;
+
+  :global(.ant-btn) {
+    font-weight: 600;
+    border-radius: 6px;
+    background: #fff;
+    color: #ff3b30;
+    border: none;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.9);
+    }
+  }
+
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+.selected-count {
+  font-size: 13px;
+  color: #fff;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* ── 回收站按钮 ── */
+
+.trash-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  border-radius: 8px !important;
+
+  &:hover,
+  &:focus {
+    background: rgba(79, 195, 247, 0.1) !important;
+    border-color: rgba(79, 195, 247, 0.4) !important;
+    color: #4fc3f7 !important;
+  }
+}
+
+/* ── 回收站 Modal 暗色样式 ── */
+
+.trash-modal {
+  // 覆盖 Ant Design 空状态行 hover 白色背景（必须在顶层才能压住全局样式）
+  :global(.ant-modal-body .ant-table-tbody > tr.ant-table-placeholder),
+  :global(.ant-modal-body .ant-table-tbody > tr.ant-table-placeholder:hover),
+  :global(
+      .ant-modal-body .ant-table-tbody > tr.ant-table-placeholder:hover > td
+    ),
+  :global(.ant-modal-body .ant-table-tbody > tr.ant-table-placeholder > td) {
+    background: transparent !important;
+  }
+
+  :global(.ant-modal-content) {
+    background: rgba(12, 18, 28, 0.96);
+    border: 1px solid rgba(79, 195, 247, 0.16);
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
+    backdrop-filter: blur(20px);
+  }
+
+  :global(.ant-modal-header) {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px 16px 0 0;
+  }
+
+  :global(.ant-modal-title) {
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  :global(.ant-modal-close-x),
+  :global(.ant-modal-close) {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  :global(.ant-modal-body) {
+    padding: 16px 24px;
+
+    .ant-spin-nested-loading,
+    .ant-spin-container,
+    .ant-table,
+    .ant-table-container {
+      background: transparent;
+    }
+
+    .ant-table-thead > tr > th {
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.7);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-weight: 600;
+    }
+
+    .ant-table-tbody > tr > td {
+      background: transparent;
+      color: rgba(255, 255, 255, 0.82);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .ant-table-tbody > tr.ant-table-row:hover > td {
+      background: rgba(79, 195, 247, 0.08);
+    }
+
+    .ant-empty-description,
+    .ant-table-cell {
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .ant-pagination-item,
+    .ant-pagination-prev .ant-pagination-item-link,
+    .ant-pagination-next .ant-pagination-item-link {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .ant-pagination-item a {
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .ant-pagination-item-active {
+      border-color: rgba(79, 195, 247, 0.8);
+    }
+
+    .ant-pagination-item-active a,
+    .ant-pagination-item:hover a,
+    .ant-pagination-prev:hover .ant-pagination-item-link,
+    .ant-pagination-next:hover .ant-pagination-item-link {
+      color: #4fc3f7;
+    }
+
+    .ant-pagination-disabled .ant-pagination-item-link {
+      color: rgba(255, 255, 255, 0.28);
+    }
+
+    .ant-empty {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    .ant-empty-image svg {
+      filter: brightness(0) invert(0.7);
+    }
+
+    // 撤回按钮暗色样式
+    .ant-btn-link {
+      color: rgba(79, 195, 247, 0.85);
+
+      &:hover {
+        color: #4fc3f7;
+      }
+    }
+  }
+}

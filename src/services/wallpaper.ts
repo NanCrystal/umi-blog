@@ -33,16 +33,30 @@ export interface WechatPublishSchedule {
 export interface PublishRecord {
   id: number;
   platform: 'wechat' | 'douyin' | 'xiaohongshu';
-  wallpaperId: number;
-  status: 'SUCCESS' | 'FAILED';
+  wallpaperId: number | null;
+  status: 'SUCCESS' | 'FAILED' | 'PENDING';
   errorMessage?: string | null;
   createdAt: string;
   updatedAt: string;
-  wallpaper?: WallPaperItem;
+  wallpaper?: WallPaperItem | null;
+  // 快照字段 — 壁纸被软删除后仍可追溯
+  wallpaperTitle?: string | null;
+  wallpaperCover?: string | null;
 }
 
-export async function getWallPaperList() {
-  return request('/wallpapers');
+export interface WallPaperListResponse {
+  list: WallPaperItem[];
+  total: number;
+}
+
+export async function getWallPaperList(params?: {
+  page?: number;
+  pageSize?: number;
+}) {
+  const query = params
+    ? `?page=${params.page || 1}&pageSize=${params.pageSize || 10}`
+    : '';
+  return request<WallPaperListResponse>(`/wallpapers${query}`);
 }
 
 export async function getWallPaperDetail(id: number) {
@@ -66,6 +80,37 @@ export async function updateWallPaper(id: number, data: any) {
 export async function deleteWallPaper(id: number) {
   return request(`/wallpapers/${id}`, {
     method: 'DELETE',
+  });
+}
+
+export async function batchDeleteWallPaper(ids: number[]) {
+  const result: any = await request('/wallpapers/batch-delete', {
+    method: 'POST',
+    data: { ids },
+  });
+
+  if (result?.statusCode >= 400 || result?.error) {
+    throw new Error(result?.message || '批量删除失败');
+  }
+
+  return result;
+}
+
+/* ── 回收站 ── */
+
+export async function getTrashedWallPapers(params?: {
+  page?: number;
+  pageSize?: number;
+}) {
+  const query = params
+    ? `?page=${params.page || 1}&pageSize=${params.pageSize || 10}`
+    : '';
+  return request<WallPaperListResponse>(`/wallpapers/trashed${query}`);
+}
+
+export async function restoreWallPaper(id: number) {
+  return request(`/wallpapers/${id}/restore`, {
+    method: 'POST',
   });
 }
 
@@ -226,10 +271,14 @@ export async function xiaohongshuLogin() {
   return result;
 }
 
-export async function syncWallPaperToXiaohongshu(id: number) {
+export async function syncWallPaperToXiaohongshu(
+  id: number,
+  options?: { signal?: AbortSignal },
+) {
   const result: any = await request(`/wallpapers/${id}/sync/xiaohongshu`, {
     method: 'POST',
     timeout: 120000,
+    ...(options?.signal ? { signal: options.signal } : {}),
   });
 
   if (result?.statusCode >= 400 || result?.error) {
