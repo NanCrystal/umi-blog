@@ -233,17 +233,14 @@ export async function syncWallPaperToDouyin(
     ...(options?.signal ? { getSignal: () => options.signal } : {}),
   });
 
-  if (result?.statusCode >= 400 || result?.error) {
+  if (result?.error || result?.statusCode >= 400) {
     const errorMessage = Array.isArray(result?.message)
       ? result.message.join('，')
       : result?.message || '同步到抖音图文失败';
     throw new Error(errorMessage);
   }
 
-  if (!result?.success) {
-    throw new Error('抖音图文发布失败，请重试');
-  }
-
+  // 后端返回 { message, recordId, status } 表示任务已成功提交
   return result;
 }
 
@@ -291,17 +288,14 @@ export async function syncWallPaperToXiaohongshu(
     ...(options?.signal ? { signal: options.signal } : {}),
   });
 
-  if (result?.statusCode >= 400 || result?.error) {
+  if (result?.error || result?.statusCode >= 400) {
     const errorMessage = Array.isArray(result?.message)
       ? result.message.join('，')
       : result?.message || '同步到小红书图文失败';
     throw new Error(errorMessage);
   }
 
-  if (!result?.success) {
-    throw new Error('小红书图文发布失败，请重试');
-  }
-
+  // 后端返回 { message, recordId, status } 表示任务已成功提交
   return result;
 }
 

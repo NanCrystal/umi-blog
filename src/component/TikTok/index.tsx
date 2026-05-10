@@ -20,6 +20,8 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
   const [publishDate, setPublishDate] = useState<moment.Moment | null>(null);
   const publishAbortRef = useRef<AbortController | null>(null);
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // 用 ref 持久化 submitting 状态，防止重渲染时丢失
+  const submittingRef = useRef(false);
 
   /** 启动模拟进度：从 0 递增到 90%，接口返回后再跳 100% */
   const startProgress = () => {
@@ -65,6 +67,7 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
       const status = await checkDouyinLoginStatus();
       setLoggedIn(!!status?.loggedIn);
     } catch {
+      // request 已统一处理错误提示，此处仅重置登录状态
       setLoggedIn(false);
     } finally {
       setChecking(false);
@@ -81,9 +84,13 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
     setPublishDate(null);
   };
 
-  /** 弹窗关闭时重置进度（不中断请求） */
+  /** 弹窗关闭时：提交中则阻止关闭，否则正常关闭 */
   const handleModalClose = () => {
-    // 进度重置但不清除定时器（请求仍在后台执行）
+    // 使用 ref 检查（即使状态因重渲染丢失也能正确判断）
+    if (submittingRef.current) {
+      message.warning('正在发布中，请等待操作完成或点击取消按钮中断');
+      return;
+    }
     stopProgress(0);
     handleClose();
   };
@@ -96,11 +103,9 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
       if (result?.success) {
         message.success('抖音登录成功');
         setLoggedIn(true);
-      } else {
-        message.error('抖音登录失败，请重试');
       }
-    } catch (error: any) {
-      message.error(error?.data?.message || error?.message || '抖音登录失败');
+    } catch {
+      // request 已统一处理错误提示
     } finally {
       setLoggingIn(false);
     }
@@ -111,14 +116,21 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
     const abortController = new AbortController();
     publishAbortRef.current = abortController;
     setSubmitting(true);
+    // 同步到 ref，防止重渲染丢失状态
+    submittingRef.current = true;
     startProgress();
 
-    // 立即插入一条"审核中"记录到发布列表
+    // 立即插入一条"审核中"记录到发布列表（只提取纯数据字段，避免循环引用）
     const pendingRecord = addPendingPublish({
       tempId: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       platform: 'douyin',
       wallpaperId: currentItem.id,
-      wallpaper: currentItem,
+      wallpaper: {
+        id: currentItem.id,
+        title: currentItem.title,
+        cover: currentItem.cover,
+        images: currentItem.images,
+      },
       title: currentItem.title,
     });
 
@@ -129,15 +141,14 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
         scheduledAt: scheduledTime || undefined,
       });
       stopProgress(100);
-      message.success(
-        `「${result?.title || currentItem.title}」已${
-          scheduledTime ? '加入抖音定时发布排期' : '发布到抖音图文'
-        }`,
-      );
+      message.success(result?.message || '发布到抖音图文成功', 4);
       // 更新为成功状态（刷新后端数据后会替换）
       updatePendingPublish(pendingRecord.tempId, { status: 'SUCCESS' });
-      setCurrentItem(null);
-      setVisible(false);
+      // 延迟关闭 Modal，确保用户看到"发布完成"进度条
+      setTimeout(() => {
+        setCurrentItem(null);
+        setVisible(false);
+      }, 800);
     } catch (error: any) {
       if (abortController.signal.aborted) return;
       stopProgress(0);
@@ -148,12 +159,7 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
         );
         return;
       }
-      message.error(
-        error?.data?.message ||
-          error?.info?.message ||
-          error?.message ||
-          '同步到抖音图文失败，请重试',
-      );
+      // request 已统一处理错误提示，此处仅更新待发布记录状态
       updatePendingPublish(pendingRecord.tempId, {
         status: 'FAILED',
         errorMessage:
@@ -164,6 +170,7 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
       });
     } finally {
       setSubmitting(false);
+      submittingRef.current = false;
       publishAbortRef.current = null;
     }
   };
@@ -178,7 +185,7 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
       message.warning('发布时间必须晚于当前时间');
       return;
     }
-    // 定时发布走同样的发布流程，只是带上时间参数
+    // 定时发布走同样的发布流程，只是带上时间参数（ISO 8601 带 Z 后缀，避免后端 new Date() 时区歧义）
     await handlePublish(publishDate.toISOString());
   };
 
@@ -195,8 +202,9 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
         open={visible}
         title="同步到抖音图文"
         footer={null}
-        destroyOnClose
-        maskClosable={!submitting}
+        // 移除 destroyOnClose，防止浏览器弹出时组件被销毁重建导致状态丢失
+        maskClosable={false}
+        keyboard={!submittingRef.current}
         onCancel={handleModalClose}
       >
         <div>
@@ -290,7 +298,6 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
                   {submitting && (
                     <div style={{ marginBottom: 16 }}>
                       <Progress
-                        percentPosition={{ align: 'start', type: 'inner' }}
                         percent={Math.round(progress)}
                         status={progress >= 100 ? undefined : 'active'}
                         strokeColor="#25F4EE"
@@ -323,7 +330,7 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
                         type="primary"
                         className={styles['action-btn']}
                         loading={submitting}
-                        onClick={handlePublish}
+                        onClick={() => handlePublish()}
                       >
                         确认立即发布
                       </Button>
@@ -335,7 +342,6 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
                   {submitting && (
                     <div style={{ marginBottom: 16 }}>
                       <Progress
-                        percentPosition={{ align: 'start', type: 'inner' }}
                         percent={Math.round(progress)}
                         status={progress >= 100 ? undefined : 'active'}
                         strokeColor="#25F4EE"

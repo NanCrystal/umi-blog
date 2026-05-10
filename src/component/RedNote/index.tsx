@@ -113,12 +113,17 @@ const RedNoteComponent: React.FC<any> = ({ item }) => {
     setSubmitting(true);
     startProgress();
 
-    // 立即插入一条"审核中"记录到发布列表
+    // 立即插入一条"审核中"记录到发布列表（只提取纯数据字段，避免循环引用）
     const pendingRecord = addPendingPublish({
       tempId: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       platform: 'xiaohongshu',
       wallpaperId: currentItem.id,
-      wallpaper: currentItem,
+      wallpaper: {
+        id: currentItem.id,
+        title: currentItem.title,
+        cover: currentItem.cover,
+        images: currentItem.images,
+      },
       title: currentItem.title,
     });
 
@@ -129,15 +134,14 @@ const RedNoteComponent: React.FC<any> = ({ item }) => {
         scheduledAt: scheduledTime || undefined,
       });
       stopProgress(100);
-      message.success(
-        `「${result?.title || currentItem.title}」已${
-          scheduledTime ? '加入小红书定时发布排期' : '发布到小红书图文'
-        }`,
-      );
+      message.success(result?.message || '发布到小红书图文成功', 4);
       // 更新为成功状态（刷新后端数据后会替换）
       updatePendingPublish(pendingRecord.tempId, { status: 'SUCCESS' });
-      setCurrentItem(null);
-      setVisible(false);
+      // 延迟关闭 Modal，确保用户看到"发布完成"进度条
+      setTimeout(() => {
+        setCurrentItem(null);
+        setVisible(false);
+      }, 800);
     } catch (error: any) {
       if (abortController.signal.aborted) return;
       stopProgress(0);
@@ -195,7 +199,7 @@ const RedNoteComponent: React.FC<any> = ({ item }) => {
         open={visible}
         title="同步到小红书图文"
         footer={null}
-        destroyOnClosed
+        destroyOnClose
         onCancel={handleModalClose}
       >
         <div>
@@ -322,7 +326,7 @@ const RedNoteComponent: React.FC<any> = ({ item }) => {
                         type="primary"
                         className={styles['action-btn']}
                         loading={submitting}
-                        onClick={handlePublish}
+                        onClick={() => handlePublish()}
                       >
                         确认立即发布
                       </Button>
