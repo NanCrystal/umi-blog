@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Layout, Menu } from 'antd';
 import { useLocation, history, IRouteComponentProps } from 'umi';
-import { PictureOutlined, SendOutlined, UserOutlined } from '@ant-design/icons';
+import { PictureOutlined, SendOutlined } from '@ant-design/icons';
 import styles from './index.less';
 
 const { Sider, Content } = Layout;
@@ -9,7 +9,6 @@ const { Sider, Content } = Layout;
 const menuItems = [
   { key: '/admin/wallpaper', icon: <PictureOutlined />, label: '壁纸管理' },
   { key: '/admin/release', icon: <SendOutlined />, label: '发布管理' },
-  { key: '/admin/account', icon: <UserOutlined />, label: '账号管理' },
 ];
 
 const AdminLayout: React.FC<IRouteComponentProps> = (props) => {

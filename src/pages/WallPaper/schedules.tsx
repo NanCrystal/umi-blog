@@ -10,6 +10,7 @@ import {
   WallPaperItem,
   WechatPublishSchedule,
 } from '@/services/wallpaper';
+import { checkAdmin } from '@/utils/utils';
 
 const formatScheduleDisplay = (dateText: string) => `${dateText} 09:00`;
 
@@ -61,7 +62,7 @@ const WechatPublishSchedulesPage: React.FC = () => {
   const [syncDraftLoadingId, setSyncDraftLoadingId] = useState<number | null>(
     null,
   );
-  const isAdmin = localStorage.getItem('token') === '121414';
+  const isAdmin = checkAdmin();
 
   const fetchSchedules = async (silent = false) => {
     if (!isAdmin) {

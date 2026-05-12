@@ -42,6 +42,8 @@ export interface PublishRecord {
   // 快照字段 — 壁纸被软删除后仍可追溯
   wallpaperTitle?: string | null;
   wallpaperCover?: string | null;
+  // 定时发布字段
+  scheduledAt?: string | null;
 }
 
 export interface WallPaperListResponse {
@@ -158,8 +160,18 @@ export async function scheduleWallPaperWechatPublish(
   return result;
 }
 
-export async function getWechatPublishSchedules() {
-  const result: any = await request('/wallpapers/publish/wechat/schedules');
+export async function getWechatPublishSchedules(
+  wallpaperTitle?: string,
+  page = 1,
+  pageSize = 10,
+): Promise<{ list: WechatPublishSchedule[]; total: number }> {
+  const params = new URLSearchParams();
+  if (wallpaperTitle) params.set('wallpaperTitle', wallpaperTitle);
+  params.set('page', String(page));
+  params.set('pageSize', String(pageSize));
+  const result: any = await request(
+    `/wallpapers/publish/wechat/schedules?${params.toString()}`,
+  );
 
   if (result?.statusCode >= 400 || result?.error || result?.errcode) {
     const errorMessage = Array.isArray(result?.message)
@@ -168,7 +180,12 @@ export async function getWechatPublishSchedules() {
     throw new Error(errorMessage);
   }
 
-  return Array.isArray(result) ? result : result?.data || [];
+  return {
+    list: (Array.isArray(result)
+      ? result
+      : result?.list || result?.data || []) as WechatPublishSchedule[],
+    total: result?.total || 0,
+  };
 }
 
 export async function cancelWechatPublishSchedule(scheduleId: number) {
@@ -207,7 +224,7 @@ export async function checkDouyinLoginStatus() {
 export async function douyinLogin() {
   const result: any = await request('/wallpapers/douyin/login', {
     method: 'POST',
-    timeout: 200000,
+    timeout: 60000,
   });
 
   if (result?.statusCode >= 400 || result?.error) {
@@ -218,6 +235,11 @@ export async function douyinLogin() {
   }
 
   return result;
+}
+
+/** 轮询抖音扫码状态 */
+export async function douyinLoginPoll() {
+  return request('/wallpapers/douyin/login-poll');
 }
 
 export async function syncWallPaperToDouyin(
@@ -262,7 +284,7 @@ export async function checkXiaohongshuLoginStatus() {
 export async function xiaohongshuLogin() {
   const result: any = await request('/wallpapers/xiaohongshu/login', {
     method: 'POST',
-    timeout: 200000,
+    timeout: 60000,
   });
 
   if (result?.statusCode >= 400 || result?.error) {
@@ -273,6 +295,11 @@ export async function xiaohongshuLogin() {
   }
 
   return result;
+}
+
+/** 轮询小红书扫码状态 */
+export async function xiaohongshuLoginPoll() {
+  return request('/wallpapers/xiaohongshu/login-poll');
 }
 
 export async function syncWallPaperToXiaohongshu(
@@ -341,15 +368,26 @@ export async function scheduleWallPaperXiaohongshuPublish(
 
 export async function getPublishRecords(
   platform?: string,
-): Promise<PublishRecord[]> {
-  const params = platform ? `?platform=${platform}` : '';
-  const result: any = await request(`/wallpapers/publish/records${params}`);
+  wallpaperId?: number,
+  wallpaperTitle?: string,
+  page = 1,
+  pageSize = 10,
+): Promise<{ list: PublishRecord[]; total: number }> {
+  const params = new URLSearchParams();
+  if (platform) params.set('platform', platform);
+  if (wallpaperId) params.set('wallpaperId', String(wallpaperId));
+  if (wallpaperTitle) params.set('wallpaperTitle', wallpaperTitle);
+  params.set('page', String(page));
+  params.set('pageSize', String(pageSize));
+  const result: any = await request(
+    `/wallpapers/publish/records?${params.toString()}`,
+  );
 
   if (result?.statusCode >= 400 || result?.error) {
     throw new Error(result?.message || '获取发布记录失败');
   }
 
-  return Array.isArray(result) ? result : result?.data || [];
+  return result || { list: [], total: 0 };
 }
 
 export async function retryPublishRecord(recordId: number) {

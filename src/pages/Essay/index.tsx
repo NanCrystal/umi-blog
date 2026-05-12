@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styles from './index.less';
 import { history } from 'umi';
 import { Modal, message } from 'antd';
@@ -6,6 +6,7 @@ import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import Lottie from 'react-lottie-player';
 import emptyJson from '@/assets/json/empty.json';
 import { getArticlesList, deleteArticle } from '@/services/article';
+import { checkAdmin } from '@/utils/utils';
 
 // 后端 Article 模型字段
 interface ArticleItem {
@@ -20,8 +21,7 @@ interface ArticleItem {
 const EssayPage: React.FC = () => {
   const [list, setList] = useState<ArticleItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const isAdmin = localStorage.getItem('token') === '121414';
-
+  const isAdmin = useMemo(() => checkAdmin(), []);
   const fetchList = () => {
     setLoading(true);
     getArticlesList()
@@ -88,7 +88,7 @@ const EssayPage: React.FC = () => {
     return content.length > 80 ? content.slice(0, 80) + '...' : content;
   };
 
-  if (!loading && list.length === 0) {
+  if (!loading && list.length === 0 && !isAdmin) {
     return (
       <div className={styles['empty-wrap']}>
         <Lottie animationData={emptyJson} play loop style={{ width: 600 }} />

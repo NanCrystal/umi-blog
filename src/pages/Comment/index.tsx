@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { message } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
 import { getComments, createComment, deleteComment } from '@/services/comment';
+import { checkAdmin } from '@/utils/utils';
 import styles from './index.less';
 
 interface CommentItem {
@@ -34,7 +35,7 @@ function buildConfigs(list: CommentItem[]): BubbleConfig[] {
 }
 
 const CommentPage: React.FC = () => {
-  const isAdmin = localStorage.getItem('token') === '121414';
+  const isAdmin = checkAdmin();
 
   const [bubbles, setBubbles] = useState<BubbleConfig[]>([]);
   const [input, setInput] = useState('');

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { history } from 'umi';
-import { Button, message, Pagination } from 'antd';
+import { Button, message, Tag, Pagination } from 'antd';
 import styles from './index.less';
 import {
   getPublishRecords,
@@ -8,20 +8,20 @@ import {
   PublishRecord,
   WallPaperItem,
 } from '@/services/wallpaper';
-import {
-  getPendingPublishes,
-  subscribePendingPublish,
-  removePendingPublish,
-  PendingPublishItem,
-} from './publishPendingStore';
 
-// 扩展状态类型，支持审核中
 type RecordStatus = 'SUCCESS' | 'FAILED' | 'PENDING';
 
-// 合并类型：API记录 或 本地待发布记录
-type MergedRecord =
-  | (PublishRecord & { tempId?: undefined })
-  | (PendingPublishItem & { id: number });
+const platformLabels: Record<string, string> = {
+  wechat: '微信',
+  douyin: '抖音',
+  xiaohongshu: '小红书',
+};
+
+const platformColors: Record<string, string> = {
+  wechat: 'green',
+  douyin: 'blue',
+  xiaohongshu: 'red',
+};
 
 const getImageUrl = (path?: string) => {
   if (!path) return '';
@@ -40,49 +40,17 @@ const formatDateTime = (iso?: string | null) => {
   )}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
 
-const XiaohongshuTab: React.FC<{
-  active?: boolean;
+interface AllTabProps {
   wallpaperTitle?: string;
-}> = ({ active = true, wallpaperTitle }) => {
+  active?: boolean;
+}
+
+const AllTab: React.FC<AllTabProps> = ({ wallpaperTitle, active = true }) => {
   const [records, setRecords] = useState<PublishRecord[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [retryingId, setRetryingId] = useState<number | null>(null);
-  const [total, setTotal] = useState(0);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
-
-  // 本地待发布记录（点击发布时立即显示）
-  const [pendingList, setPendingList] = useState<PendingPublishItem[]>(
-    getPendingPublishes(),
-  );
-
-  // 订阅本地待发布状态变化
-  useEffect(() => {
-    return subscribePendingPublish(() => {
-      setPendingList([...getPendingPublishes()]);
-    });
-  }, []);
-
-  // 合并：pending 在前，API 记录在后（只取当前平台的 pending 记录）
-  const mergedRecords: MergedRecord[] = [
-    ...pendingList
-      .filter((p) => p.platform === 'xiaohongshu')
-      .map((p) => ({ ...p, id: -1 } as MergedRecord)),
-    ...records,
-  ];
-
-  /** 用后端正式数据替换/清理已完成的本地待发布记录 */
-  const reconcilePendingWithServer = (serverRecords: PublishRecord[]) => {
-    const serverWallpaperIds = new Set(serverRecords.map((r) => r.wallpaperId));
-    const pending = getPendingPublishes();
-    // 后端已有对应 wallpaperId 的记录，移除本地 pending（无论成功或失败）
-    pending.forEach((p) => {
-      if (serverWallpaperIds.has(p.wallpaperId)) {
-        removePendingPublish(p.tempId);
-      }
-    });
-    // 同步更新 state
-    setPendingList([...getPendingPublishes()]);
-  };
 
   const fetchRecords = useCallback(
     async (
@@ -93,7 +61,7 @@ const XiaohongshuTab: React.FC<{
       if (!silent) setLoading(true);
       try {
         const res = await getPublishRecords(
-          'xiaohongshu',
+          undefined,
           undefined,
           wallpaperTitle || undefined,
           page,
@@ -102,11 +70,9 @@ const XiaohongshuTab: React.FC<{
         setRecords(res.list || []);
         setTotal(res.total);
         setPagination({ current: page, pageSize });
-        // 用后端数据替换已完成的本地待发布记录
-        reconcilePendingWithServer(res.list || []);
       } catch (error: any) {
         if (!silent) {
-          message.error(error?.message || '获取小红书发布记录失败');
+          message.error(error?.message || '获取发布记录失败');
         }
       } finally {
         if (!silent) setLoading(false);
@@ -115,27 +81,25 @@ const XiaohongshuTab: React.FC<{
     [wallpaperTitle],
   );
 
-  const handlePageChange = (page: number, pageSize: number) => {
-    void fetchRecords(false, page, pageSize);
-  };
-
-  // 首次挂载 + tab 切回时刷新
   useEffect(() => {
     void fetchRecords();
   }, [fetchRecords]);
 
   useEffect(() => {
     if (active) {
-      // 切换到该 tab 时静默刷新
       void fetchRecords(true);
     }
   }, [active, fetchRecords]);
+
+  const handlePageChange = (page: number, pageSize: number) => {
+    void fetchRecords(false, page, pageSize);
+  };
 
   const handleRetry = async (record: PublishRecord) => {
     setRetryingId(record.id);
     try {
       await retryPublishRecord(record.id);
-      message.success('小红书重新发布已提交，请稍后刷新查看结果');
+      message.success('重新发布已提交，请稍后刷新查看结果');
       await fetchRecords(true);
     } catch (error: any) {
       message.error(error?.message || '重新发布失败，请稍后重试');
@@ -144,7 +108,7 @@ const XiaohongshuTab: React.FC<{
     }
   };
 
-  const handleViewWallpaper = (wallpaper?: WallPaperItem) => {
+  const handleViewWallpaper = (wallpaper?: WallPaperItem | null) => {
     if (!wallpaper) {
       message.info('该记录未返回壁纸详情，请回到壁纸列表查看');
       return;
@@ -152,59 +116,48 @@ const XiaohongshuTab: React.FC<{
     history.push('/wallpaper/detail', { data: wallpaper });
   };
 
-  if (loading && !mergedRecords.length) {
-    return (
-      <div className={styles['schedule-empty']}>正在加载小红书发布记录...</div>
-    );
+  if (loading && !records.length) {
+    return <div className={styles['schedule-empty']}>正在加载发布记录...</div>;
   }
 
-  if (!mergedRecords.length && !loading) {
-    return <div className={styles['schedule-empty']}>暂无小红书发布记录</div>;
+  if (!records.length && !loading) {
+    return <div className={styles['schedule-empty']}>暂无发布记录</div>;
   }
-
-  // 判断是否为本地待发布记录
-  const isPendingRecord = (
-    record: MergedRecord,
-  ): record is PendingPublishItem & { id: number } => 'tempId' in record;
 
   return (
-    <>
+    <div>
       <div className={styles['schedule-list']}>
-        {mergedRecords.map((record) => {
-          const pending = isPendingRecord(record);
-          // 壁纸是否已被删除（非本地记录 + 无关联壁纸实体 或 壁纸已软删除）
+        {records.map((record) => {
           const isWallpaperDeleted =
-            !pending && (!record.wallpaper || !!record.wallpaper?.deletedAt);
-          const wallpaperTitle = pending
-            ? record.title
-            : record.wallpaper?.title ||
-              record.wallpaperTitle ||
-              `壁纸 #${record.wallpaperId ?? '—'}`;
-          const wallpaperCover = pending
-            ? getImageUrl(record.wallpaper?.cover)
-            : getImageUrl(
-                record.wallpaper?.cover ||
-                  (record as PublishRecord).wallpaperCover ||
-                  undefined,
-              );
+            !record.wallpaper || !!(record.wallpaper as any)?.deletedAt;
+          const recordWallpaperTitle =
+            record.wallpaper?.title ||
+            record.wallpaperTitle ||
+            `壁纸 #${record.wallpaperId ?? '—'}`;
+          const wallpaperCover = getImageUrl(
+            record.wallpaper?.cover || record.wallpaperCover || undefined,
+          );
           const status: RecordStatus =
             (record.status as RecordStatus) || 'PENDING';
           const isPending = status === 'PENDING';
           const isSuccess = status === 'SUCCESS';
           const isFailed = status === 'FAILED';
+          const isScheduled = !!record.scheduledAt;
+          const platformLabel =
+            platformLabels[record.platform] || record.platform;
+          const platformColor = platformColors[record.platform] || 'default';
 
           return (
             <div
-              key={pending ? (record as any).tempId! : record.id}
+              key={record.id}
               className={`${styles['schedule-item']} ${
                 isWallpaperDeleted ? styles['schedule-item-deleted'] : ''
               }`}
             >
               <div className={styles['schedule-item-main']}>
                 <div className={styles['schedule-item-cover']}>
-                  {(pending && wallpaperCover) ||
-                  (!pending && wallpaperCover) ? (
-                    <img src={wallpaperCover} alt={wallpaperTitle} />
+                  {wallpaperCover ? (
+                    <img src={wallpaperCover} alt={recordWallpaperTitle} />
                   ) : (
                     <div className={styles['schedule-item-cover-placeholder']}>
                       {isSuccess
@@ -220,13 +173,16 @@ const XiaohongshuTab: React.FC<{
                 <div className={styles['schedule-item-body']}>
                   <div className={styles['schedule-item-top']}>
                     <div className={styles['schedule-item-title']}>
-                      {wallpaperTitle}
+                      {recordWallpaperTitle}
                       {isWallpaperDeleted && (
                         <span className={styles['schedule-deleted-tag']}>
                           已删除
                         </span>
                       )}
                     </div>
+                    <Tag color={platformColor} style={{ marginRight: 0 }}>
+                      {platformLabel}
+                    </Tag>
                     <span
                       className={`${styles['schedule-status']} ${
                         isSuccess
@@ -237,37 +193,35 @@ const XiaohongshuTab: React.FC<{
                       }`}
                     >
                       {isSuccess
-                        ? '发布成功'
+                        ? isScheduled
+                          ? '定时发布成功'
+                          : '发布成功'
                         : isPending
                         ? '审核中'
                         : '发布失败'}
                     </span>
                   </div>
                   <div className={styles['schedule-item-meta']}>
-                    <span>记录 ID：{pending ? '本地' : record.id}</span>
-                    <span>发布时间：{formatDateTime(record.createdAt)}</span>
-                  </div>
-                  {isFailed &&
-                    'errorMessage' in record &&
-                    record.errorMessage && (
-                      <div className={styles['schedule-item-error']}>
-                        {record.errorMessage}
-                      </div>
+                    <span>记录 ID：{record.id}</span>
+                    <span>创建时间：{formatDateTime(record.createdAt)}</span>
+                    {isScheduled && (
+                      <span>
+                        定时发布时间：{formatDateTime(record.scheduledAt)}
+                      </span>
                     )}
+                  </div>
+                  {isFailed && record.errorMessage && (
+                    <div className={styles['schedule-item-error']}>
+                      {record.errorMessage}
+                    </div>
+                  )}
                 </div>
               </div>
-              {/* 审核中、本地待发布、壁纸已删除时隐藏操作按钮 */}
-              {!isPending && !pending && !isWallpaperDeleted && (
+              {!isPending && !isWallpaperDeleted && (
                 <div className={styles['schedule-item-actions']}>
                   <Button
                     size="small"
-                    onClick={() =>
-                      handleViewWallpaper(
-                        'wallpaper' in record
-                          ? record.wallpaper ?? undefined
-                          : undefined,
-                      )
-                    }
+                    onClick={() => handleViewWallpaper(record.wallpaper)}
                   >
                     查看壁纸
                   </Button>
@@ -276,7 +230,7 @@ const XiaohongshuTab: React.FC<{
                       size="small"
                       type="primary"
                       onClick={() => handleRetry(record)}
-                      loading={retryingId === (pending ? -1 : record.id)}
+                      loading={retryingId === record.id}
                     >
                       重新发布
                     </Button>
@@ -298,8 +252,8 @@ const XiaohongshuTab: React.FC<{
           />
         </div>
       )}
-    </>
+    </div>
   );
 };
 
-export default XiaohongshuTab;
+export default AllTab;

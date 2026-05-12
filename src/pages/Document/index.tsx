@@ -11,6 +11,7 @@ import {
   deleteDocument,
 } from '@/services/document';
 import styles from './index.less';
+import { checkAdmin } from '@/utils/utils';
 
 const { TextArea } = Input;
 
@@ -21,7 +22,7 @@ interface DocItem {
 }
 
 const DocumentPage: React.FC = () => {
-  const isAdmin = localStorage.getItem('token') === '121414';
+  const isAdmin = checkAdmin();
 
   const [list, setList] = useState<DocItem[]>([]);
   const [loading, setLoading] = useState(false);

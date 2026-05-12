@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { history } from 'umi';
 
-import { Button, Modal, message } from 'antd';
+import { Button, Modal, message, Pagination } from 'antd';
 import styles from './index.less';
 import {
   cancelWechatPublishSchedule,
@@ -52,8 +52,17 @@ const formatDateTime = (iso?: string | null) => {
   )}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
 
-const WechatTab: React.FC = () => {
+interface WechatTabProps {
+  wallpaperTitle?: string;
+  active?: boolean;
+}
+
+const WechatTab: React.FC<WechatTabProps> = ({
+  wallpaperTitle,
+  active = true,
+}) => {
   const [schedules, setSchedules] = useState<WechatPublishSchedule[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [cancelingScheduleId, setCancelingScheduleId] = useState<number | null>(
     null,
@@ -61,30 +70,53 @@ const WechatTab: React.FC = () => {
   const [syncDraftLoadingId, setSyncDraftLoadingId] = useState<number | null>(
     null,
   );
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
-  const fetchSchedules = async (silent = false) => {
-    if (!silent) setLoading(true);
-
-    try {
-      const data = await getWechatPublishSchedules();
-      setSchedules(data);
-    } catch (error: any) {
-      if (!silent) {
-        message.error(
-          error?.data?.message ||
-            error?.info?.message ||
-            error?.message ||
-            '获取公众号发布排期失败，请稍后重试',
+  const fetchSchedules = useCallback(
+    async (
+      silent = false,
+      page = pagination.current,
+      pageSize = pagination.pageSize,
+    ) => {
+      if (!silent) setLoading(true);
+      try {
+        const res = await getWechatPublishSchedules(
+          wallpaperTitle || undefined,
+          page,
+          pageSize,
         );
+        setSchedules(res.list || []);
+        setTotal(res.total);
+        setPagination({ current: page, pageSize });
+      } catch (error: any) {
+        if (!silent) {
+          message.error(
+            error?.data?.message ||
+              error?.info?.message ||
+              error?.message ||
+              '获取公众号发布排期失败，请稍后重试',
+          );
+        }
+      } finally {
+        if (!silent) setLoading(false);
       }
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  };
+    },
+    [wallpaperTitle],
+  );
 
   useEffect(() => {
     void fetchSchedules();
-  }, []);
+  }, [fetchSchedules]);
+
+  useEffect(() => {
+    if (active) {
+      void fetchSchedules(true);
+    }
+  }, [active, fetchSchedules]);
+
+  const handlePageChange = (page: number, pageSize: number) => {
+    void fetchSchedules(false, page, pageSize);
+  };
 
   const handleViewWallpaper = (wallpaper?: WallPaperItem) => {
     if (!wallpaper) {
@@ -152,114 +184,127 @@ const WechatTab: React.FC = () => {
     );
   }
 
-  if (!schedules.length) {
+  if (!schedules.length && !loading) {
     return <div className={styles['schedule-empty']}>暂无公众号发布排期</div>;
   }
 
   return (
-    <div className={styles['schedule-list']}>
-      {schedules.map((schedule) => {
-        const statusMeta = getScheduleStatusMeta(schedule.status);
-        // 壁纸是否已被删除（无关联壁纸实体）
-        const isWallpaperDeleted = !schedule.wallpaper;
-        const wallpaperTitle =
-          schedule.wallpaper?.title || `壁纸 #${schedule.wallpaperId}`;
-        const wallpaperCover = getImageUrl(schedule.wallpaper?.cover);
-        const latestTime =
-          schedule.publishedAt ||
-          schedule.submittedAt ||
-          schedule.updatedAt ||
-          schedule.scheduledAt;
+    <>
+      <div className={styles['schedule-list']}>
+        {schedules.map((schedule) => {
+          const statusMeta = getScheduleStatusMeta(schedule.status);
+          // 壁纸是否已被删除（无关联壁纸实体）
+          const isWallpaperDeleted = !schedule.wallpaper;
+          const wallpaperTitle =
+            schedule.wallpaper?.title || `壁纸 #${schedule.wallpaperId}`;
+          const wallpaperCover = getImageUrl(schedule.wallpaper?.cover);
+          const latestTime =
+            schedule.publishedAt ||
+            schedule.submittedAt ||
+            schedule.updatedAt ||
+            schedule.scheduledAt;
 
-        return (
-          <div
-            key={schedule.id}
-            className={`${styles['schedule-item']} ${
-              isWallpaperDeleted ? styles['schedule-item-deleted'] : ''
-            }`}
-          >
-            <div className={styles['schedule-item-main']}>
-              <div className={styles['schedule-item-cover']}>
-                {wallpaperCover ? (
-                  <img src={wallpaperCover} alt={wallpaperTitle} />
-                ) : (
-                  <div className={styles['schedule-item-cover-placeholder']}>
-                    {isWallpaperDeleted ? '已删除' : '待发布'}
+          return (
+            <div
+              key={schedule.id}
+              className={`${styles['schedule-item']} ${
+                isWallpaperDeleted ? styles['schedule-item-deleted'] : ''
+              }`}
+            >
+              <div className={styles['schedule-item-main']}>
+                <div className={styles['schedule-item-cover']}>
+                  {wallpaperCover ? (
+                    <img src={wallpaperCover} alt={wallpaperTitle} />
+                  ) : (
+                    <div className={styles['schedule-item-cover-placeholder']}>
+                      {isWallpaperDeleted ? '已删除' : '待发布'}
+                    </div>
+                  )}
+                </div>
+                <div className={styles['schedule-item-body']}>
+                  <div className={styles['schedule-item-top']}>
+                    <div className={styles['schedule-item-title']}>
+                      {wallpaperTitle}
+                      {isWallpaperDeleted && (
+                        <span className={styles['schedule-deleted-tag']}>
+                          已删除
+                        </span>
+                      )}
+                    </div>
+                    <span
+                      className={`${styles['schedule-status']} ${
+                        styles[`schedule-status-${statusMeta.tone}`]
+                      }`}
+                    >
+                      {statusMeta.text}
+                    </span>
                   </div>
-                )}
+                  <div className={styles['schedule-item-meta']}>
+                    <span>
+                      发布日期：{formatScheduleDisplay(schedule.publishDate)}
+                    </span>
+                    <span>计划 ID：{schedule.id}</span>
+                    <span>发布状态：{statusMeta.text}</span>
+                    <span>最后更新：{formatDateTime(latestTime)}</span>
+                    {schedule.publishId ? (
+                      <span>发布单号：{schedule.publishId}</span>
+                    ) : null}
+                  </div>
+                  {schedule.errorMessage ? (
+                    <div className={styles['schedule-item-error']}>
+                      {schedule.errorMessage}
+                    </div>
+                  ) : (
+                    <div className={styles['schedule-item-desc']}>
+                      {schedule.status === 'SUBMITTED'
+                        ? '已进入公众号发布队列，等待平台返回正式结果。'
+                        : '系统会在所选日期 09:00 自动提交公众号正式发布。'}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className={styles['schedule-item-body']}>
-                <div className={styles['schedule-item-top']}>
-                  <div className={styles['schedule-item-title']}>
-                    {wallpaperTitle}
-                    {isWallpaperDeleted && (
-                      <span className={styles['schedule-deleted-tag']}>
-                        已删除
-                      </span>
-                    )}
-                  </div>
-                  <span
-                    className={`${styles['schedule-status']} ${
-                      styles[`schedule-status-${statusMeta.tone}`]
-                    }`}
+              {!isWallpaperDeleted && (
+                <div className={styles['schedule-item-actions']}>
+                  <Button
+                    size="small"
+                    onClick={() => handleViewWallpaper(schedule.wallpaper)}
                   >
-                    {statusMeta.text}
-                  </span>
+                    查看壁纸
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => handleSyncDraft(schedule)}
+                    loading={syncDraftLoadingId === schedule.id}
+                  >
+                    同步草稿
+                  </Button>
+                  <Button
+                    size="small"
+                    danger
+                    onClick={() => handleCancelSchedule(schedule)}
+                    loading={cancelingScheduleId === schedule.id}
+                    disabled={!canCancelSchedule(schedule.status)}
+                  >
+                    取消排期
+                  </Button>
                 </div>
-                <div className={styles['schedule-item-meta']}>
-                  <span>
-                    发布日期：{formatScheduleDisplay(schedule.publishDate)}
-                  </span>
-                  <span>计划 ID：{schedule.id}</span>
-                  <span>发布状态：{statusMeta.text}</span>
-                  <span>最后更新：{formatDateTime(latestTime)}</span>
-                  {schedule.publishId ? (
-                    <span>发布单号：{schedule.publishId}</span>
-                  ) : null}
-                </div>
-                {schedule.errorMessage ? (
-                  <div className={styles['schedule-item-error']}>
-                    {schedule.errorMessage}
-                  </div>
-                ) : (
-                  <div className={styles['schedule-item-desc']}>
-                    {schedule.status === 'SUBMITTED'
-                      ? '已进入公众号发布队列，等待平台返回正式结果。'
-                      : '系统会在所选日期 09:00 自动提交公众号正式发布。'}
-                  </div>
-                )}
-              </div>
+              )}
             </div>
-            {!isWallpaperDeleted && (
-              <div className={styles['schedule-item-actions']}>
-                <Button
-                  size="small"
-                  onClick={() => handleViewWallpaper(schedule.wallpaper)}
-                >
-                  查看壁纸
-                </Button>
-                <Button
-                  size="small"
-                  onClick={() => handleSyncDraft(schedule)}
-                  loading={syncDraftLoadingId === schedule.id}
-                >
-                  同步草稿
-                </Button>
-                <Button
-                  size="small"
-                  danger
-                  onClick={() => handleCancelSchedule(schedule)}
-                  loading={cancelingScheduleId === schedule.id}
-                  disabled={!canCancelSchedule(schedule.status)}
-                >
-                  取消排期
-                </Button>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+      {total > pagination.pageSize && (
+        <div style={{ textAlign: 'center', marginTop: 16 }}>
+          <Pagination
+            current={pagination.current}
+            pageSize={pagination.pageSize}
+            total={total}
+            showSizeChanger={false}
+            onChange={handlePageChange}
+          />
+        </div>
+      )}
+    </>
   );
 };
 

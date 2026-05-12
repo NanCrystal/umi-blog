@@ -14,6 +14,10 @@ const RedNoteComponent: React.FC<any> = ({ item }) => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [checking, setChecking] = useState(false);
   const [loggingIn, setLoggingIn] = useState(false);
+  const [qrImage, setQrImage] = useState<string>('');
+  const [polling, setPolling] = useState(false);
+  /** QR 码大图弹窗 */
+  const [qrModalVisible, setQrModalVisible] = useState(false);
   const [currentItem, setCurrentItem] = useState<any>(null);
   const [progress, setProgress] = useState(0);
   const [mode, setMode] = useState<'now' | 'scheduled' | null>(null);
@@ -90,14 +94,43 @@ const RedNoteComponent: React.FC<any> = ({ item }) => {
 
   const handleLogin = async () => {
     setLoggingIn(true);
+    setQrImage('');
     try {
-      const { xiaohongshuLogin } = require('@/services/wallpaper');
-      const result = await xiaohongshuLogin();
-      if (result?.success) {
-        message.success('小红书登录成功');
-        setLoggedIn(true);
-      } else {
-        message.error('小红书登录失败，请重试');
+      const {
+        xiaohongshuLogin,
+        xiaohongshuLoginPoll,
+      } = require('@/services/wallpaper');
+      const result: any = await xiaohongshuLogin();
+      if (result?.qrImage) {
+        setQrImage(result.qrImage);
+        setQrModalVisible(true);
+        // 开始轮询扫码状态
+        setPolling(true);
+        const pollTimer = setInterval(async () => {
+          try {
+            const status: any = await xiaohongshuLoginPoll();
+            if (status?.loggedIn) {
+              clearInterval(pollTimer);
+              setPolling(false);
+              setQrImage('');
+              setQrModalVisible(false);
+              message.success('小红书登录成功');
+              setLoggedIn(true);
+            }
+          } catch {
+            // 继续轮询
+          }
+        }, 3000);
+        // 3分钟超时
+        setTimeout(() => {
+          clearInterval(pollTimer);
+          if (pollingRef.current) {
+            setPolling(false);
+            setQrImage('');
+            setQrModalVisible(false);
+            message.warning('扫码超时，请重试');
+          }
+        }, 180_000);
       }
     } catch (error: any) {
       message.error(error?.data?.message || error?.message || '小红书登录失败');
@@ -105,6 +138,7 @@ const RedNoteComponent: React.FC<any> = ({ item }) => {
       setLoggingIn(false);
     }
   };
+  const pollingRef = useRef(polling);
 
   const handlePublish = async (scheduledTime?: string) => {
     if (!currentItem) return;
@@ -126,6 +160,7 @@ const RedNoteComponent: React.FC<any> = ({ item }) => {
       },
       title: currentItem.title,
     });
+    console.log('scheduledTime', scheduledTime);
 
     try {
       const { syncWallPaperToXiaohongshu } = require('@/services/wallpaper');
@@ -183,7 +218,10 @@ const RedNoteComponent: React.FC<any> = ({ item }) => {
       return;
     }
     // 定时发布走同样的发布流程，只是带上时间参数
-    await handlePublish(publishDate.toISOString());
+    // 使用 format() 保持本地时区（北京时间），不带 Z 后缀，
+    // 避免后端 new Date() 将其误解析为 UTC 再做时区转换导致偏差
+    const scheduledTime = publishDate.clone().second(0).millisecond(0);
+    await handlePublish(scheduledTime.format('YYYY-MM-DDTHH:mm:ss'));
   };
 
   React.useImperativeHandle(item?._ref, () => ({ open: handleOpen }), []);
@@ -212,28 +250,48 @@ const RedNoteComponent: React.FC<any> = ({ item }) => {
             <div style={{ color: '#666' }}>正在检查小红书登录状态...</div>
           ) : !loggedIn ? (
             <div>
-              <div style={{ marginBottom: 16 }}>
-                小红书未登录或 Cookie
-                已过期。点击下方按钮将弹出浏览器窗口，请使用小红书 App
-                扫码登录，登录成功后即可发布图文。
-              </div>
-              <div className={styles['btn-wrap']}>
-                <Button
-                  className={styles['cancel-btn']}
-                  onClick={handleClose}
-                  disabled={loggingIn}
-                >
-                  取消
-                </Button>
-                <Button
-                  type="primary"
-                  className={styles['action-btn']}
-                  loading={loggingIn}
-                  onClick={handleLogin}
-                >
-                  扫码登录小红书
-                </Button>
-              </div>
+              {qrImage ? (
+                <div style={{ textAlign: 'center', padding: 20 }}>
+                  <div
+                    style={{ color: '#666', marginBottom: 16, fontSize: 14 }}
+                  >
+                    二维码已获取，请点击下方按钮打开大图扫码
+                  </div>
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<span>📱</span>}
+                    onClick={() => setQrModalVisible(true)}
+                  >
+                    打开二维码大图
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div style={{ marginBottom: 16 }}>
+                    小红书未登录或 Cookie
+                    已过期。点击下方按钮获取二维码，请使用小红书 App 扫码登录。
+                  </div>
+                  <div className={styles['btn-wrap']}>
+                    <Button
+                      className={styles['cancel-btn']}
+                      onClick={handleClose}
+                      disabled={loggingIn || polling}
+                    >
+                      取消
+                    </Button>
+                    <Button
+                      type="primary"
+                      className={styles['action-btn']}
+                      loading={loggingIn}
+                      disabled={polling}
+                      onClick={handleLogin}
+                    >
+                      {polling ? '获取二维码...' : '扫码登录小红书'}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div>
@@ -365,6 +423,59 @@ const RedNoteComponent: React.FC<any> = ({ item }) => {
                 </div>
               )}
             </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* ── QR 码大图弹窗 ── */}
+      <Modal
+        open={qrModalVisible}
+        title={null}
+        footer={null}
+        width={900}
+        centered
+        maskClosable={false}
+        onCancel={() => {
+          setQrModalVisible(false);
+          if (polling) {
+            message.info('扫码窗口已关闭，二维码仍在等待扫描');
+          }
+        }}
+        bodyStyle={{ padding: '24px 24px 16px', textAlign: 'center' }}
+      >
+        <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
+          小红书扫码登录
+        </div>
+        <img
+          src={qrImage}
+          alt="小红书扫码登录"
+          style={{
+            width: '100%',
+            borderRadius: 12,
+            border: '2px solid #e0e0e0',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          }}
+        />
+        <div
+          style={{
+            color: '#666',
+            fontSize: 14,
+            marginTop: 16,
+            padding: '10px 16px',
+            background: '#f5f5f5',
+            borderRadius: 8,
+          }}
+        >
+          {polling ? (
+            <span>
+              ⏳ 等待扫码中...（3分钟内有效）
+              <br />
+              <span style={{ fontSize: 12, color: '#999' }}>
+                请使用小红书 App 扫描上方二维码
+              </span>
+            </span>
+          ) : (
+            '请使用小红书 App 扫描上方二维码登录'
           )}
         </div>
       </Modal>

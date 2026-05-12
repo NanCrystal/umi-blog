@@ -3,6 +3,45 @@
   margin: 0 auto;
 }
 
+.release-search {
+  margin-bottom: 16px;
+
+  :global {
+    .ant-input-group-wrapper {
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .ant-input-affix-wrapper,
+    .ant-input {
+      background: rgba(8, 17, 29, 0.6) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      color: rgba(255, 255, 255, 0.85) !important;
+
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      &:focus {
+      }
+    }
+
+    .ant-input-search-button {
+      background: rgba(8, 17, 29, 0.5) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      border-left-color: rgba(255, 255, 255, 0.08) !important;
+      color: rgba(255, 255, 255, 0.55) !important;
+
+      &:hover {
+        background: rgba(79, 195, 247, 0.12) !important;
+        color: rgba(79, 195, 247, 0.85) !important;
+        border-color: rgba(79, 195, 247, 0.25) !important;
+        border-left-color: rgba(79, 195, 247, 0.2) !important;
+      }
+    }
+  }
+}
+
 .schedule-board {
   padding: 20px;
   border-radius: 18px;

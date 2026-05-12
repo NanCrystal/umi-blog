@@ -1,3 +1,16 @@
+/** 从 localStorage 读取并解析 token，兼容纯字符串和 JSON 对象两种格式 */
+export const checkAdmin = (): boolean => {
+  const raw = localStorage.getItem('token');
+  if (!raw) return false;
+  if (raw === '121414') return true;
+  try {
+    const parsed = JSON.parse(raw);
+    return (parsed && parsed.token) === '121414';
+  } catch {
+    return false;
+  }
+};
+
 /** 判断是否为超时错误 */
 export const isTimeoutError = (error: any) => {
   const errorMessage = `${error?.message || ''}`.toLowerCase();

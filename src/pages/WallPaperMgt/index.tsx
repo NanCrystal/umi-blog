@@ -238,6 +238,26 @@ const WallPaperMgt: React.FC = () => {
         ),
       },
       {
+        title: '发布记录',
+        key: 'publishRecord',
+        width: 120,
+        render: (_: unknown, item) => (
+          <Button
+            type="link"
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              history.push('/admin/release', {
+                wallpaperId: item.id,
+                wallpaperTitle: item.title,
+              });
+            }}
+          >
+            查看
+          </Button>
+        ),
+      },
+      {
         title: '同步发布',
         key: 'sync',
         width: 240,

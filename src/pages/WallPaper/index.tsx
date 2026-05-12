@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styles from './index.less';
 import { history } from 'umi';
 import { Modal, message } from 'antd';
@@ -10,11 +10,12 @@ import {
   deleteWallPaper,
   WallPaperItem,
 } from '@/services/wallpaper';
+import { checkAdmin } from '@/utils/utils';
 
 const WallPaperPage: React.FC = () => {
   const [list, setList] = useState<WallPaperItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const isAdmin = localStorage.getItem('token') === '121414';
+  const isAdmin = useMemo(() => checkAdmin(), []);
 
   const fetchList = () => {
     setLoading(true);

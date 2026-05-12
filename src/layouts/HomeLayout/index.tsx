@@ -3,6 +3,7 @@ import { history, useLocation } from 'umi';
 import { Layout, Modal, Dropdown } from 'antd';
 import type { MenuProps } from 'antd';
 import { useEffect, useRef, useState } from 'react';
+import { checkAdmin } from '@/utils/utils';
 import {
   MessageOutlined,
   ExclamationCircleOutlined,
@@ -40,9 +41,7 @@ const HomeLayout = (props: IRouteComponentProps) => {
   };
 
   const activeTab = isAddPage ? -1 : getActiveTab(location.pathname);
-
-  const tokenVal = localStorage.getItem('token');
-  const isAdmin = tokenVal === '121414';
+  const isAdmin = checkAdmin();
 
   // 全局星空背景
   useEffect(() => {

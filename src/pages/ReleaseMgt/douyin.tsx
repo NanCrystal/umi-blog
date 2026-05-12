@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { history } from 'umi';
 
-import { Button, message } from 'antd';
+import { Button, message, Pagination } from 'antd';
 import styles from './index.less';
 import {
   getPublishRecords,
@@ -41,10 +41,15 @@ const formatDateTime = (iso?: string | null) => {
   )}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
 
-const DouyinTab: React.FC<{ active?: boolean }> = ({ active = true }) => {
+const DouyinTab: React.FC<{ active?: boolean; wallpaperTitle?: string }> = ({
+  active = true,
+  wallpaperTitle,
+}) => {
   const [records, setRecords] = useState<PublishRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [retryingId, setRetryingId] = useState<number | null>(null);
+  const [total, setTotal] = useState(0);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
   // 本地待发布记录（点击发布时立即显示）
   const [pendingList, setPendingList] = useState<PendingPublishItem[]>(
@@ -80,21 +85,40 @@ const DouyinTab: React.FC<{ active?: boolean }> = ({ active = true }) => {
     setPendingList([...getPendingPublishes()]);
   };
 
-  const fetchRecords = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
-    try {
-      const data = await getPublishRecords('douyin');
-      setRecords(data);
-      // 用后端数据替换已完成的本地待发布记录
-      reconcilePendingWithServer(data);
-    } catch (error: any) {
-      if (!silent) {
-        message.error(error?.message || '获取抖音发布记录失败');
+  const fetchRecords = useCallback(
+    async (
+      silent = false,
+      page = pagination.current,
+      pageSize = pagination.pageSize,
+    ) => {
+      if (!silent) setLoading(true);
+      try {
+        const res = await getPublishRecords(
+          'douyin',
+          undefined,
+          wallpaperTitle || undefined,
+          page,
+          pageSize,
+        );
+        setRecords(res.list || []);
+        setTotal(res.total);
+        setPagination({ current: page, pageSize });
+        // 用后端数据替换已完成的本地待发布记录
+        reconcilePendingWithServer(res.list || []);
+      } catch (error: any) {
+        if (!silent) {
+          message.error(error?.message || '获取抖音发布记录失败');
+        }
+      } finally {
+        if (!silent) setLoading(false);
       }
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, []);
+    },
+    [wallpaperTitle],
+  );
+
+  const handlePageChange = (page: number, pageSize: number) => {
+    void fetchRecords(false, page, pageSize);
+  };
 
   // 首次挂载 + tab 切回时刷新
   useEffect(() => {
@@ -135,7 +159,7 @@ const DouyinTab: React.FC<{ active?: boolean }> = ({ active = true }) => {
     );
   }
 
-  if (!mergedRecords.length) {
+  if (!mergedRecords.length && !loading) {
     return <div className={styles['schedule-empty']}>暂无抖音发布记录</div>;
   }
 
@@ -145,119 +169,148 @@ const DouyinTab: React.FC<{ active?: boolean }> = ({ active = true }) => {
   ): record is PendingPublishItem & { id: number } => 'tempId' in record;
 
   return (
-    <div className={styles['schedule-list']}>
-      {mergedRecords.map((record) => {
-        const pending = isPendingRecord(record);
-        // 壁纸是否已被删除（非本地记录 + 无关联壁纸实体 或 壁纸已软删除）
-        const isWallpaperDeleted =
-          !pending && (!record.wallpaper || !!record.wallpaper?.deletedAt);
-        const wallpaperTitle = pending
-          ? record.title
-          : record.wallpaper?.title ||
-            record.wallpaperTitle ||
-            `壁纸 #${record.wallpaperId ?? '—'}`;
-        const wallpaperCover = pending
-          ? getImageUrl(record.wallpaper?.cover)
-          : getImageUrl(
-              record.wallpaper?.cover ||
-                (record as PublishRecord).wallpaperCover ||
-                undefined,
-            );
-        const status: RecordStatus =
-          (record.status as RecordStatus) || 'PENDING';
-        const isPending = status === 'PENDING';
-        const isSuccess = status === 'SUCCESS';
-        const isFailed = status === 'FAILED';
+    <>
+      <div className={styles['schedule-list']}>
+        {mergedRecords.map((record) => {
+          const pending = isPendingRecord(record);
+          // 壁纸是否已被删除（非本地记录 + 无关联壁纸实体 或 壁纸已软删除）
+          const isWallpaperDeleted =
+            !pending && (!record.wallpaper || !!record.wallpaper?.deletedAt);
+          const wallpaperTitle = pending
+            ? record.title
+            : record.wallpaper?.title ||
+              record.wallpaperTitle ||
+              `壁纸 #${record.wallpaperId ?? '—'}`;
+          const wallpaperCover = pending
+            ? getImageUrl(record.wallpaper?.cover)
+            : getImageUrl(
+                record.wallpaper?.cover ||
+                  (record as PublishRecord).wallpaperCover ||
+                  undefined,
+              );
+          const status: RecordStatus =
+            (record.status as RecordStatus) || 'PENDING';
+          const isPending = status === 'PENDING';
+          const isSuccess = status === 'SUCCESS';
+          const isFailed = status === 'FAILED';
+          // 判断是否为定时发布任务（仅 API 返回的 PublishRecord 有 scheduledAt）
+          const isScheduled =
+            !pending && !!(record as PublishRecord).scheduledAt;
 
-        return (
-          <div
-            key={pending ? (record as any).tempId! : record.id}
-            className={`${styles['schedule-item']} ${
-              isWallpaperDeleted ? styles['schedule-item-deleted'] : ''
-            }`}
-          >
-            <div className={styles['schedule-item-main']}>
-              <div className={styles['schedule-item-cover']}>
-                {(pending && wallpaperCover) || (!pending && wallpaperCover) ? (
-                  <img src={wallpaperCover} alt={wallpaperTitle} />
-                ) : (
-                  <div className={styles['schedule-item-cover-placeholder']}>
-                    {isSuccess
-                      ? '已发布'
-                      : isPending
-                      ? '审核中'
-                      : isWallpaperDeleted
-                      ? '已删除'
-                      : '发布失败'}
+          return (
+            <div
+              key={pending ? (record as any).tempId! : record.id}
+              className={`${styles['schedule-item']} ${
+                isWallpaperDeleted ? styles['schedule-item-deleted'] : ''
+              }`}
+            >
+              <div className={styles['schedule-item-main']}>
+                <div className={styles['schedule-item-cover']}>
+                  {(pending && wallpaperCover) ||
+                  (!pending && wallpaperCover) ? (
+                    <img src={wallpaperCover} alt={wallpaperTitle} />
+                  ) : (
+                    <div className={styles['schedule-item-cover-placeholder']}>
+                      {isSuccess
+                        ? '已发布'
+                        : isPending
+                        ? '审核中'
+                        : isWallpaperDeleted
+                        ? '已删除'
+                        : '发布失败'}
+                    </div>
+                  )}
+                </div>
+                <div className={styles['schedule-item-body']}>
+                  <div className={styles['schedule-item-top']}>
+                    <div className={styles['schedule-item-title']}>
+                      {wallpaperTitle}
+                      {isWallpaperDeleted && (
+                        <span className={styles['schedule-deleted-tag']}>
+                          已删除
+                        </span>
+                      )}
+                    </div>
+                    <span
+                      className={`${styles['schedule-status']} ${
+                        isSuccess
+                          ? styles['schedule-status-success']
+                          : isFailed
+                          ? styles['schedule-status-danger']
+                          : styles['schedule-status-pending']
+                      }`}
+                    >
+                      {isSuccess
+                        ? isScheduled
+                          ? '定时发布成功'
+                          : '发布成功'
+                        : isPending
+                        ? '审核中'
+                        : '发布失败'}
+                    </span>
                   </div>
-                )}
-              </div>
-              <div className={styles['schedule-item-body']}>
-                <div className={styles['schedule-item-top']}>
-                  <div className={styles['schedule-item-title']}>
-                    {wallpaperTitle}
-                    {isWallpaperDeleted && (
-                      <span className={styles['schedule-deleted-tag']}>
-                        已删除
+                  <div className={styles['schedule-item-meta']}>
+                    <span>记录 ID：{pending ? '本地' : record.id}</span>
+                    <span>创建时间：{formatDateTime(record.createdAt)}</span>
+                    {isScheduled && (
+                      <span>
+                        定时发布时间：
+                        {formatDateTime((record as PublishRecord).scheduledAt)}
                       </span>
                     )}
                   </div>
-                  <span
-                    className={`${styles['schedule-status']} ${
-                      isSuccess
-                        ? styles['schedule-status-success']
-                        : isFailed
-                        ? styles['schedule-status-danger']
-                        : styles['schedule-status-pending']
-                    }`}
-                  >
-                    {isSuccess ? '发布成功' : isPending ? '审核中' : '发布失败'}
-                  </span>
+                  {isFailed &&
+                    'errorMessage' in record &&
+                    record.errorMessage && (
+                      <div className={styles['schedule-item-error']}>
+                        {record.errorMessage}
+                      </div>
+                    )}
                 </div>
-                <div className={styles['schedule-item-meta']}>
-                  <span>记录 ID：{pending ? '本地' : record.id}</span>
-                  <span>发布时间：{formatDateTime(record.createdAt)}</span>
-                </div>
-                {isFailed &&
-                  'errorMessage' in record &&
-                  record.errorMessage && (
-                    <div className={styles['schedule-item-error']}>
-                      {record.errorMessage}
-                    </div>
-                  )}
               </div>
-            </div>
-            {/* 审核中、本地待发布、壁纸已删除时隐藏操作按钮 */}
-            {!isPending && !pending && !isWallpaperDeleted && (
-              <div className={styles['schedule-item-actions']}>
-                <Button
-                  size="small"
-                  onClick={() =>
-                    handleViewWallpaper(
-                      'wallpaper' in record
-                        ? record.wallpaper ?? undefined
-                        : undefined,
-                    )
-                  }
-                >
-                  查看壁纸
-                </Button>
-                {!isSuccess && (
+              {/* 审核中、本地待发布、壁纸已删除时隐藏操作按钮 */}
+              {!isPending && !pending && !isWallpaperDeleted && (
+                <div className={styles['schedule-item-actions']}>
                   <Button
                     size="small"
-                    type="primary"
-                    onClick={() => handleRetry(record)}
-                    loading={retryingId === (pending ? -1 : record.id)}
+                    onClick={() =>
+                      handleViewWallpaper(
+                        'wallpaper' in record
+                          ? record.wallpaper ?? undefined
+                          : undefined,
+                      )
+                    }
                   >
-                    重新发布
+                    查看壁纸
                   </Button>
-                )}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+                  {!isSuccess && (
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={() => handleRetry(record)}
+                      loading={retryingId === (pending ? -1 : record.id)}
+                    >
+                      重新发布
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {total > pagination.pageSize && (
+        <div style={{ textAlign: 'center', marginTop: 16 }}>
+          <Pagination
+            current={pagination.current}
+            pageSize={pagination.pageSize}
+            total={total}
+            showSizeChanger={false}
+            onChange={handlePageChange}
+          />
+        </div>
+      )}
+    </>
   );
 };
 
