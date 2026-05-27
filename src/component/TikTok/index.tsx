@@ -103,45 +103,127 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
   const handleLogin = async () => {
     setLoggingIn(true);
     setQrImage('');
-    try {
-      const { douyinLogin, douyinLoginPoll } = require('@/services/wallpaper');
-      const result: any = await douyinLogin();
-      if (result?.qrImage) {
+
+    /**
+     * 获取二维码并启动轮询的核心函数（支持递归调用以刷新二维码）
+     * @param refreshCount 已刷新次数，首次调用传 0
+     */
+    const fetchQrAndStartPolling = async (refreshCount: number) => {
+      try {
+        const {
+          douyinLogin,
+          douyinLoginPoll,
+        } = require('@/services/wallpaper');
+
+        const result: any = await douyinLogin();
+        if (!result?.qrImage) {
+          message.error('获取二维码失败，请重试');
+          setPolling(false);
+          pollingRef.current = false;
+          return;
+        }
+
+        // 更新二维码图片（刷新时用户能看到新二维码）
         setQrImage(result.qrImage);
         setQrModalVisible(true);
-        // 开始轮询扫码状态
         setPolling(true);
         pollingRef.current = true;
-        const pollTimer = setInterval(async () => {
+
+        /* ── 递归轮询 ── */
+        const poll = async () => {
+          // 外部已停止（超时/用户关闭）
+          if (!pollingRef.current) return;
+
           try {
             const status: any = await douyinLoginPoll();
+
+            // ✅ 登录成功
             if (status?.loggedIn) {
-              clearInterval(pollTimer);
               pollingRef.current = false;
               setPolling(false);
               setQrImage('');
               setQrModalVisible(false);
               message.success('抖音登录成功');
               setLoggedIn(true);
+              return;
             }
+
+            const msg: string = status?.message || '';
+
+            // ⚠️ 二维码过期 → 自动刷新
+            if (msg.includes('二维码已过期') || msg.includes('二维码失效')) {
+              const MAX_REFRESH = 3;
+              if (refreshCount < MAX_REFRESH) {
+                message.info(
+                  `二维码已过期，正在自动刷新（${
+                    refreshCount + 1
+                  }/${MAX_REFRESH}）...`,
+                );
+                // 停止当前轮询，重新获取二维码并重启
+                pollingRef.current = false;
+                setPolling(false);
+                await fetchQrAndStartPolling(refreshCount + 1);
+              } else {
+                pollingRef.current = false;
+                setPolling(false);
+                setQrImage('');
+                setQrModalVisible(false);
+                message.warning('二维码已多次过期，请关闭后重新发起登录');
+              }
+              return;
+            }
+
+            // ❌ 会话已结束 → 停止轮询
+            if (
+              msg.includes('浏览器会话已结束') ||
+              msg.includes('请重新发起登录')
+            ) {
+              pollingRef.current = false;
+              setPolling(false);
+              setQrImage('');
+              setQrModalVisible(false);
+              message.error('登录会话已结束，请重新扫码');
+              return;
+            }
+
+            // 📱 已扫码，等待手机确认 → 显示确认提示UI，继续轮询
+            if (msg.includes('已扫码') || msg.includes('请在手机上点击')) {
+              setQrImage('waiting_confirm');
+              setTimeout(poll, 3000);
+              return;
+            }
+
+            // 其他情况（loggedIn: false 无 message）→ 继续等待
+            setTimeout(poll, 3000);
           } catch {
-            // 继续轮询
+            // 网络异常，继续轮询
+            if (pollingRef.current) setTimeout(poll, 3000);
           }
-        }, 3000);
-        // 3分钟超时
-        setTimeout(() => {
-          clearInterval(pollTimer);
-          if (pollingRef.current) {
-            pollingRef.current = false;
-            setPolling(false);
-            setQrImage('');
-            setQrModalVisible(false);
-            message.warning('扫码超时，请重试');
-          }
-        }, 180_000);
+        };
+
+        // 首次轮询延迟3秒（给用户时间看二维码）
+        setTimeout(poll, 3000);
+
+        // 3分钟总超时兜底（只在首次调用时注册，避免重复）
+        if (refreshCount === 0) {
+          setTimeout(() => {
+            if (pollingRef.current) {
+              pollingRef.current = false;
+              setPolling(false);
+              setQrImage('');
+              setQrModalVisible(false);
+              message.warning('扫码超时，请重试');
+            }
+          }, 180_000);
+        }
+      } catch {
+        setPolling(false);
+        pollingRef.current = false;
       }
-    } catch {
-      // request 已统一处理错误提示
+    };
+
+    try {
+      await fetchQrAndStartPolling(0);
     } finally {
       setLoggingIn(false);
     }
@@ -484,16 +566,43 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
         <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
           抖音扫码登录
         </div>
-        <img
-          src={qrImage}
-          alt="抖音扫码登录"
-          style={{
-            width: '100%',
-            borderRadius: 12,
-            border: '2px solid #e0e0e0',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-          }}
-        />
+        {qrImage === 'waiting_confirm' ? (
+          <div
+            style={{
+              padding: '60px 40px',
+              textAlign: 'center',
+              borderRadius: 12,
+              border: '2px solid #e0e0e0',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            }}
+          >
+            <div style={{ fontSize: 64 }}>📱</div>
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 600,
+                margin: '20px 0 8px',
+                color: '#25F4EE',
+              }}
+            >
+              扫码成功！
+            </div>
+            <div style={{ color: '#666', fontSize: 15 }}>
+              请在手机抖音上点击「确认登录」
+            </div>
+          </div>
+        ) : (
+          <img
+            src={qrImage}
+            alt="抖音扫码登录"
+            style={{
+              width: '100%',
+              borderRadius: 12,
+              border: '2px solid #e0e0e0',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            }}
+          />
+        )}
         <div
           style={{
             color: '#666',
@@ -504,7 +613,15 @@ const TikTokComponent: React.FC<any> = ({ item }) => {
             borderRadius: 8,
           }}
         >
-          {polling ? (
+          {qrImage === 'waiting_confirm' ? (
+            <span>
+              ✅ 二维码已扫描，等待手机确认中...
+              <br />
+              <span style={{ fontSize: 12, color: '#25F4EE', fontWeight: 500 }}>
+                请打开抖音 App 点击「确认登录」
+              </span>
+            </span>
+          ) : polling ? (
             <span>
               ⏳ 等待扫码中...（3分钟内有效）
               <br />
