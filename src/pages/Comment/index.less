@@ -25,33 +25,31 @@
   gap: 4px;
   pointer-events: auto;
 
-  /* 从小放大再淡出：scale 0.2 → 1.15 → 0 */
-  animation: bubbleFloat linear infinite both;
+  top: var(--start-y);
+  animation: floatUp linear infinite both;
   opacity: 0;
   transform-origin: center center;
+  white-space: nowrap;
 }
 
-@keyframes bubbleFloat {
+@keyframes floatUp {
   0% {
     opacity: 0;
-    transform: scale(0.15);
+    transform: translateY(0);
   }
-  15% {
+  5% {
     opacity: 1;
-    transform: scale(1);
   }
-  75% {
-    opacity: 0.85;
-    transform: scale(1.08);
+  90% {
+    opacity: 1;
   }
   100% {
     opacity: 0;
-    transform: scale(1.25);
+    transform: translateY(var(--end-y));
   }
 }
 
 .bubble-text {
-  color: rgba(255, 255, 255, 0.72);
   white-space: nowrap;
   letter-spacing: 0.3px;
   text-shadow: 0 0 12px rgba(160, 200, 255, 0.35);

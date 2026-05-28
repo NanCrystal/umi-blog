@@ -18,9 +18,9 @@ const { Header, Footer, Content } = Layout;
 
 const headerList: any = [
   { label: '主页', path: '/home', value: 0 },
-  { label: '吐槽', path: '/document', value: 1 },
-  { label: '装逼', path: '/essay', value: 2 },
-  { label: '壁纸', path: '/wallpaper', value: 3 },
+  { label: '随笔', path: '/document', value: 1 },
+  { label: '文章', path: '/essay', value: 2 },
+  { label: '贴图', path: '/wallpaper', value: 3 },
 ];
 
 const HomeLayout = (props: IRouteComponentProps) => {
@@ -42,6 +42,14 @@ const HomeLayout = (props: IRouteComponentProps) => {
 
   const activeTab = isAddPage ? -1 : getActiveTab(location.pathname);
   const isAdmin = checkAdmin();
+
+  // token 不存在时强制返回登录页
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      history.push('/login');
+    }
+  }, []);
 
   // 全局星空背景
   useEffect(() => {
@@ -119,6 +127,7 @@ const HomeLayout = (props: IRouteComponentProps) => {
       cancelText: '取消',
       okButtonProps: { danger: true },
       onOk: () => {
+        localStorage.removeItem('user');
         localStorage.removeItem('token');
         history.push('/login');
       },

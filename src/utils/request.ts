@@ -33,9 +33,14 @@ function extractErrorMessage(data: any, status: number): string {
 
 // 请求拦截器
 request.interceptors.request.use((url, options) => {
+  const token = localStorage.getItem('token');
+  const headers = { ...(options.headers || {}) };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
   return {
     url,
-    options: { ...options },
+    options: { ...options, headers },
   };
 });
 

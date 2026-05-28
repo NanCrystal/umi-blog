@@ -13,8 +13,6 @@ import {
   WallPaperItem,
 } from '@/services/wallpaper';
 import WeChateComponent from '@/component/WeChate';
-import RedNoteComponent from '@/component/RedNote';
-import TikTokComponent from '@/component/TikTok';
 
 const WallPaperMgt: React.FC = () => {
   const [list, setList] = useState<WallPaperItem[]>([]);
@@ -33,8 +31,6 @@ const WallPaperMgt: React.FC = () => {
   const [restoringId, setRestoringId] = useState<number | null>(null);
 
   const wechatRef = useRef<any>(null);
-  const douyinRef = useRef<any>(null);
-  const xhsRef = useRef<any>(null);
 
   const fetchList = (
     page = pagination.current,
@@ -264,8 +260,6 @@ const WallPaperMgt: React.FC = () => {
         render: (_: unknown, item) => (
           <div className={styles['table-sync-platforms']}>
             <WeChateComponent item={item} />
-            <TikTokComponent item={item} />
-            <RedNoteComponent item={item} />
           </div>
         ),
       },
@@ -414,8 +408,6 @@ const WallPaperMgt: React.FC = () => {
       {/* 隐藏的 Modal 容器 */}
       <div style={{ display: 'none' }}>
         <WeChateComponent ref={wechatRef} />
-        <TikTokComponent ref={douyinRef} />
-        <RedNoteComponent ref={xhsRef} />
       </div>
     </div>
   );

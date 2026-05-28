@@ -156,11 +156,6 @@ const DocumentPage: React.FC = () => {
         <div className={styles['loading-wrap']}>
           <Spin />
         </div>
-      ) : list.length === 0 ? (
-        /* 空状态 */
-        <div className={styles['empty-wrap']}>
-          <Lottie animationData={emptyJson} play loop style={{ width: 320 }} />
-        </div>
       ) : (
         /* 瀑布流 */
         <div className={styles['masonry']}>

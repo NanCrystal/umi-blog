@@ -1,15 +1,30 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './index.less';
-import { history } from 'umi';
+import { history, useLocation } from 'umi';
 import astronautJson from '@/assets/json/astronaut.json';
 import shakyButtonJson from '@/assets/json/shaky_button.json';
 import Lottie from 'react-lottie-player';
+import yunyiImg from '@/assets/images/yunyi.webp';
+import haoyiranImg from '@/assets/images/haoyiran.jpg';
+import yunqiImg from '@/assets/images/yunqi.jpg';
+import request from '@/utils/request';
+import { message } from 'antd';
 
 interface Props {}
 
+const avatars = [
+  { key: 'yunyi', src: yunyiImg, label: '云熠' },
+  { key: 'haoyiran', src: haoyiranImg, label: '郝熠然' },
+  { key: 'yunqi', src: yunqiImg, label: '云旗' },
+];
+
 const LoginPage: React.FC<Props> = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [value, setValue] = useState<any>(null);
+  const location = useLocation();
+  const isManageLogin = location.pathname === '/manage/login';
+
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -52,11 +67,40 @@ const LoginPage: React.FC<Props> = () => {
     };
   }, []);
 
-  const handleEnter = () => {
-    console.log('value', value);
+  const handleSelectAvatar = async (key: string) => {
+    try {
+      const res: any = await request('/auth/login', {
+        method: 'POST',
+        data: { username: key, password: '123456' },
+      });
+      localStorage.setItem('user', res.user);
+      localStorage.setItem('token', res.token);
+      if (['yunyi', 'haoyiran', 'yunqi'].includes(key)) {
+        history.push(`/${key}/data`);
+      } else {
+        history.push('/home');
+      }
+    } catch (err: any) {
+      message.error(err?.message || '登录失败，请重试');
+    }
+  };
 
-    localStorage.setItem('token', value);
-    history.push('/home');
+  const handleAdminLogin = async () => {
+    if (!username.trim() || !password.trim()) {
+      message.error('请输入账号和密码');
+      return;
+    }
+    try {
+      const res: any = await request('/auth/login', {
+        method: 'POST',
+        data: { username, password },
+      });
+      localStorage.setItem('user', res.user);
+      localStorage.setItem('token', res.token);
+      history.push('/home');
+    } catch (err: any) {
+      message.error(err?.message || '登录失败，请重试');
+    }
   };
 
   return (
@@ -72,28 +116,59 @@ const LoginPage: React.FC<Props> = () => {
           play
           style={{ width: '90%' }}
         />
-        {/* width: '80%',maxWidth: 420  */}
       </div>
 
       {/* 右半：登录框 */}
       <div className={styles['login-right']}>
         <div className={styles['login-box']}>
-          <input
-            className={styles['login-input']}
-            type="text"
-            placeholder="请任意输入你想说的"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          />
-          <div className={styles['login-btn-wrap']} onClick={handleEnter}>
-            <Lottie
-              loop
-              animationData={shakyButtonJson}
-              play
-              style={{ width: 120 }}
-            />
-            <span className={styles['login-btn-text']}>进 入</span>
-          </div>
+          {!isManageLogin ? (
+            <>
+              <div className={styles['avatar-title']}>
+                选择一个世界，开启你的跨时空羁绊
+              </div>
+              <div className={styles['avatar-list']}>
+                {avatars.map((item) => (
+                  <div
+                    key={item.key}
+                    className={styles['avatar-item']}
+                    onClick={() => handleSelectAvatar(item.key)}
+                  >
+                    <img src={item.src} alt={item.label} />
+                    <span>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <input
+                className={styles['login-input']}
+                type="text"
+                placeholder="账号"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <input
+                className={styles['login-input']}
+                type="password"
+                placeholder="密码"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <div
+                className={styles['login-btn-wrap']}
+                onClick={handleAdminLogin}
+              >
+                <Lottie
+                  loop
+                  animationData={shakyButtonJson}
+                  play
+                  style={{ width: 120 }}
+                />
+                <span className={styles['login-btn-text']}>登 录</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

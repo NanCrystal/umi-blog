@@ -16,21 +16,25 @@ interface BubbleConfig {
   id: number;
   content: string;
   left: number; // vw
-  top: number; // vh
+  startY: number; // vh，初始出现高度
+  endY: number; // vh，负值，控制上升总距离
   delay: number; // s
   duration: number; // s
   fontSize: number; // px
+  color: string;
 }
 
 function buildConfigs(list: CommentItem[]): BubbleConfig[] {
   return list.map((item) => ({
     id: item.id,
     content: item.content,
-    left: Math.random() * 80 + 5, // 5~85vw
-    top: Math.random() * 70 + 10, // 10~80vh
+    left: Math.random() * 90 + 5, // 5~95vw
+    startY: Math.random() * 80 + 50, // 50~130vh，随机起始高度（部分在屏幕内，部分在底部外）
+    endY: -(Math.random() * 150 + 30), // -30 ~ -180vh，上升距离越短越早消失
     delay: Math.random() * 6, // 0~6s 错落
-    duration: Math.random() * 3 + 4, // 4~7s 每轮
-    fontSize: Math.random() * 6 + 16, // 16~22px
+    duration: Math.random() * 4 + 8, // 8~12s 每轮，更慢
+    fontSize: Math.random() * 6 + 12, // 12~18px
+    color: `hsla(${Math.floor(Math.random() * 360)}, 80%, 72%, 0.85)`,
   }));
 }
 
@@ -96,15 +100,20 @@ const CommentPage: React.FC = () => {
           <div
             key={b.id}
             className={styles['bubble']}
-            style={{
-              left: `${b.left}vw`,
-              top: `${b.top}vh`,
-              animationDelay: `${b.delay}s`,
-              animationDuration: `${b.duration}s`,
-              fontSize: `${b.fontSize}px`,
-            }}
+            style={
+              {
+                left: `${b.left}vw`,
+                '--start-y': `${b.startY}vh`,
+                '--end-y': `${b.endY}vh`,
+                animationDelay: `${b.delay}s`,
+                animationDuration: `${b.duration}s`,
+                fontSize: `${b.fontSize}px`,
+              } as React.CSSProperties
+            }
           >
-            <span className={styles['bubble-text']}>{b.content}</span>
+            <span className={styles['bubble-text']} style={{ color: b.color }}>
+              {b.content}
+            </span>
             {isAdmin && (
               <span
                 className={styles['bubble-del']}

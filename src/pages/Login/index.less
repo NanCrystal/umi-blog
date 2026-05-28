@@ -101,10 +101,58 @@
   }
 }
 
+.avatar-title {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 4px;
+  margin-bottom: 8px;
+}
+
+.avatar-list {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+  }
+
+  span {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
 /* ======================================================
    响应式：平板竖屏以下改为上下布局
    ====================================================== */
 @media (max-width: 768px) {
+  .avatar-item {
+    img {
+      width: 64px;
+      height: 64px;
+    }
+  }
+
   .login-page {
     flex-direction: column;
     justify-content: center;
@@ -119,8 +167,8 @@
 
     /* Lottie 限制尺寸 */
     :global(> *) {
-      width: 60vw !important;
-      max-width: 260px !important;
+      width: 70vw !important;
+      max-width: 300px !important;
     }
   }
 

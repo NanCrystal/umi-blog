@@ -24,7 +24,8 @@ const AdminLayout: React.FC<IRouteComponentProps> = (props) => {
   };
 
   const tokenVal = localStorage.getItem('token');
-  if (tokenVal !== '121414') {
+  const userVal = localStorage.getItem('user');
+  if (!tokenVal || userVal !== 'admin') {
     history.push('/login');
     return null;
   }

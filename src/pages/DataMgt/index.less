@@ -1,0 +1,499 @@
+.data-mgt-page {
+  padding-bottom: 40px;
+}
+
+/* ─── 页面标题 ─── */
+.page-header {
+  margin-bottom: 24px;
+
+  h1 {
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .page-subtitle {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 13px;
+  }
+}
+
+/* ─── 核心统计卡片 ─── */
+.core-stats-row {
+  .stat-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.07);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    :global(.ant-card-body) {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .stat-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .stat-title {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    color: #fff;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+}
+
+/* ─── 图表卡片通用 ─── */
+.chart-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+
+  :global(.ant-card-head) {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 16px 20px;
+    min-height: 52px;
+  }
+
+  :global(.ant-card-body) {
+    padding: 20px;
+  }
+}
+
+/* ─── Mini 条形图 ─── */
+.mini-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 160px;
+  padding: 0 8px;
+
+  .bar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    gap: 8px;
+  }
+
+  .bar-track {
+    width: 28px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 6px;
+    transition: height 0.8s ease;
+  }
+
+  .bar-label {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 12px;
+  }
+}
+
+/* ─── 排行列表 ─── */
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .rank-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .rank-num {
+    width: 22px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .rank-title {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 13px;
+    width: 80px;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rank-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .rank-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease;
+  }
+
+  .rank-value {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 12px;
+    width: 56px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+}
+
+/* ─── 环形图 ─── */
+.donut-chart-wrap {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  .donut-chart {
+    width: 140px;
+    height: 140px;
+  }
+
+  .donut-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .legend-name {
+    color: rgba(255, 255, 255, 0.6);
+    width: 56px;
+  }
+
+  .legend-value {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+  }
+}
+
+/* ─── 横向条形图 ─── */
+.hbar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .hbar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hbar-name {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    width: 60px;
+    flex-shrink: 0;
+  }
+
+  .hbar-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .hbar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease;
+  }
+
+  .hbar-value {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    width: 36px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+}
+
+/* ─── 标签云 ─── */
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  padding: 8px;
+
+  .tag-cloud-item {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    cursor: default;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+
+    sup {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-left: 2px;
+      font-weight: 400;
+    }
+  }
+}
+
+/* ─── 动态时间线 ─── */
+.activity-timeline {
+  :global(.ant-timeline-item-tail) {
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .activity-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .activity-content {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 13px;
+  }
+}
+
+/* ─── 模块 Tabs ─── */
+.module-tabs-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+
+  :global(.ant-card-body) {
+    padding: 0;
+  }
+}
+
+.dark-tabs {
+  :global(.ant-tabs-nav) {
+    padding: 0 20px;
+    margin-bottom: 0;
+
+    &::before {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+  }
+
+  :global(.ant-tabs-tab) {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 14px;
+    padding: 14px 16px;
+    transition: color 0.2s;
+
+    &:hover {
+      color: rgba(255, 255, 255, 0.75);
+    }
+  }
+
+  :global(.ant-tabs-tab-active) {
+    color: #4fc3f7 !important;
+  }
+
+  :global(.ant-tabs-ink-bar) {
+    background: #4fc3f7;
+  }
+
+  :global(.ant-tabs-content) {
+    padding: 20px;
+  }
+}
+
+/* ─── 模块详情面板 ─── */
+.module-panel {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.module-stat-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  text-align: center;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  :global(.ant-card-body) {
+    padding: 16px 12px;
+  }
+
+  .module-stat-icon {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.35);
+    margin-bottom: 8px;
+  }
+
+  .module-stat-value {
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .module-stat-label {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 12px;
+  }
+}
+
+/* ─── CTR 圆形 ─── */
+.ctr-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+
+  :global(.ant-progress-circle-trail) {
+    stroke: rgba(255, 255, 255, 0.08);
+  }
+
+  .ctr-label {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 13px;
+  }
+}
+
+/* ─── 档案时间线覆盖 ─── */
+.profile-timeline {
+  :global(.ant-timeline-item-tail) {
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  :global(.ant-timeline-item-content) {
+    color: rgba(255, 255, 255, 0.75);
+  }
+}
+
+/* ─── 响应式 ─── */
+@media (max-width: 768px) {
+  .data-mgt-page {
+    padding: 0 4px;
+  }
+
+  .page-header h1 {
+    font-size: 20px;
+  }
+
+  .stat-card {
+    :global(.ant-card-body) {
+      padding: 14px;
+      gap: 10px;
+    }
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
+
+  .mini-bar-chart {
+    height: 130px;
+
+    .bar-track {
+      width: 20px;
+      height: 90px;
+    }
+  }
+
+  .donut-chart-wrap {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .dark-tabs {
+    :global(.ant-tabs-tab) {
+      padding: 10px 10px;
+      font-size: 13px;
+    }
+
+    :global(.ant-tabs-content) {
+      padding: 12px;
+    }
+  }
+}
