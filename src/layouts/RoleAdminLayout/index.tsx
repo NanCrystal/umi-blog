@@ -14,37 +14,31 @@ import styles from './index.less';
 
 const { Sider, Content } = Layout;
 
-const roleTitleMap: Record<string, string> = {
-  yunyi: '云熠',
-  haoyiran: '郝熠然',
-  yunqi: '云旗',
-};
+const prefix = '/role';
 
-const getMenuItems = (prefix: string) => [
+const menuItems = [
   { key: `${prefix}/data`, icon: <DashboardOutlined />, label: '数据面板' },
   {
     key: `${prefix}/itinerary`,
     icon: <EnvironmentOutlined />,
     label: '行程管理',
   },
-  { key: `${prefix}/swiper`, icon: <PlayCircleOutlined />, label: '动画管理' },
+  {
+    key: `${prefix}/swiper`,
+    icon: <PlayCircleOutlined />,
+    label: 'Banner管理',
+  },
   { key: `${prefix}/photo`, icon: <PictureOutlined />, label: '照片管理' },
   { key: `${prefix}/video`, icon: <VideoCameraOutlined />, label: '视频管理' },
   { key: `${prefix}/voice`, icon: <SoundOutlined />, label: '音频管理' },
   { key: `${prefix}/profile`, icon: <FileTextOutlined />, label: '档案管理' },
 ];
 
-const validRoles = Object.keys(roleTitleMap);
-
 const RoleAdminLayout: React.FC<IRouteComponentProps> = (props) => {
   const { children } = props;
   const location = useLocation();
 
   const pathname = location.pathname;
-  const role = pathname.split('/')[1] || '';
-  const prefix = `/${role}`;
-
-  const menuItems = getMenuItems(prefix);
   const selectedKey =
     menuItems.find((item) => pathname.startsWith(item.key))?.key ||
     `${prefix}/data`;
@@ -54,8 +48,7 @@ const RoleAdminLayout: React.FC<IRouteComponentProps> = (props) => {
   };
 
   const tokenVal = localStorage.getItem('token');
-  const userVal = localStorage.getItem('user');
-  if (!tokenVal || userVal !== role || !validRoles.includes(role)) {
+  if (!tokenVal) {
     history.push('/login');
     return null;
   }
@@ -74,7 +67,7 @@ const RoleAdminLayout: React.FC<IRouteComponentProps> = (props) => {
           style={{ cursor: 'pointer' }}
         >
           <span className={styles['admin-sider-title']}>
-            {roleTitleMap[role]}✨管理后台
+            数据大屏✨管理后台
           </span>
         </div>
         <Menu

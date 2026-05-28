@@ -1,76 +1,89 @@
-import React, { useEffect, useRef, useState } from 'react';
-import Lottie from 'react-lottie-player';
-import shakyButtonJson from '@/assets/json/shaky_button.json';
+import React, { useEffect, useRef } from 'react';
 import styles from './index.less';
-import catJson from '@/assets/json/cat.json';
-import helloJson from '@/assets/json/hello.json';
-import cycleJson from '@/assets/json/cycle.json';
+import { history } from 'umi';
+import yunyiImg from '@/assets/images/yunyi.webp';
+import haoyiranImg from '@/assets/images/haoyiran.jpg';
+import yunqiImg from '@/assets/images/yunqi.jpg';
+
+const avatars = [
+  { key: 'yunyi', src: yunyiImg, label: '云熠' },
+  { key: 'haoyiran', src: haoyiranImg, label: '郝熠然' },
+  { key: 'yunqi', src: yunqiImg, label: '云旗' },
+];
+
 const HomePage = (props: IRouteComponentProps) => {
-  const lockRef = useRef(false); // 3s 内锁定，禁止再次触发
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [toggleCat, setToggleCat] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const togglleBtn = () => {
-    // 3s 锁定期间任何点击都无效
-    if (lockRef.current) return;
-
-    // 清掉可能残留的旧 timer（防御性处理）
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-
-    // 切换到 hello，加锁
-    lockRef.current = true;
-    setToggleCat(true);
-
-    // 3s 后自动切回 cat，解锁
-    timerRef.current = setTimeout(() => {
-      setToggleCat(false);
-      lockRef.current = false;
-      timerRef.current = null;
-    }, 3000);
-  };
-  // 组件卸载时清除 toggle timer
+  // 星空背景
   useEffect(() => {
+    const canvas = canvasRef.current!;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d')!;
+    let animationId: number;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const stars = Array.from({ length: 180 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      r: Math.random() * 1.5 + 0.3,
+      alpha: Math.random(),
+      speed: Math.random() * 0.02 + 0.005,
+      dir: Math.random() > 0.5 ? 1 : -1,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      stars.forEach((s) => {
+        s.alpha += s.speed * s.dir;
+        if (s.alpha >= 1 || s.alpha <= 0) s.dir *= -1;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${s.alpha})`;
+        ctx.fill();
+      });
+      animationId = requestAnimationFrame(draw);
+    };
+    draw();
+
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', resize);
     };
   }, []);
+
+  const handleSelectAvatar = (key: string) => {
+    history.push('/admin/data');
+  };
+
   return (
     <div className={styles['home_page']}>
+      {/* 星空背景 */}
+      <canvas ref={canvasRef} className={styles['star-canvas']} />
+
       <main className={styles['main_container']}>
         <section>
-          <Lottie loop animationData={cycleJson} play style={{ width: 600 }} />
-        </section>
-        <div className={styles['cat-btn']} onClick={togglleBtn}>
-          {!!toggleCat ? (
-            <Lottie
-              animationData={helloJson}
-              play
-              loop
-              style={{ width: 200 }}
-            />
-          ) : (
-            <Lottie
-              animationData={catJson}
-              play
-              loop
-              style={{ width: 200, cursor: 'pointer' }}
-            />
-          )}
-        </div>
-        {/* <section className={styles['home_btn_container']}>
-          <Lottie
-            loop
-            animationData={shakyButtonJson}
-            play
-            style={{ width: 200 }}
-          />
-          <div className={styles['home_btn']} onClick={handleIn}>
-            欢迎访问
+          <div className={styles['avatar-title']}>
+            选择一个世界，开启你的跨时空羁绊
           </div>
-        </section> */}
+          <div className={styles['avatar-list']}>
+            {avatars.map((item) => (
+              <div
+                key={item.key}
+                className={styles['avatar-item']}
+                onClick={() => handleSelectAvatar(item.key)}
+              >
+                <img src={item.src} alt={item.label} />
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );

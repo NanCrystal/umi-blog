@@ -1,8 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "start": "set NODE_OPTIONS=--openssl-legacy-provider && umi dev",
-    "build": "set NODE_OPTIONS=--openssl-legacy-provider && umi build",
+    "start": "export NODE_OPTIONS=--openssl-legacy-provider && umi dev",
+    "build": "export NODE_OPTIONS=--openssl-legacy-provider && umi build",
     "prettier": "prettier --write '**/*.{js,jsx,tsx,ts,less,md,json}'",
     "test": "umi-test",
     "test:coverage": "umi-test --coverage"

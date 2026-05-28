@@ -308,7 +308,7 @@ const StatCard: React.FC<{ item: (typeof coreStats)[0] }> = ({ item }) => (
         <Statistic
           value={item.value as number}
           suffix={item.suffix}
-          valueStyle={{ color: '#fff', fontSize: 28, fontWeight: 700 }}
+          valueStyle={{ color: '#fff', fontSize: 22, fontWeight: 700 }}
         />
       )}
     </div>
@@ -915,7 +915,7 @@ const DataMgtPage: React.FC = () => {
       {/* 核心统计卡片 */}
       <Row gutter={[16, 16]} className={styles['core-stats-row']}>
         {coreStats.map((item) => (
-          <Col key={item.key} xs={12} sm={12} md={8} lg={4}>
+          <Col key={item.key} xs={12} sm={8} md={8} lg={8} xl={8} xxl={8}>
             <StatCard item={item} />
           </Col>
         ))}

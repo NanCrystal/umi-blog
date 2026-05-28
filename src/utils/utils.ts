@@ -37,3 +37,14 @@ export const getDefaultPublishDate = () => {
 
 /** 格式化排期显示时间 */
 export const formatScheduleDisplay = (dateText: string) => `${dateText} 09:00`;
+
+/** 格式化 ISO 时间字符串为 YYYY-MM-DD HH:mm（不含秒） */
+export const formatDateTime = (isoString: string): string => {
+  const date = new Date(isoString);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${d} ${h}:${min}`;
+};

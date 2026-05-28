@@ -12,6 +12,7 @@ const WallPaperDetailPage = '@/pages/WallPaper/detail';
 
 const WallPaperMgtPage = '@/pages/WallPaperMgt/index';
 const ReleaseMgtPage = '@/pages/ReleaseMgt/index';
+const ArtistMgtPage = '@/pages/ArtistMgt/index';
 
 const DataMgtPage = '@/pages/DataMgt/index';
 const ItineraryMgtPage = '@/pages/ItineraryMgt/index';
@@ -27,7 +28,6 @@ export default [
 
   // 登录页（无布局）
   { exact: true, path: '/login', component: LoginPage },
-  { exact: true, path: '/manage/login', component: LoginPage },
 
   // 管理后台布局（无顶部导航，仅左侧菜单）
   // 放在主布局前面，避免被 '/' 路由的 catch-all 拦截
@@ -35,53 +35,17 @@ export default [
     path: '/admin',
     component: '@/layouts/AdminLayout/index',
     routes: [
+      { exact: true, path: '/admin/data', component: DataMgtPage },
+      { exact: true, path: '/admin/itinerary', component: ItineraryMgtPage },
+      { exact: true, path: '/admin/swiper', component: SwiperMgtPage },
+      { exact: true, path: '/admin/photo', component: PhotoMgtPage },
+      { exact: true, path: '/admin/video', component: VideoMgtPage },
+      { exact: true, path: '/admin/voice', component: VoiceMgtPage },
+      { exact: true, path: '/admin/profile', component: ProfileMgtPage },
       { exact: true, path: '/admin/wallpaper', component: WallPaperMgtPage },
       { exact: true, path: '/admin/release', component: ReleaseMgtPage },
-      { redirect: '/admin/wallpaper' },
-    ],
-  },
-
-  // 角色管理后台（云熠 / 郝熠然 / 云旗）
-  {
-    path: '/yunyi',
-    component: '@/layouts/RoleAdminLayout/index',
-    routes: [
-      { exact: true, path: '/yunyi/data', component: DataMgtPage },
-      { exact: true, path: '/yunyi/itinerary', component: ItineraryMgtPage },
-      { exact: true, path: '/yunyi/swiper', component: SwiperMgtPage },
-      { exact: true, path: '/yunyi/photo', component: PhotoMgtPage },
-      { exact: true, path: '/yunyi/video', component: VideoMgtPage },
-      { exact: true, path: '/yunyi/voice', component: VoiceMgtPage },
-      { exact: true, path: '/yunyi/profile', component: ProfileMgtPage },
-      { redirect: '/yunyi/data' },
-    ],
-  },
-  {
-    path: '/haoyiran',
-    component: '@/layouts/RoleAdminLayout/index',
-    routes: [
-      { exact: true, path: '/haoyiran/data', component: DataMgtPage },
-      { exact: true, path: '/haoyiran/itinerary', component: ItineraryMgtPage },
-      { exact: true, path: '/haoyiran/swiper', component: SwiperMgtPage },
-      { exact: true, path: '/haoyiran/photo', component: PhotoMgtPage },
-      { exact: true, path: '/haoyiran/video', component: VideoMgtPage },
-      { exact: true, path: '/haoyiran/voice', component: VoiceMgtPage },
-      { exact: true, path: '/haoyiran/profile', component: ProfileMgtPage },
-      { redirect: '/haoyiran/data' },
-    ],
-  },
-  {
-    path: '/yunqi',
-    component: '@/layouts/RoleAdminLayout/index',
-    routes: [
-      { exact: true, path: '/yunqi/data', component: DataMgtPage },
-      { exact: true, path: '/yunqi/itinerary', component: ItineraryMgtPage },
-      { exact: true, path: '/yunqi/swiper', component: SwiperMgtPage },
-      { exact: true, path: '/yunqi/photo', component: PhotoMgtPage },
-      { exact: true, path: '/yunqi/video', component: VideoMgtPage },
-      { exact: true, path: '/yunqi/voice', component: VoiceMgtPage },
-      { exact: true, path: '/yunqi/profile', component: ProfileMgtPage },
-      { redirect: '/yunqi/data' },
+      { exact: true, path: '/admin/artist', component: ArtistMgtPage },
+      { redirect: '/admin/data' },
     ],
   },
 

@@ -135,7 +135,7 @@ const HomeLayout = (props: IRouteComponentProps) => {
   };
 
   const handleAdmin = () => {
-    confirmLeave(() => history.push('/admin/wallpaper'));
+    confirmLeave(() => history.push('/admin/data'));
   };
 
   const dropdownItems: MenuProps['items'] = [
@@ -186,6 +186,12 @@ const HomeLayout = (props: IRouteComponentProps) => {
                 <span>{item.label}</span>
               </div>
             ))}
+            <div
+              className={`${styles['header-item']} ${styles['admin-entry']}`}
+              onClick={handleAdmin}
+            >
+              <SettingOutlined />
+            </div>
             {isAdmin ? (
               <Dropdown
                 menu={{ items: dropdownItems }}
@@ -228,17 +234,15 @@ const HomeLayout = (props: IRouteComponentProps) => {
               {item.label}
             </div>
           ))}
-          {isAdmin && (
-            <div
-              className={styles['mobile-menu-item']}
-              onClick={() => {
-                setMenuOpen(false);
-                handleAdmin();
-              }}
-            >
-              后台管理
-            </div>
-          )}
+          <div
+            className={styles['mobile-menu-item']}
+            onClick={() => {
+              setMenuOpen(false);
+              handleAdmin();
+            }}
+          >
+            后台管理
+          </div>
           <div className={styles['mobile-menu-item']} onClick={handleLogout}>
             退出
           </div>

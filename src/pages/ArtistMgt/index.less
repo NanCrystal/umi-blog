@@ -1,0 +1,90 @@
+.artist-mgt {
+  padding: 24px;
+
+  .artist-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+
+    h2 {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 20px;
+    }
+
+    .artist-subtitle {
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 14px;
+    }
+  }
+
+  .artist-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 20px;
+  }
+
+  .artist-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+
+    :global(.ant-card-body) {
+      padding: 24px;
+    }
+  }
+
+  .artist-info {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .artist-avatar {
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  .artist-detail {
+    flex: 1;
+
+    h3 {
+      margin: 0 0 8px 0;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 18px;
+    }
+
+    .artist-desc {
+      color: rgba(255, 255, 255, 0.5);
+      margin: 8px 0 16px;
+      font-size: 13px;
+    }
+
+    .artist-meta {
+      :global(.ant-descriptions-item-label) {
+        color: rgba(255, 255, 255, 0.5) !important;
+      }
+
+      :global(.ant-descriptions-item-content) {
+        color: rgba(255, 255, 255, 0.75) !important;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .artist-mgt {
+    padding: 16px;
+
+    .artist-list {
+      grid-template-columns: 1fr;
+    }
+
+    .artist-info {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+  }
+}
