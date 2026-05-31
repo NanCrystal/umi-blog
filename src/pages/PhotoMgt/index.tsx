@@ -25,6 +25,7 @@ import {
   deletePhoto,
   updatePhoto,
   batchDeletePhotos,
+  batchUpdatePhotos,
 } from '@/services/photo';
 import { getImageUrl } from '@/utils/utils';
 import { getArtistList } from '@/services/artist';
@@ -212,12 +213,12 @@ const PhotoPage: React.FC<Props> = () => {
   }, [selectedLocations]);
 
   // ── 艺人筛选逻辑 ──────────────────────────────────────
-  const activeArtistId = useMemo<string | undefined>(() => {
+  const activeArtistIds = useMemo<string[] | undefined>(() => {
     if (selectedArtists.has(ALL_KEY) || selectedArtists.size === 0)
       return undefined;
-    // 单选艺人（取第一个）
+    // 支持多选艺人
     const artistIds = Array.from(selectedArtists).filter((v) => v !== ALL_KEY);
-    return artistIds[0] as string;
+    return artistIds.length > 0 ? (artistIds as string[]) : undefined;
   }, [selectedArtists]);
 
   const handleArtistToggle = (id: string | number) => {
@@ -289,7 +290,7 @@ const PhotoPage: React.FC<Props> = () => {
           typeIds: activeTypeIds.length > 0 ? activeTypeIds : undefined,
           locationIds:
             activeLocationIds.length > 0 ? activeLocationIds : undefined,
-          artistId: activeArtistId,
+          artistIds: activeArtistIds?.length ? activeArtistIds : undefined,
         });
         setGroups((prev) => ({
           ...prev,
@@ -305,7 +306,7 @@ const PhotoPage: React.FC<Props> = () => {
         loadingSet.current.delete(yearMonth);
       }
     },
-    [groups, activeTypeIds, activeLocationIds, activeArtistId],
+    [groups, activeTypeIds, activeLocationIds, activeArtistIds],
   );
 
   // ── 新增：筛选变化时重新加载时间轴 ──────────────────────
@@ -313,7 +314,7 @@ const PhotoPage: React.FC<Props> = () => {
     getPhotosTimeline({
       typeIds: activeTypeIds,
       locationIds: activeLocationIds,
-      artistId: activeArtistId,
+      artistIds: activeArtistIds?.length ? activeArtistIds : undefined,
     })
       .then((data: { yearMonth: string; count: number }[]) => {
         if (!data?.length) {
@@ -351,7 +352,7 @@ const PhotoPage: React.FC<Props> = () => {
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTypeIds, activeLocationIds, activeArtistId, cols]);
+  }, [activeTypeIds, activeLocationIds, activeArtistIds, cols]);
 
   // ── 新增：滚动虚拟化 + 懒加载 ────────────────────────────
   const handleScroll = useCallback(() => {
@@ -681,10 +682,8 @@ const PhotoPage: React.FC<Props> = () => {
 
       setBatchEditLoading(true);
       const ids = Array.from(selectedIds);
-      // 逐个更新（或调用批量更新接口）
-      for (const photoId of ids) {
-        await updatePhoto(photoId, updateData);
-      }
+      // 调用批量更新接口，一次请求完成
+      await batchUpdatePhotos(ids, updateData);
       message.success(`成功更新 ${ids.length} 张照片`);
       setBatchEditModalVisible(false);
       setSelectedIds(new Set());
@@ -941,7 +940,27 @@ const PhotoPage: React.FC<Props> = () => {
                             className={styles['photo-img']}
                           />
                           <div className={styles['photo-overlay']}>
-                            <div className={styles['photo-actions']}>
+                            {/* 右上角：勾选 */}
+                            <div className={styles['photo-check-top']}>
+                              {selectedIds.has(photo.id) && (
+                                <svg
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 14 14"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M2.5 7L5.5 10L11.5 4"
+                                    stroke="#08111d"
+                                    strokeWidth="2.2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                            {/* 右下角：编辑、删除、预览 */}
+                            <div className={styles['photo-actions-bottom']}>
                               <span
                                 className={styles['photo-action-btn']}
                                 onClick={(e) => handleEditPhoto(photo, e)}
@@ -954,32 +973,12 @@ const PhotoPage: React.FC<Props> = () => {
                               >
                                 <DeleteOutlined />
                               </span>
-                            </div>
-                            <div className={styles['photo-bottom-actions']}>
                               <span
                                 className={styles['photo-action-btn']}
                                 onClick={(e) => handlePreviewPhoto(photo, e)}
                               >
                                 <EyeOutlined />
                               </span>
-                              <div className={styles['photo-check']}>
-                                {selectedIds.has(photo.id) && (
-                                  <svg
-                                    width="14"
-                                    height="14"
-                                    viewBox="0 0 14 14"
-                                    fill="none"
-                                  >
-                                    <path
-                                      d="M2.5 7L5.5 10L11.5 4"
-                                      stroke="#08111d"
-                                      strokeWidth="2.2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
-                                )}
-                              </div>
                             </div>
                           </div>
                         </div>

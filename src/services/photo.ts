@@ -48,14 +48,14 @@ export async function uploadPhotoFile(file: File): Promise<{ url: string }> {
 export async function getPhotosTimeline(params: {
   typeIds?: number[];
   locationIds?: number[];
-  artistId?: string;
+  artistIds?: string[];
 }) {
   return request('/photos/timeline', {
     method: 'GET',
     params: {
       typeIds: params.typeIds?.join(','),
       locationIds: params.locationIds?.join(','),
-      artistId: params.artistId,
+      artistIds: params.artistIds?.join(','),
     },
   });
 }
@@ -67,7 +67,7 @@ export async function getPhotosByMonth(params: {
   pageSize?: number;
   typeIds?: number[];
   locationIds?: number[];
-  artistId?: string;
+  artistIds?: string[];
 }) {
   return request('/photos/by-month', {
     method: 'GET',
@@ -75,6 +75,7 @@ export async function getPhotosByMonth(params: {
       ...params,
       typeIds: params.typeIds?.join(','),
       locationIds: params.locationIds?.join(','),
+      artistIds: params.artistIds?.join(','),
     },
   });
 }
@@ -104,4 +105,19 @@ export async function deletePhoto(id: number) {
 /** 批量删除照片 */
 export async function batchDeletePhotos(ids: number[]) {
   return request('/photos/batch-delete', { method: 'POST', data: { ids } });
+}
+
+/** 批量更新照片 */
+export async function batchUpdatePhotos(
+  ids: number[],
+  data: {
+    photoTypeId?: number;
+    photoLocationId?: number;
+    artistId?: string;
+    shootDate?: string;
+    itineraryId?: number;
+    description?: string;
+  },
+) {
+  return request('/photos/batch', { method: 'PATCH', data: { ids, data } });
 }

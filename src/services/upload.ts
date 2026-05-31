@@ -25,5 +25,6 @@ export async function uploadZip(file: File): Promise<{ url: string }> {
     method: 'POST',
     data: formData,
     requestType: 'form',
+    timeout: 120_000,
   });
 }
