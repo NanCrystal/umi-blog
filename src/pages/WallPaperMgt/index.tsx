@@ -13,6 +13,7 @@ import {
   WallPaperItem,
 } from '@/services/wallpaper';
 import WeChateComponent from '@/component/WeChate';
+import { getImageUrl } from '@/utils/utils';
 
 const WallPaperMgt: React.FC = () => {
   const [list, setList] = useState<WallPaperItem[]>([]);
@@ -142,11 +143,6 @@ const WallPaperMgt: React.FC = () => {
         }
       },
     });
-  };
-
-  const getImageUrl = (path?: string) => {
-    if (!path) return '';
-    return path.startsWith('http') ? path : `https://cdn.tauol.online${path}`;
   };
 
   const formatDateTime = (iso: string) => {

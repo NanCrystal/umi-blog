@@ -26,11 +26,75 @@
   }
 
   .artist-card {
+    position: relative;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
 
     :global(.ant-card-body) {
       padding: 24px;
+    }
+  }
+
+  .artist-add-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    cursor: pointer;
+    border-style: dashed !important;
+
+    :global(.ant-card-body) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .add-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.45);
+      gap: 12px;
+    }
+
+    .add-text {
+      font-size: 14px;
+    }
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.25) !important;
+
+      .add-content {
+        color: rgba(255, 255, 255, 0.75);
+      }
+    }
+  }
+
+  .artist-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 4px;
+    z-index: 1;
+
+    :global(.ant-btn) {
+      color: rgba(255, 255, 255, 0.45);
+
+      &:hover {
+        color: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    :global(.ant-btn-dangerous) {
+      &:hover {
+        color: #ff4d4f;
+        background: rgba(255, 77, 79, 0.1);
+      }
     }
   }
 
@@ -70,6 +134,109 @@
         color: rgba(255, 255, 255, 0.75) !important;
       }
     }
+  }
+}
+
+/* ─── 表单样式（参考行程弹窗） ─── */
+.artist-form {
+  margin-top: 8px;
+
+  :global(.ant-form-item-label > label) {
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+  }
+
+  :global(.ant-input) {
+    background: rgba(8, 17, 29, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    &:hover,
+    &:focus {
+      border-color: rgba(79, 195, 247, 0.5);
+      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+    }
+  }
+
+  :global(.ant-input-affix-wrapper) {
+    background: rgba(8, 17, 29, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+
+    &:hover,
+    &:focus {
+      border-color: rgba(79, 195, 247, 0.5);
+      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+    }
+  }
+
+  :global(.ant-input-textarea-show-count::after) {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  :global(.ant-input-affix-wrapper .ant-input) {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+.avatar-upload-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 110px;
+  height: 110px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  gap: 6px;
+  transition: border-color 0.2s, color 0.2s;
+
+  :global(.anticon) {
+    font-size: 20px;
+  }
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.avatar-preview {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .avatar-mask {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  &:hover .avatar-mask {
+    opacity: 1;
   }
 }
 

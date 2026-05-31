@@ -1,0 +1,300 @@
+.add-photo-page {
+  //   max-width: 800px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
+/* ─── 面包屑 ─── */
+.breadcrumb-wrap {
+  margin-bottom: 20px;
+}
+
+.breadcrumb {
+  :global(.ant-breadcrumb-link) {
+    color: rgba(255, 255, 255, 0.65);
+
+    a {
+      color: rgba(255, 255, 255, 0.65);
+      transition: color 0.2s;
+
+      &:hover {
+        color: #4fc3f7;
+      }
+    }
+  }
+
+  :global(.ant-breadcrumb-separator) {
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  :global(.ant-breadcrumb-link:last-child) {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+  }
+}
+
+/* ─── Tab 容器 ─── */
+.tab-panel {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.16);
+  padding: 8px 24px 24px;
+}
+
+.tabs {
+  :global(.ant-tabs-nav) {
+    margin-bottom: 8px;
+
+    &::before {
+      border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+    }
+  }
+
+  :global(.ant-tabs-tab) {
+    color: rgba(255, 255, 255, 0.55) !important;
+    font-size: 15px;
+    padding: 12px 24px !important;
+    transition: color 0.2s;
+
+    &:hover {
+      color: rgba(255, 255, 255, 0.85) !important;
+    }
+  }
+
+  :global(.ant-tabs-tab-active) {
+    .ant-tabs-tab-btn {
+      color: #4fc3f7 !important;
+      font-weight: 600;
+    }
+  }
+
+  :global(.ant-tabs-ink-bar) {
+    background: #4fc3f7 !important;
+  }
+}
+
+/* ─── 表单容器 ─── */
+.form-wrap {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px 0;
+}
+
+.add-form {
+  :global(.ant-form-item-label > label) {
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  :global(.ant-form-item-label > label.ant-form-item-required::before) {
+    color: #ff4d4f !important;
+  }
+
+  :global(.ant-form-item-extra) {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 12px;
+  }
+
+  :global(.ant-input) {
+    background: rgba(8, 17, 29, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    &:hover,
+    &:focus {
+      border-color: rgba(79, 195, 247, 0.5);
+      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+    }
+  }
+
+  :global(.ant-select-selector) {
+    background: rgba(8, 17, 29, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  :global(.ant-select:hover .ant-select-selector) {
+    border-color: rgba(79, 195, 247, 0.5) !important;
+  }
+
+  :global(.ant-select-focused .ant-select-selector) {
+    border-color: rgba(79, 195, 247, 0.5) !important;
+    box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12) !important;
+  }
+
+  :global(.ant-select-arrow) {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  :global(.ant-picker) {
+    background: rgba(8, 17, 29, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+
+    &:hover,
+    &:focus {
+      border-color: rgba(79, 195, 247, 0.5);
+      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+    }
+  }
+
+  :global(.ant-picker-input > input) {
+    color: rgba(255, 255, 255, 0.85);
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+  }
+
+  :global(.ant-picker-suffix) {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  :global(.ant-input-textarea textarea) {
+    background: rgba(8, 17, 29, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    &:hover,
+    &:focus {
+      border-color: rgba(79, 195, 247, 0.5);
+      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+    }
+  }
+
+  :global(.ant-input-show-count-suffix) {
+    color: rgba(255, 255, 255, 0.35);
+  }
+}
+
+/* ─── 上传区域 ─── */
+.upload-item {
+  :global(.ant-upload-drag) {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px dashed rgba(79, 195, 247, 0.3) !important;
+    border-radius: 12px !important;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(79, 195, 247, 0.05) !important;
+      border-color: rgba(79, 195, 247, 0.6) !important;
+    }
+  }
+
+  :global(.ant-upload-drag-icon) {
+    font-size: 40px;
+    color: rgba(79, 195, 247, 0.6);
+  }
+
+  :global(.ant-upload-text) {
+    color: rgba(255, 255, 255, 0.65) !important;
+    font-size: 14px;
+  }
+}
+
+.upload-hint {
+  color: rgba(255, 255, 255, 0.3) !important;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+/* ─── ZIP 预览卡片（上传成功后展示） ─── */
+.zip-preview {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  background: rgba(79, 195, 247, 0.06);
+  border: 1px solid rgba(79, 195, 247, 0.2);
+  border-radius: 12px;
+  position: relative;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(79, 195, 247, 0.1);
+    border-color: rgba(79, 195, 247, 0.35);
+
+    .zip-remove {
+      opacity: 1;
+    }
+  }
+}
+
+.zip-icon {
+  font-size: 36px;
+  color: #4fc3f7;
+  margin-right: 14px;
+  flex-shrink: 0;
+}
+
+.zip-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.zip-name {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.zip-size {
+  color: #52c41a;
+  font-size: 12px;
+}
+
+.zip-remove {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+  padding: 4px;
+  border-radius: 4px;
+
+  &:hover {
+    color: #ff4d4f;
+    background: rgba(255, 77, 79, 0.1);
+  }
+}
+
+/* ─── 提交按钮 ─── */
+.submit-btn {
+  background: #4fc3f7 !important;
+  border-color: #4fc3f7 !important;
+  color: #08111d !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  height: 42px !important;
+  font-size: 15px !important;
+
+  &:hover {
+    background: #7fd4ff !important;
+    border-color: #7fd4ff !important;
+  }
+}
+
+/* ─── 响应式 ─── */
+@media (max-width: 768px) {
+  .tab-panel {
+    padding: 8px 12px 16px;
+  }
+
+  .form-wrap {
+    padding: 8px 0;
+  }
+}

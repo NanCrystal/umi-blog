@@ -3,7 +3,7 @@ import request from '@/utils/request';
 export interface BannerItem {
   id: number;
   title: string | null;
-  imageUrl: string;
+  imageUrl: string[];
   mediaType: 'image' | 'video';
   linkUrl: string | null;
   position: string;
@@ -13,7 +13,7 @@ export interface BannerItem {
   clickCount: number;
   startTime: string | null;
   endTime: string | null;
-  user: string | null;
+  artistId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -23,26 +23,21 @@ export interface BannerListResponse {
   total: number;
 }
 
-/** 获取当前登录用户 */
-export function getCurrentUser(): string {
-  return localStorage.getItem('user') || '';
-}
-
 export async function getBannerList(params?: {
   page?: number;
   pageSize?: number;
   status?: string;
   terminal?: string;
   position?: string;
+  artistId?: string;
 }) {
-  const user = getCurrentUser();
   const query = new URLSearchParams();
   if (params?.page) query.set('page', String(params.page));
   if (params?.pageSize) query.set('pageSize', String(params.pageSize));
   if (params?.status) query.set('status', params.status);
   if (params?.terminal) query.set('terminal', params.terminal);
   if (params?.position) query.set('position', params.position);
-  if (user) query.set('user', user);
+  if (params?.artistId) query.set('artistId', params.artistId);
 
   return request<BannerListResponse>(`/banners?${query.toString()}`);
 }
@@ -53,7 +48,7 @@ export async function getBannerDetail(id: number) {
 
 export async function createBanner(data: {
   title?: string;
-  imageUrl: string;
+  imageUrl: string[];
   mediaType?: string;
   linkUrl?: string;
   position?: string;
@@ -62,11 +57,11 @@ export async function createBanner(data: {
   sortOrder?: number;
   startTime?: string;
   endTime?: string;
+  artistId?: string;
 }) {
-  const user = getCurrentUser();
   return request('/banners', {
     method: 'POST',
-    data: { ...data, user },
+    data,
   });
 }
 
@@ -74,7 +69,7 @@ export async function updateBanner(
   id: number,
   data: {
     title?: string;
-    imageUrl?: string;
+    imageUrl?: string[];
     mediaType?: string;
     linkUrl?: string;
     position?: string;
@@ -83,6 +78,7 @@ export async function updateBanner(
     sortOrder?: number;
     startTime?: string;
     endTime?: string;
+    artistId?: string;
   },
 ) {
   return request(`/banners/${id}`, {

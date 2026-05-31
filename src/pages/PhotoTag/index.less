@@ -1,0 +1,291 @@
+.pohoto-tag-page {
+  padding: 24px;
+
+  .section {
+    margin-bottom: 40px;
+
+    .title {
+      font-size: 20px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #00b96b;
+        display: inline-block;
+      }
+    }
+
+    .cardList {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+    }
+  }
+
+  .addCard {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px dashed rgba(255, 255, 255, 0.12) !important;
+    border-radius: 8px;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 14px;
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.3) !important;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .addIcon {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+  }
+
+  .itemCard {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 8px;
+    padding: 16px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.18) !important;
+      background: rgba(255, 255, 255, 0.07);
+      transform: translateY(-2px);
+    }
+
+    .itemActions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-bottom: 8px;
+
+      .editIcon {
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 13px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: rgba(79, 195, 247, 0.9);
+        }
+      }
+
+      .deleteIcon {
+        color: rgba(255, 255, 255, 0.25);
+        font-size: 13px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: #ff4d4f;
+        }
+      }
+    }
+
+    .itemContent {
+      .itemName {
+        font-size: 15px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+      }
+    }
+
+    .itemFooter {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .count {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.45);
+      }
+
+      .deleteIcon {
+        color: rgba(255, 255, 255, 0.25);
+        font-size: 13px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: #ff4d4f;
+        }
+      }
+    }
+  }
+
+  .paginationWrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+
+    :global(.ant-pagination) {
+      .ant-pagination-prev,
+      .ant-pagination-next,
+      .ant-pagination-item {
+        min-width: 36px;
+        height: 34px;
+        line-height: 32px;
+        border-radius: 6px;
+        background: transparent !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+
+        a {
+          color: rgba(255, 255, 255, 0.65);
+
+          &:hover {
+            color: #00b96b;
+          }
+        }
+      }
+
+      .ant-pagination-item-active {
+        background-color: #00b96b !important;
+        border-color: #00b96b !important;
+
+        a {
+          color: #fff;
+        }
+      }
+
+      .ant-pagination-disabled {
+        opacity: 0.35;
+      }
+    }
+  }
+}
+
+/* 弹窗表单样式 - 与系统一致 */
+.pohoto-tag-page {
+  :global(.ant-modal) {
+    .ant-modal-header {
+      background: #141414;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+      .ant-modal-title {
+        color: rgba(255, 255, 255, 0.85);
+      }
+    }
+
+    .ant-modal-body {
+      background: #141414;
+    }
+
+    .ant-modal-footer {
+      background: #141414;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  :global(.ant-form-item-label > label) {
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+  }
+
+  :global(.ant-input) {
+    background: rgba(8, 17, 29, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    &:hover,
+    &:focus {
+      border-color: rgba(79, 195, 247, 0.5);
+      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+    }
+  }
+
+  :global(.ant-btn-primary) {
+    background-color: #1677ff;
+    border-color: #1677ff;
+
+    &:hover {
+      background-color: #4096ff;
+      border-color: #4096ff;
+    }
+  }
+
+  :global(.ant-btn-default) {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.75);
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.9);
+    }
+  }
+
+  :global(.ant-popconfirm) {
+    .ant-popconfirm-message-text {
+      color: rgba(255, 255, 255, 0.85);
+    }
+  }
+}
+
+.tag-form {
+  margin-top: 8px;
+
+  :global(.ant-form-item-label > label) {
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+  }
+
+  :global(.ant-input) {
+    background: rgba(8, 17, 29, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    &:hover,
+    &:focus {
+      border-color: rgba(79, 195, 247, 0.5);
+      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+    }
+  }
+
+  :global(.ant-input-affix-wrapper) {
+    background: rgba(8, 17, 29, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+
+    &:hover,
+    &:focus {
+      border-color: rgba(79, 195, 247, 0.5);
+      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+    }
+  }
+
+  :global(.ant-input-textarea-show-count::after) {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  :global(.ant-input-affix-wrapper .ant-input) {
+    background: transparent;
+    box-shadow: none;
+  }
+}

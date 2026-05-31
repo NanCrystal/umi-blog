@@ -22,13 +22,13 @@ import {
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
-  EyeOutlined,
   FilterOutlined,
   PlayCircleOutlined,
   PictureOutlined,
   ClearOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
+  CloseOutlined,
 } from '@ant-design/icons';
 import styles from './index.less';
 import moment from 'moment';
@@ -44,7 +44,8 @@ import {
   BannerItem,
 } from '@/services/banner';
 import { uploadImageFull } from '@/services/upload';
-import { formatDateTime } from '@/utils/utils';
+import { getArtistList } from '@/services/artist';
+import { formatDateTime, getImageUrl } from '@/utils/utils';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -70,20 +71,6 @@ const STATUS_MAP: Record<
   },
 };
 
-const TERMINAL_MAP: Record<TerminalType, string> = {
-  all: '全部',
-  mobile: '移动端',
-  pc: 'PC端',
-  app: 'APP',
-};
-
-const POSITION_MAP: Record<PositionType, string> = {
-  home: '首页',
-  profile: '个人页',
-  article: '文章页',
-  other: '其他',
-};
-
 const SwiperMgtPage: React.FC = () => {
   const [list, setList] = useState<BannerItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,8 +79,6 @@ const SwiperMgtPage: React.FC = () => {
 
   // 筛选器
   const [filterStatus, setFilterStatus] = useState<BannerStatus | ''>('');
-  const [filterTerminal, setFilterTerminal] = useState<TerminalType | ''>('');
-  const [filterPosition, setFilterPosition] = useState<PositionType | ''>('');
   const [filterVisible, setFilterVisible] = useState(false);
 
   // 弹窗
@@ -102,18 +87,22 @@ const SwiperMgtPage: React.FC = () => {
   const [editingItem, setEditingItem] = useState<BannerItem | null>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [form] = Form.useForm();
-  const [imageUrl, setImageUrl] = useState<string>('');
+  const [currentMediaType, setCurrentMediaType] = useState<string>('image');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string>('');
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [artists, setArtists] = useState<
+    { id: number; name: string; artistId: string }[]
+  >([]);
 
   // 加载列表
   const fetchList = (
     page = pagination.current,
     pageSize = pagination.pageSize,
     status?: string,
-    terminal?: string,
-    position?: string,
   ) => {
     setLoading(true);
-    getBannerList({ page, pageSize, status, terminal, position })
+    getBannerList({ page, pageSize, status })
       .then((res: any) => {
         setList(res?.list || []);
         setTotal(res?.total || 0);
@@ -125,37 +114,34 @@ const SwiperMgtPage: React.FC = () => {
 
   useEffect(() => {
     fetchList();
+    getArtistList()
+      .then((res: any) => {
+        setArtists(res || []);
+      })
+      .catch(() => {});
   }, []);
 
-  const hasFilter = filterStatus || filterTerminal || filterPosition;
+  const hasFilter = !!filterStatus;
 
   // 应用筛选
   const applyFilter = () => {
-    fetchList(
-      1,
-      pagination.pageSize,
-      filterStatus || undefined,
-      filterTerminal || undefined,
-      filterPosition || undefined,
-    );
+    fetchList(1, pagination.pageSize, filterStatus || undefined);
   };
 
   const clearFilters = () => {
     setFilterStatus('');
-    setFilterTerminal('');
-    setFilterPosition('');
     fetchList(1, pagination.pageSize);
   };
 
   const handleAdd = () => {
     setModalMode('add');
     setEditingItem(null);
-    setImageUrl('');
+    setCurrentMediaType('image');
+    setImageUrls([]);
+    setVideoUrl('');
     form.resetFields();
     form.setFieldsValue({
       mediaType: 'image',
-      position: 'home',
-      terminal: 'all',
       status: 'active',
       sortOrder: 0,
     });
@@ -165,18 +151,26 @@ const SwiperMgtPage: React.FC = () => {
   const handleEdit = (item: BannerItem) => {
     setModalMode('edit');
     setEditingItem(item);
-    setImageUrl(item.imageUrl);
+    setCurrentMediaType(item.mediaType);
+    const urls = Array.isArray(item.imageUrl) ? item.imageUrl : [];
+    if (item.mediaType === 'image') {
+      setImageUrls(urls);
+      setVideoUrl('');
+    } else {
+      setImageUrls([]);
+      setVideoUrl(urls[0] || '');
+    }
     form.setFieldsValue({
       title: item.title,
-      imageUrl: item.imageUrl,
       mediaType: item.mediaType,
+      artistId: item.artistId,
       linkUrl: item.linkUrl,
-      position: item.position,
-      terminal: item.terminal,
       status: item.status,
       sortOrder: item.sortOrder,
-      startTime: item.startTime ? moment(item.startTime) : null,
-      endTime: item.endTime ? moment(item.endTime) : null,
+      timeRange:
+        item.startTime && item.endTime
+          ? [moment(item.startTime), moment(item.endTime)]
+          : undefined,
     });
     setModalVisible(true);
   };
@@ -213,14 +207,28 @@ const SwiperMgtPage: React.FC = () => {
     }
   };
 
-  const handleImageUpload = async (file: File) => {
+  const handleImageUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
     try {
-      const res = await uploadImageFull(file);
-      setImageUrl(res.url);
-      form.setFieldsValue({ imageUrl: res.url });
-      message.success('图片上传成功');
+      const uploadPromises = Array.from(files).map((file) =>
+        uploadImageFull(file),
+      );
+      const results = await Promise.all(uploadPromises);
+      const urls = results.map((res) => res.url);
+      setImageUrls((prev) => [...prev, ...urls]);
+      message.success(`成功上传 ${urls.length} 张图片`);
     } catch {
       message.error('图片上传失败');
+    }
+  };
+
+  const handleVideoUpload = async (file: File) => {
+    try {
+      const res = await uploadImageFull(file);
+      setVideoUrl(res.url);
+      message.success('视频上传成功');
+    } catch {
+      message.error('视频上传失败');
     }
   };
 
@@ -229,20 +237,30 @@ const SwiperMgtPage: React.FC = () => {
       const values = await form.validateFields();
       setSubmitLoading(true);
 
+      if (values.mediaType === 'image' && imageUrls.length === 0) {
+        message.error('请至少上传一张图片');
+        setSubmitLoading(false);
+        return;
+      }
+      if (values.mediaType === 'video' && !videoUrl) {
+        message.error('请上传视频');
+        setSubmitLoading(false);
+        return;
+      }
+
       const payload = {
         title: values.title || '',
-        imageUrl: values.imageUrl,
+        imageUrl: values.mediaType === 'image' ? imageUrls : [videoUrl],
         mediaType: values.mediaType,
         linkUrl: values.linkUrl || '',
-        position: values.position,
-        terminal: values.terminal,
+        artistId: values.artistId || undefined,
         status: values.status,
         sortOrder: values.sortOrder || 0,
-        startTime: values.startTime
-          ? values.startTime.format('YYYY-MM-DD HH:mm:ss')
+        startTime: values.timeRange?.[0]
+          ? values.timeRange[0].format('YYYY-MM-DD HH:mm:ss')
           : undefined,
-        endTime: values.endTime
-          ? values.endTime.format('YYYY-MM-DD HH:mm:ss')
+        endTime: values.timeRange?.[1]
+          ? values.timeRange[1].format('YYYY-MM-DD HH:mm:ss')
           : undefined,
       };
 
@@ -255,7 +273,8 @@ const SwiperMgtPage: React.FC = () => {
       }
       setModalVisible(false);
       form.resetFields();
-      setImageUrl('');
+      setImageUrls([]);
+      setVideoUrl('');
       fetchList(pagination.current, pagination.pageSize);
     } catch {
       // 校验失败或接口错误
@@ -295,7 +314,7 @@ const SwiperMgtPage: React.FC = () => {
         dataIndex: 'imageUrl',
         key: 'preview',
         width: 100,
-        render: (value: string, item) =>
+        render: (value: string[] | string, item) =>
           item.mediaType === 'video' ? (
             <div className={styles['video-preview']}>
               <PlayCircleOutlined style={{ fontSize: 24 }} />
@@ -303,7 +322,9 @@ const SwiperMgtPage: React.FC = () => {
             </div>
           ) : (
             <Image
-              src={value}
+              src={getImageUrl(
+                Array.isArray(value) ? value[0] : value?.split(',')[0],
+              )}
               width={80}
               height={50}
               style={{ borderRadius: 6, objectFit: 'cover' }}
@@ -321,22 +342,27 @@ const SwiperMgtPage: React.FC = () => {
         ),
       },
       {
-        title: '位置',
-        dataIndex: 'position',
-        key: 'position',
+        title: '艺人',
+        dataIndex: 'artistId',
+        key: 'artistId',
         width: 90,
-        render: (value: PositionType) => (
-          <Tag className={styles['position-tag']}>{POSITION_MAP[value]}</Tag>
-        ),
+        render: (value: string) => {
+          const artist = artists.find((a) => a.artistId === value);
+          return (
+            <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>
+              {artist?.name || value || '-'}
+            </span>
+          );
+        },
       },
       {
-        title: '终端',
-        dataIndex: 'terminal',
-        key: 'terminal',
+        title: '媒体类型',
+        dataIndex: 'mediaType',
+        key: 'mediaType',
         width: 90,
-        render: (value: TerminalType) => (
+        render: (value: string) => (
           <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>
-            {TERMINAL_MAP[value]}
+            {value === 'video' ? '视频' : '图片'}
           </span>
         ),
       },
@@ -395,41 +421,36 @@ const SwiperMgtPage: React.FC = () => {
         ),
       },
       {
-        title: '点击量',
-        dataIndex: 'clickCount',
-        key: 'clickCount',
-        width: 80,
-        align: 'center',
-        render: (value: number) => (
-          <span className={styles['click-count']}>
-            <EyeOutlined style={{ marginRight: 4, fontSize: 12 }} />
-            {value}
-          </span>
-        ),
+        title: '开始时间',
+        dataIndex: 'startTime',
+        key: 'startTime',
+        width: 140,
+        render: (value: string) =>
+          value ? (
+            <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>
+              {formatDateTime(value)}
+            </span>
+          ) : (
+            <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
+              永久
+            </span>
+          ),
       },
       {
-        title: '展示时间',
-        key: 'timeRange',
-        width: 160,
-        render: (_: unknown, item) => (
-          <Space direction="vertical" size={2} style={{ lineHeight: 1.5 }}>
-            {item.startTime && (
-              <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>
-                上架：{formatDateTime(item.startTime)}
-              </span>
-            )}
-            {item.endTime && (
-              <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12 }}>
-                下架：{formatDateTime(item.endTime)}
-              </span>
-            )}
-            {!item.startTime && !item.endTime && (
-              <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
-                永久
-              </span>
-            )}
-          </Space>
-        ),
+        title: '结束时间',
+        dataIndex: 'endTime',
+        key: 'endTime',
+        width: 140,
+        render: (value: string) =>
+          value ? (
+            <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>
+              {formatDateTime(value)}
+            </span>
+          ) : (
+            <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
+              永久
+            </span>
+          ),
       },
       {
         title: '操作',
@@ -466,7 +487,7 @@ const SwiperMgtPage: React.FC = () => {
         ),
       },
     ],
-    [list],
+    [list, artists],
   );
 
   const filterContent = (
@@ -488,40 +509,7 @@ const SwiperMgtPage: React.FC = () => {
           ))}
         </Select>
       </div>
-      <div className={styles['filter-row']}>
-        <span className={styles['filter-label']}>终端</span>
-        <Select
-          placeholder="选择终端"
-          allowClear
-          value={filterTerminal || undefined}
-          onChange={(v) => setFilterTerminal((v || '') as TerminalType | '')}
-          style={{ width: 140 }}
-          popupClassName={styles['dark-select-dropdown']}
-        >
-          {Object.entries(TERMINAL_MAP).map(([key, label]) => (
-            <Option key={key} value={key}>
-              {label}
-            </Option>
-          ))}
-        </Select>
-      </div>
-      <div className={styles['filter-row']}>
-        <span className={styles['filter-label']}>位置</span>
-        <Select
-          placeholder="选择位置"
-          allowClear
-          value={filterPosition || undefined}
-          onChange={(v) => setFilterPosition((v || '') as PositionType | '')}
-          style={{ width: 140 }}
-          popupClassName={styles['dark-select-dropdown']}
-        >
-          {Object.entries(POSITION_MAP).map(([key, label]) => (
-            <Option key={key} value={key}>
-              {label}
-            </Option>
-          ))}
-        </Select>
-      </div>
+
       <div className={styles['filter-actions']}>
         <Button size="small" onClick={clearFilters} icon={<ClearOutlined />}>
           清空
@@ -610,13 +598,7 @@ const SwiperMgtPage: React.FC = () => {
             total,
             showSizeChanger: false,
             onChange: (page, pageSize) =>
-              fetchList(
-                page,
-                pageSize,
-                filterStatus || undefined,
-                filterTerminal || undefined,
-                filterPosition || undefined,
-              ),
+              fetchList(page, pageSize, filterStatus || undefined),
           }}
           locale={{
             emptyText: (
@@ -639,7 +621,8 @@ const SwiperMgtPage: React.FC = () => {
         onCancel={() => {
           setModalVisible(false);
           form.resetFields();
-          setImageUrl('');
+          setImageUrls([]);
+          setVideoUrl('');
         }}
         confirmLoading={submitLoading}
         width={640}
@@ -657,46 +640,131 @@ const SwiperMgtPage: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            name="imageUrl"
-            label="图片/视频地址"
-            rules={[{ required: true, message: '请上传图片或填写地址' }]}
+            name="artistId"
+            label="艺人"
+            rules={[{ required: true, message: '请选择艺人' }]}
           >
-            <Input placeholder="请上传图片或填写 URL 地址" />
-          </Form.Item>
-
-          <Form.Item label="上传图片">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleImageUpload(file);
-                e.target.value = '';
-              }}
-              className={styles['file-input']}
-            />
-            {imageUrl && (
-              <div className={styles['preview-container']}>
-                <Image
-                  src={imageUrl}
-                  width={200}
-                  height={120}
-                  style={{ borderRadius: 8, objectFit: 'cover' }}
-                />
-              </div>
-            )}
+            <Select placeholder="请选择艺人" allowClear>
+              {artists.map((a) => (
+                <Option key={a.artistId} value={a.artistId}>
+                  {a.name}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
 
           <Form.Item
             name="mediaType"
             label="媒体类型"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: '请选择媒体类型' }]}
           >
-            <Select placeholder="选择媒体类型">
+            <Select
+              placeholder="选择媒体类型"
+              onChange={(v) => setCurrentMediaType(v as string)}
+            >
               <Option value="image">图片</Option>
               <Option value="video">视频</Option>
             </Select>
           </Form.Item>
+
+          {currentMediaType === 'image' && (
+            <Form.Item label="上传图片" required>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  handleImageUpload(e.target.files);
+                  e.target.value = '';
+                }}
+                className={styles['file-input']}
+              />
+              {imageUrls.length > 0 && (
+                <div className={styles['preview-container']}>
+                  {imageUrls.map((url, index) => (
+                    <div
+                      key={url + index}
+                      draggable
+                      onDragStart={() => setDragIndex(index)}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        if (dragIndex === null || dragIndex === index) return;
+                        setImageUrls((prev) => {
+                          const newUrls = [...prev];
+                          const [dragged] = newUrls.splice(dragIndex, 1);
+                          newUrls.splice(index, 0, dragged);
+                          return newUrls;
+                        });
+                        setDragIndex(index);
+                      }}
+                      onDragEnd={() => setDragIndex(null)}
+                      style={{
+                        position: 'relative',
+                        display: 'inline-block',
+                        marginRight: 8,
+                        marginBottom: 8,
+                        cursor: 'move',
+                        opacity: dragIndex === index ? 0.5 : 1,
+                      }}
+                    >
+                      <Image
+                        src={getImageUrl(url)}
+                        width={100}
+                        height={60}
+                        style={{ borderRadius: 4, objectFit: 'cover' }}
+                      />
+                      <CloseOutlined
+                        onClick={() => {
+                          setImageUrls((prev) =>
+                            prev.filter((_, i) => i !== index),
+                          );
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: -6,
+                          right: -6,
+                          color: '#fff',
+                          background: '#ff4d4f',
+                          borderRadius: '50%',
+                          fontSize: 10,
+                          padding: 2,
+                          cursor: 'pointer',
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Form.Item>
+          )}
+
+          {currentMediaType === 'video' && (
+            <Form.Item label="上传视频" required>
+              <input
+                type="file"
+                accept="video/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleVideoUpload(file);
+                  e.target.value = '';
+                }}
+                className={styles['file-input']}
+              />
+              {videoUrl && (
+                <div className={styles['preview-container']}>
+                  <div
+                    style={{
+                      color: 'rgba(255,255,255,0.65)',
+                      fontSize: 12,
+                      marginTop: 8,
+                    }}
+                  >
+                    已上传视频：{videoUrl}
+                  </div>
+                </div>
+              )}
+            </Form.Item>
+          )}
 
           <Form.Item
             name="linkUrl"
@@ -708,43 +776,15 @@ const SwiperMgtPage: React.FC = () => {
 
           <div className={styles['form-row']}>
             <Form.Item
-              name="position"
-              label="位置"
-              className={styles['form-item-half']}
-              rules={[{ required: true }]}
-            >
-              <Select placeholder="选择位置">
-                {Object.entries(POSITION_MAP).map(([key, label]) => (
-                  <Option key={key} value={key}>
-                    {label}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item
-              name="terminal"
-              label="终端"
-              className={styles['form-item-half']}
-              rules={[{ required: true }]}
-            >
-              <Select placeholder="选择终端">
-                {Object.entries(TERMINAL_MAP).map(([key, label]) => (
-                  <Option key={key} value={key}>
-                    {label}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </div>
-
-          <div className={styles['form-row']}>
-            <Form.Item
               name="status"
               label="状态"
               className={styles['form-item-half']}
               rules={[{ required: true }]}
             >
-              <Select placeholder="选择状态">
+              <Select
+                placeholder="选择状态"
+                popupClassName={styles['dark-select-dropdown']}
+              >
                 {Object.entries(STATUS_MAP).map(([key, cfg]) => (
                   <Option key={key} value={key}>
                     <Badge color={cfg.color} text={cfg.label} />
@@ -763,6 +803,7 @@ const SwiperMgtPage: React.FC = () => {
           </div>
 
           <Form.Item
+            name="timeRange"
             label="展示时间"
             extra="可设置上下架时间，留空表示永久展示"
           >

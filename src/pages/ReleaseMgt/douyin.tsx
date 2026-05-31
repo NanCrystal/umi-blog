@@ -15,6 +15,7 @@ import {
   removePendingPublish,
   PendingPublishItem,
 } from './publishPendingStore';
+import { getImageUrl } from '@/utils/utils';
 
 // 扩展状态类型，支持审核中
 type RecordStatus = 'SUCCESS' | 'FAILED' | 'PENDING';
@@ -23,11 +24,6 @@ type RecordStatus = 'SUCCESS' | 'FAILED' | 'PENDING';
 type MergedRecord =
   | (PublishRecord & { tempId?: undefined })
   | (PendingPublishItem & { id: number });
-
-const getImageUrl = (path?: string) => {
-  if (!path) return '';
-  return path.startsWith('http') ? path : `https://cdn.tauol.online${path}`;
-};
 
 const formatDateTime = (iso?: string | null) => {
   if (!iso) return '--';

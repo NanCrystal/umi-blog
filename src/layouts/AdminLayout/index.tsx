@@ -25,6 +25,7 @@ const menuItems = [
   { key: '/admin/voice', icon: <SoundOutlined />, label: '音频管理' },
   { key: '/admin/profile', icon: <FileTextOutlined />, label: '档案管理' },
   { key: '/admin/artist', icon: <UserOutlined />, label: '艺人管理' },
+  { key: '/admin/photo_info', icon: <PictureOutlined />, label: '照片信息' },
   { key: '/admin/wallpaper', icon: <PictureOutlined />, label: '壁纸管理' },
   { key: '/admin/release', icon: <SendOutlined />, label: '发布管理' },
 ];
@@ -34,8 +35,9 @@ const AdminLayout: React.FC<IRouteComponentProps> = (props) => {
   const location = useLocation();
 
   const selectedKey =
-    menuItems.find((item) => location.pathname.startsWith(item.key))?.key ||
-    '/admin/data';
+    [...menuItems]
+      .filter((item) => location.pathname.startsWith(item.key))
+      .sort((a, b) => b.key.length - a.key.length)[0]?.key || '/admin/data';
 
   const handleMenuClick = ({ key }: { key: string }) => {
     history.push(key);

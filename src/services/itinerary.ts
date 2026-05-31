@@ -3,6 +3,7 @@ import request from '@/utils/request';
 export interface ItineraryItem {
   id: number;
   user: string;
+  artistId: string;
   title: string;
   location: string;
   startTime: string;
@@ -48,6 +49,7 @@ export async function getItineraryDetail(id: number) {
 
 export async function createItinerary(data: {
   title: string;
+  artistId: string;
   location: string;
   startTime: string;
   endTime: string;
@@ -65,6 +67,7 @@ export async function updateItinerary(
   id: number,
   data: {
     title?: string;
+    artistId?: string;
     location?: string;
     startTime?: string;
     endTime?: string;

@@ -10,7 +10,7 @@ import {
   WallPaperItem,
   WechatPublishSchedule,
 } from '@/services/wallpaper';
-import { checkAdmin } from '@/utils/utils';
+import { checkAdmin, getImageUrl } from '@/utils/utils';
 
 const formatScheduleDisplay = (dateText: string) => `${dateText} 09:00`;
 
@@ -35,11 +35,6 @@ const getScheduleStatusMeta = (status?: string) => {
 
 const canCancelSchedule = (status?: string) =>
   status === 'PENDING' || status === 'FAILED';
-
-const getImageUrl = (path?: string) => {
-  if (!path) return '';
-  return path.startsWith('http') ? path : `https://cdn.tauol.online${path}`;
-};
 
 const formatDateTime = (iso?: string | null) => {
   if (!iso) return '--';

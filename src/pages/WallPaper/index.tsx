@@ -10,7 +10,7 @@ import {
   deleteWallPaper,
   WallPaperItem,
 } from '@/services/wallpaper';
-import { checkAdmin } from '@/utils/utils';
+import { checkAdmin, getImageUrl } from '@/utils/utils';
 
 const WallPaperPage: React.FC = () => {
   const [list, setList] = useState<WallPaperItem[]>([]);
@@ -62,11 +62,6 @@ const WallPaperPage: React.FC = () => {
 
   const handleAdd = () => {
     history.push('/wallpaper/edit', { from: 'add' });
-  };
-
-  const getImageUrl = (path?: string) => {
-    if (!path) return '';
-    return path.startsWith('http') ? path : `https://cdn.tauol.online${path}`;
   };
 
   const formatDate = (iso: string) => {

@@ -39,6 +39,7 @@ import {
   ItineraryItem,
   getCurrentUser,
 } from '@/services/itinerary';
+import { getArtistList } from '@/services/artist';
 import { formatDateTime } from '@/utils/utils';
 
 const { RangePicker } = DatePicker;
@@ -89,6 +90,9 @@ const ItineraryMgt: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [artists, setArtists] = useState<
+    { id: number; name: string; artistId: string }[]
+  >([]);
 
   // 筛选器（仅日期范围 + 状态，艺人固定为当前用户）
   const [filterDateRange, setFilterDateRange] = useState<
@@ -129,6 +133,9 @@ const ItineraryMgt: React.FC = () => {
 
   useEffect(() => {
     fetchList();
+    getArtistList()
+      .then((res: any) => setArtists(res || []))
+      .catch(() => message.error('获取艺人列表失败'));
   }, []);
 
   const hasFilter =
@@ -163,6 +170,7 @@ const ItineraryMgt: React.FC = () => {
     setEditingItem(item);
     form.setFieldsValue({
       title: item.title,
+      artistId: item.artistId,
       location: item.location,
       timeRange: [moment(item.startTime), moment(item.endTime)],
       status: item.status,
@@ -219,6 +227,7 @@ const ItineraryMgt: React.FC = () => {
 
       const payload = {
         title: values.title,
+        artistId: values.artistId,
         location: values.location,
         startTime: start.format('YYYY-MM-DD HH:mm'),
         endTime: end.format('YYYY-MM-DD HH:mm'),
@@ -270,6 +279,20 @@ const ItineraryMgt: React.FC = () => {
             {value}
           </span>
         ),
+      },
+      {
+        title: '艺人',
+        dataIndex: 'artistId',
+        key: 'artistId',
+        width: 120,
+        render: (value: string) => {
+          const artist = artists.find((a) => a.artistId === value);
+          return (
+            <span style={{ color: 'rgba(255,255,255,0.65)' }}>
+              {artist?.name || value}
+            </span>
+          );
+        },
       },
       {
         title: '时间',
@@ -360,7 +383,7 @@ const ItineraryMgt: React.FC = () => {
         ),
       },
     ],
-    [],
+    [artists],
   );
 
   const rowSelection: TableRowSelection<ItineraryItem> = {
@@ -422,9 +445,9 @@ const ItineraryMgt: React.FC = () => {
         <div>
           <div className={styles['mgt-page-title']}>日程管理</div>
           <div className={styles['mgt-page-desc']}>
-            当前艺人：
-            <strong style={{ color: '#4fc3f7' }}>{currentLabel}</strong>
-            &nbsp; 查看和管理行程安排
+            {/* 当前艺人：
+            <strong style={{ color: '#4fc3f7' }}>{currentLabel}</strong> */}
+            查看和管理行程安排
           </div>
         </div>
         <div className={styles['mgt-page-actions']}>
@@ -546,6 +569,19 @@ const ItineraryMgt: React.FC = () => {
             <Input placeholder="请输入日程标题" maxLength={100} showCount />
           </Form.Item>
           <Form.Item
+            name="artistId"
+            label="艺人"
+            rules={[{ required: true, message: '请选择艺人' }]}
+          >
+            <Select placeholder="请选择艺人" allowClear>
+              {artists.map((a) => (
+                <Option key={a.artistId} value={a.artistId}>
+                  {a.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
             name="location"
             label="地点"
             rules={[{ required: true, message: '请输入地点' }]}
@@ -631,6 +667,14 @@ const ItineraryMgt: React.FC = () => {
                 <span className={styles['detail-meta-label']}>地点</span>
                 <span className={styles['detail-meta-value']}>
                   {detailItem.location}
+                </span>
+              </div>
+              <div className={styles['detail-meta-item']}>
+                <CalendarOutlined className={styles['detail-meta-icon']} />
+                <span className={styles['detail-meta-label']}>艺人</span>
+                <span className={styles['detail-meta-value']}>
+                  {artists.find((a) => a.artistId === detailItem.artistId)
+                    ?.name || detailItem.artistId}
                 </span>
               </div>
               <div className={styles['detail-meta-item']}>

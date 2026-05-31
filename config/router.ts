@@ -18,6 +18,8 @@ const DataMgtPage = '@/pages/DataMgt/index';
 const ItineraryMgtPage = '@/pages/ItineraryMgt/index';
 const SwiperMgtPage = '@/pages/SwiperMgt/index';
 const PhotoMgtPage = '@/pages/PhotoMgt/index';
+const PhotoMgtAddPage = '@/pages/PhotoMgt/Add';
+const PhotoInfoPage = '@/pages/PhotoTag/index';
 const VideoMgtPage = '@/pages/VideoMgt/index';
 const VoiceMgtPage = '@/pages/VoiceMgt/index';
 const ProfileMgtPage = '@/pages/ProfileMgt/index';
@@ -39,12 +41,14 @@ export default [
       { exact: true, path: '/admin/itinerary', component: ItineraryMgtPage },
       { exact: true, path: '/admin/swiper', component: SwiperMgtPage },
       { exact: true, path: '/admin/photo', component: PhotoMgtPage },
+      { exact: true, path: '/admin/photo/add', component: PhotoMgtAddPage },
       { exact: true, path: '/admin/video', component: VideoMgtPage },
       { exact: true, path: '/admin/voice', component: VoiceMgtPage },
       { exact: true, path: '/admin/profile', component: ProfileMgtPage },
       { exact: true, path: '/admin/wallpaper', component: WallPaperMgtPage },
       { exact: true, path: '/admin/release', component: ReleaseMgtPage },
       { exact: true, path: '/admin/artist', component: ArtistMgtPage },
+      { exact: true, path: '/admin/photo_info', component: PhotoInfoPage },
       { redirect: '/admin/data' },
     ],
   },

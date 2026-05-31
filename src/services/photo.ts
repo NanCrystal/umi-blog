@@ -1,0 +1,107 @@
+import request from '@/utils/request';
+
+/** 创建单张照片 */
+export async function createPhoto(data: {
+  fileName: string;
+  url: string;
+  artistId: string;
+  shootDate: string;
+  photoTypeId?: number;
+  photoLocationId?: number;
+  itineraryId?: number;
+  description?: string;
+}) {
+  return request('/photos', { method: 'POST', data });
+}
+
+/** 批量创建照片 */
+export async function batchCreatePhotos(
+  data: {
+    artistId: string;
+    shootDate?: string;
+    photoTypeId: number;
+    photoLocationId?: number;
+    description?: string;
+    fileUrl: string;
+  },
+  opts?: { timeout?: number },
+) {
+  return request('/photos/batch', {
+    method: 'POST',
+    data,
+    ...opts,
+  });
+}
+
+/** 上传照片文件 */
+export async function uploadPhotoFile(file: File): Promise<{ url: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return request('/upload/photo', {
+    method: 'POST',
+    data: formData,
+    requestType: 'form',
+  });
+}
+
+/** 获取时间轴数据（按月份统计图片数量） */
+export async function getPhotosTimeline(params: {
+  typeIds?: number[];
+  locationIds?: number[];
+  artistId?: string;
+}) {
+  return request('/photos/timeline', {
+    method: 'GET',
+    params: {
+      typeIds: params.typeIds?.join(','),
+      locationIds: params.locationIds?.join(','),
+      artistId: params.artistId,
+    },
+  });
+}
+
+/** 按月份分页查询图片 */
+export async function getPhotosByMonth(params: {
+  yearMonth: string;
+  page?: number;
+  pageSize?: number;
+  typeIds?: number[];
+  locationIds?: number[];
+  artistId?: string;
+}) {
+  return request('/photos/by-month', {
+    method: 'GET',
+    params: {
+      ...params,
+      typeIds: params.typeIds?.join(','),
+      locationIds: params.locationIds?.join(','),
+    },
+  });
+}
+
+/** 更新单张照片 */
+export async function updatePhoto(
+  id: number,
+  data: {
+    fileName?: string;
+    url?: string;
+    artistId?: string;
+    shootDate?: string;
+    photoTypeId?: number;
+    photoLocationId?: number;
+    itineraryId?: number;
+    description?: string;
+  },
+) {
+  return request(`/photos/${id}`, { method: 'PUT', data });
+}
+
+/** 删除单张照片 */
+export async function deletePhoto(id: number) {
+  return request(`/photos/${id}`, { method: 'DELETE' });
+}
+
+/** 批量删除照片 */
+export async function batchDeletePhotos(ids: number[]) {
+  return request('/photos/batch-delete', { method: 'POST', data: { ids } });
+}

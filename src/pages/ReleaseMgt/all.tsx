@@ -8,6 +8,7 @@ import {
   PublishRecord,
   WallPaperItem,
 } from '@/services/wallpaper';
+import { getImageUrl } from '@/utils/utils';
 
 type RecordStatus = 'SUCCESS' | 'FAILED' | 'PENDING';
 
@@ -21,11 +22,6 @@ const platformColors: Record<string, string> = {
   wechat: 'green',
   douyin: 'blue',
   xiaohongshu: 'red',
-};
-
-const getImageUrl = (path?: string) => {
-  if (!path) return '';
-  return path.startsWith('http') ? path : `https://cdn.tauol.online${path}`;
 };
 
 const formatDateTime = (iso?: string | null) => {

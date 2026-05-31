@@ -48,3 +48,9 @@ export const formatDateTime = (isoString: string): string => {
   const min = String(date.getMinutes()).padStart(2, '0');
   return `${y}-${m}-${d} ${h}:${min}`;
 };
+
+/** 根据路径获取完整图片 URL（自动拼接 CDN 前缀） */
+export const getImageUrl = (path?: string): string => {
+  if (!path) return '';
+  return path.startsWith('http') ? path : `https://cdn.tauol.online${path}`;
+};

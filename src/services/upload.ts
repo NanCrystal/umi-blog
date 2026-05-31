@@ -14,3 +14,16 @@ export async function uploadImageFull(
     requestType: 'form',
   });
 }
+
+/**
+ * 上传压缩包（用于批量照片上传）
+ */
+export async function uploadZip(file: File): Promise<{ url: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return request('/upload/zip', {
+    method: 'POST',
+    data: formData,
+    requestType: 'form',
+  });
+}

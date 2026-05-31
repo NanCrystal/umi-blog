@@ -16,6 +16,7 @@ export default defineConfig({
       target: 'http://localhost:3000', // Nest 后端
       changeOrigin: true,
       pathRewrite: { '^/api': '' },
+      timeout: 5 * 60 * 1000, // 批量上传需要长超时
     },
     '/uploads': {
       target: 'http://localhost:3000', // 将前端对 /uploads 的请求代理到 Nest 后端

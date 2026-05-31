@@ -35,11 +35,6 @@ const getScheduleStatusMeta = (status?: string) => {
 const canCancelSchedule = (status?: string) =>
   status === 'PENDING' || status === 'FAILED';
 
-const getImageUrl = (path?: string) => {
-  if (!path) return '';
-  return path.startsWith('http') ? path : `https://cdn.tauol.online${path}`;
-};
-
 const formatDateTime = (iso?: string | null) => {
   if (!iso) return '--';
   const d = new Date(iso);
