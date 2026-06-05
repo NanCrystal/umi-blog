@@ -40,6 +40,7 @@ import {
   deletePhoto,
   updatePhoto,
   batchDeletePhotos,
+  batchUpdatePhotos,
 } from '@/services/photo';
 import { getImageUrl, getThumbUrl, formatFileSize } from '@/utils/utils';
 import { getArtistList, getSyncPosts } from '@/services/artist';
@@ -73,6 +74,7 @@ interface Photo {
   photoLocationId?: number;
   photoPlatformId?: number;
   itineraryId?: number;
+  title?: string;
   description?: string;
 }
 interface TimelineMonth {
@@ -1128,10 +1130,8 @@ const PhotoPage: React.FC<Props> = () => {
 
       setBatchEditLoading(true);
       const ids = Array.from(selectedIds);
-      // 逐个更新（或调用批量更新接口）
-      for (const photoId of ids) {
-        await updatePhoto(photoId, updateData);
-      }
+      // 调用批量更新接口，一次请求完成
+      await batchUpdatePhotos(ids, updateData);
       message.success(`成功更新 ${ids.length} 张照片`);
       setBatchEditModalVisible(false);
       setSelectedIds(new Set());

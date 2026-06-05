@@ -117,3 +117,18 @@ export async function deletePhoto(id: number) {
 export async function batchDeletePhotos(ids: number[]) {
   return request('/photos/batch-delete', { method: 'POST', data: { ids } });
 }
+
+/** 批量更新照片 */
+export async function batchUpdatePhotos(
+  ids: number[],
+  data: {
+    photoTypeId?: number;
+    photoLocationId?: number;
+    artistId?: string;
+    shootDate?: string;
+    itineraryId?: number;
+    description?: string;
+  },
+) {
+  return request('/photos/batch', { method: 'PATCH', data: { ids, data } });
+}
