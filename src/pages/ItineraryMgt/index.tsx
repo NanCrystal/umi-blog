@@ -12,9 +12,12 @@ import {
   Space,
   Popover,
   Badge,
+  Image,
+  Upload,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { TableRowSelection } from 'antd/es/table/interface';
+import type { UploadFile } from 'antd/es/upload';
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -26,6 +29,8 @@ import {
   ClockCircleOutlined,
   FileTextOutlined,
   ClearOutlined,
+  UploadOutlined,
+  PictureOutlined,
 } from '@ant-design/icons';
 import styles from './index.less';
 import moment from 'moment';
@@ -39,8 +44,9 @@ import {
   ItineraryItem,
   getCurrentUser,
 } from '@/services/itinerary';
+import { uploadImageFull } from '@/services/upload';
 import { getArtistList } from '@/services/artist';
-import { formatDateTime } from '@/utils/utils';
+import { formatDateTime, getImageUrl } from '@/utils/utils';
 
 const { RangePicker } = DatePicker;
 const { TextArea } = Input;
@@ -112,6 +118,10 @@ const ItineraryMgt: React.FC = () => {
   const [detailVisible, setDetailVisible] = useState(false);
   const [detailItem, setDetailItem] = useState<ItineraryItem | null>(null);
 
+  // 海报预览弹窗
+  const [posterPreviewVisible, setPosterPreviewVisible] = useState(false);
+  const [posterPreviewUrl, setPosterPreviewUrl] = useState<string>('');
+
   // 加载列表
   const fetchList = (
     page = pagination.current,
@@ -168,6 +178,13 @@ const ItineraryMgt: React.FC = () => {
   const handleEdit = (item: ItineraryItem) => {
     setModalMode('edit');
     setEditingItem(item);
+
+    // 处理海报 URL：如果是完整 URL，提取相对路径
+    const posterUrl = item.poster || '';
+    const posterRelativeUrl = posterUrl.startsWith('http')
+      ? posterUrl.replace('https://cdn.tauol.online', '')
+      : posterUrl;
+
     form.setFieldsValue({
       title: item.title,
       artistId: item.artistId,
@@ -175,6 +192,17 @@ const ItineraryMgt: React.FC = () => {
       timeRange: [moment(item.startTime), moment(item.endTime)],
       status: item.status,
       description: item.description,
+      poster: posterUrl
+        ? [
+            {
+              uid: '-1',
+              name: 'poster.png',
+              status: 'done',
+              url: getImageUrl(posterUrl),
+              response: { url: posterRelativeUrl },
+            } as unknown as UploadFile,
+          ]
+        : [],
     });
     setModalVisible(true);
   };
@@ -225,6 +253,12 @@ const ItineraryMgt: React.FC = () => {
       const [start, end] = values.timeRange as [moment.Moment, moment.Moment];
       setSubmitLoading(true);
 
+      const fileList = (values.poster || []) as UploadFile[];
+      const posterUrl =
+        fileList.length > 0 && fileList[0]?.response?.url
+          ? fileList[0].response.url // 优先使用 response.url（相对路径）
+          : '';
+
       const payload = {
         title: values.title,
         artistId: values.artistId,
@@ -233,6 +267,7 @@ const ItineraryMgt: React.FC = () => {
         endTime: end.format('YYYY-MM-DD HH:mm'),
         status: values.status as ItineraryStatus,
         description: values.description || '',
+        poster: posterUrl || undefined,
       };
 
       if (modalMode === 'edit' && editingItem) {
@@ -281,10 +316,38 @@ const ItineraryMgt: React.FC = () => {
         ),
       },
       {
+        title: '海报',
+        dataIndex: 'poster',
+        key: 'poster',
+        render: (value: string) =>
+          value ? (
+            <div
+              className={styles['poster-thumb']}
+              onClick={(e) => {
+                e.stopPropagation();
+                setPosterPreviewUrl(getImageUrl(value));
+                setPosterPreviewVisible(true);
+              }}
+            >
+              <Image
+                src={getImageUrl(value)}
+                preview={false}
+                width={40}
+                height={40}
+                style={{ objectFit: 'cover' }}
+              />
+              <PictureOutlined className={styles['poster-thumb-icon']} />
+            </div>
+          ) : (
+            <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 12 }}>
+              无
+            </span>
+          ),
+      },
+      {
         title: '艺人',
         dataIndex: 'artistId',
         key: 'artistId',
-        width: 120,
         render: (value: string) => {
           const artist = artists.find((a) => a.artistId === value);
           return (
@@ -295,35 +358,35 @@ const ItineraryMgt: React.FC = () => {
         },
       },
       {
-        title: '时间',
+        title: '开始时间',
         dataIndex: 'startTime',
-        key: 'time',
-        width: 220,
-        render: (_: string, item) => (
-          <Space direction="vertical" size={2} style={{ lineHeight: 1.5 }}>
-            <span style={{ color: 'rgba(255,255,255,0.82)' }}>
-              <ClockCircleOutlined
-                style={{ marginRight: 4, fontSize: 12, opacity: 0.6 }}
-              />
-              {formatDateTime(item.startTime)}
-            </span>
-            <span
-              style={{
-                color: 'rgba(255,255,255,0.45)',
-                fontSize: 12,
-                paddingLeft: 16,
-              }}
-            >
-              至 {formatDateTime(item.endTime)}
-            </span>
-          </Space>
+        key: 'startTime',
+        render: (value: string) => (
+          <span style={{ color: 'rgba(255,255,255,0.82)' }}>
+            <ClockCircleOutlined
+              style={{ marginRight: 4, fontSize: 12, opacity: 0.6 }}
+            />
+            {formatDateTime(value)}
+          </span>
+        ),
+      },
+      {
+        title: '结束时间',
+        dataIndex: 'endTime',
+        key: 'endTime',
+        render: (value: string) => (
+          <span style={{ color: 'rgba(255,255,255,0.65)' }}>
+            <ClockCircleOutlined
+              style={{ marginRight: 4, fontSize: 12, opacity: 0.6 }}
+            />
+            {formatDateTime(value)}
+          </span>
         ),
       },
       {
         title: '地点',
         dataIndex: 'location',
         key: 'location',
-        width: 200,
         ellipsis: true,
         render: (value: string) => (
           <Space>
@@ -338,7 +401,6 @@ const ItineraryMgt: React.FC = () => {
         title: '状态',
         dataIndex: 'status',
         key: 'status',
-        width: 110,
         render: (value: ItineraryStatus) => {
           const cfg = STATUS_MAP[value];
           return (
@@ -349,9 +411,21 @@ const ItineraryMgt: React.FC = () => {
         },
       },
       {
+        title: '修改时间',
+        dataIndex: 'updatedAt',
+        key: 'updatedAt',
+        sorter: (a, b) =>
+          new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime(),
+        defaultSortOrder: 'descend',
+        render: (value: string) => (
+          <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>
+            {formatDateTime(value)}
+          </span>
+        ),
+      },
+      {
         title: '操作',
         key: 'action',
-        width: 160,
         render: (_: unknown, item) => (
           <div className={styles['table-actions']}>
             <Button
@@ -622,6 +696,33 @@ const ItineraryMgt: React.FC = () => {
               showCount
             />
           </Form.Item>
+          <Form.Item
+            name="poster"
+            label="日程海报"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => e.fileList}
+          >
+            <Upload
+              listType="picture-card"
+              maxCount={1}
+              accept="image/*"
+              className={styles['poster-upload']}
+              customRequest={async ({ file, onSuccess, onError }: any) => {
+                try {
+                  const result = await uploadImageFull(file as File);
+                  onSuccess(result, undefined as any);
+                } catch (err) {
+                  onError(err);
+                  message.error('海报上传失败');
+                }
+              }}
+            >
+              <div className={styles['upload-trigger']}>
+                <UploadOutlined />
+                <span>上传海报</span>
+              </div>
+            </Upload>
+          </Form.Item>
         </Form>
       </Modal>
 
@@ -661,6 +762,21 @@ const ItineraryMgt: React.FC = () => {
                 {STATUS_MAP[detailItem.status].label}
               </span>
             </div>
+            {detailItem.poster && (
+              <div className={styles['detail-poster-section']}>
+                <div className={styles['detail-section-title']}>
+                  <PictureOutlined style={{ marginRight: 6 }} />
+                  日程海报
+                </div>
+                <div className={styles['detail-poster-wrapper']}>
+                  <Image
+                    src={getImageUrl(detailItem.poster)}
+                    width="100%"
+                    style={{ maxHeight: 280, objectFit: 'contain' }}
+                  />
+                </div>
+              </div>
+            )}
             <div className={styles['detail-meta']}>
               <div className={styles['detail-meta-item']}>
                 <EnvironmentOutlined className={styles['detail-meta-icon']} />
@@ -679,16 +795,23 @@ const ItineraryMgt: React.FC = () => {
               </div>
               <div className={styles['detail-meta-item']}>
                 <ClockCircleOutlined className={styles['detail-meta-icon']} />
-                <span className={styles['detail-meta-label']}>时间</span>
+                <span className={styles['detail-meta-label']}>开始时间</span>
                 <span className={styles['detail-meta-value']}>
-                  {detailItem.startTime} 至 {detailItem.endTime}
+                  {formatDateTime(detailItem.startTime)}
+                </span>
+              </div>
+              <div className={styles['detail-meta-item']}>
+                <ClockCircleOutlined className={styles['detail-meta-icon']} />
+                <span className={styles['detail-meta-label']}>结束时间</span>
+                <span className={styles['detail-meta-value']}>
+                  {formatDateTime(detailItem.endTime)}
                 </span>
               </div>
               <div className={styles['detail-meta-item']}>
                 <CalendarOutlined className={styles['detail-meta-icon']} />
                 <span className={styles['detail-meta-label']}>创建时间</span>
                 <span className={styles['detail-meta-value']}>
-                  {detailItem.createdAt}
+                  {formatDateTime(detailItem.createdAt)}
                 </span>
               </div>
             </div>
@@ -704,6 +827,17 @@ const ItineraryMgt: React.FC = () => {
           </div>
         )}
       </Modal>
+
+      {/* 海报大图预览弹窗 (表格缩略图点击) */}
+      <Image.PreviewGroup
+        preview={{
+          visible: posterPreviewVisible,
+          onVisibleChange: setPosterPreviewVisible,
+          zIndex: 10000,
+        }}
+      >
+        <Image style={{ display: 'none' }} src={posterPreviewUrl} />
+      </Image.PreviewGroup>
     </div>
   );
 };

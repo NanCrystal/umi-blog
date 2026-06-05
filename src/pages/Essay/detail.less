@@ -1,5 +1,5 @@
 /* ============================================================
-   DetailPage - 星空暗色主题，全文垂直居中，超高可滚动
+   DetailPage - Bugatti 极简黑色主题
    ============================================================ */
 
 .detail-wrapper {
@@ -25,29 +25,32 @@
 /* 标题 */
 .detail-title {
   font-size: 26px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.92);
+  font-weight: 400;
+  color: #ffffff;
   text-align: center;
   margin: 0 0 10px;
   line-height: 1.4;
   letter-spacing: 0.03em;
+  font-family: var(--font-display), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 4px;
 }
 
 /* 时间（原"作者"位置） */
 .detail-date {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.3);
+  color: #999999;
   text-align: center;
   margin: 0 0 28px;
+  font-family: var(--font-mono), monospace;
 }
 
 /* 封面图 */
 .detail-cover {
   width: 100%;
-  border-radius: 8px;
+  border-radius: 0px;
   overflow: hidden;
   margin-bottom: 36px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: center;
 
@@ -71,12 +74,13 @@
 /* 每段独立一行，水平居中 */
 .detail-para {
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.72);
+  color: #cccccc;
   line-height: 2;
   text-align: center;
   margin: 0;
   padding: 2px 0;
   letter-spacing: 0.04em;
+  font-family: var(--font-body), serif;
 }
 
 /* ============================================================

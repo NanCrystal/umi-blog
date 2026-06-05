@@ -1,71 +1,101 @@
-.pohoto-tag-page {
-  padding: 24px;
+/* ============================================================
+   PhotoTag - 照片标签管理 (Bugatti 极简工程美学)
+   ============================================================ */
 
+.pohoto-tag-page {
+  font-family: var(--font-body, 'Cormorant Garamond', serif);
+  background-color: var(--color-canvas, #000000);
+  padding: 48px 32px;
+  min-height: 100vh;
+  color: var(--color-primary, #ffffff);
+
+  /* ─── Section ─── */
   .section {
-    margin-bottom: 40px;
+    margin-bottom: 48px;
 
     .title {
-      font-size: 20px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.85);
-      margin-bottom: 8px;
+      font-family: var(--font-display, 'Saira Condensed', sans-serif);
+      font-size: 24px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: var(--color-primary, #ffffff);
+      margin-bottom: 24px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
 
       .dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background-color: #00b96b;
+        width: 8px;
+        height: 8px;
+        border-radius: var(--rounded-pill, 9999px);
+        background-color: #5fa657;
         display: inline-block;
       }
     }
 
     .cardList {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
     }
   }
 
+  /* ─── Add Card (虚线边框,无圆角) ─── */
   .addCard {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px dashed rgba(255, 255, 255, 0.12) !important;
-    border-radius: 8px;
-    height: 100px;
+    background: transparent;
+    border: 1px dashed var(--color-hairline, #262626);
+    border-radius: 0;
+    height: 96px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 14px;
+    transition: all 0.25s ease;
+    color: var(--color-muted, #999999);
+    font-size: 13px;
+    font-weight: 400;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 
     &:hover {
-      border-color: rgba(255, 255, 255, 0.3) !important;
-      color: rgba(255, 255, 255, 0.7);
-      background: rgba(255, 255, 255, 0.08);
+      border-style: solid;
+      border-color: var(--color-body, #cccccc);
+      color: var(--color-primary, #ffffff);
+      background: var(--color-surface-card, #141414);
+    }
+
+    &:active {
+      opacity: 0.6;
     }
 
     .addIcon {
-      font-size: 22px;
-      margin-bottom: 4px;
+      font-size: 20px;
+      margin-bottom: 8px;
+      color: var(--color-muted, #999999);
+      transition: color 0.25s ease;
+    }
+
+    &:hover .addIcon {
+      color: var(--color-primary, #ffffff);
     }
   }
 
+  /* ─── Item Card (纯色无圆角) ─── */
   .itemCard {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 8px;
-    padding: 16px;
-    transition: all 0.3s ease;
+    background: var(--color-surface-card, #141414);
+    border: 1px solid var(--color-hairline, #262626);
+    border-radius: 0;
+    padding: 24px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
 
     &:hover {
-      border-color: rgba(255, 255, 255, 0.18) !important;
-      background: rgba(255, 255, 255, 0.07);
-      transform: translateY(-2px);
+      border-color: var(--color-body, #cccccc);
     }
 
     .itemActions {
@@ -73,40 +103,64 @@
       align-items: center;
       justify-content: flex-end;
       gap: 8px;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
 
-      .editIcon {
-        color: rgba(255, 255, 255, 0.45);
-        font-size: 13px;
-        cursor: pointer;
+      .dragHandle {
+        color: var(--color-stone, #555555);
+        font-size: 14px;
+        cursor: grab;
         transition: color 0.2s ease;
+        padding: 4px 8px;
 
         &:hover {
-          color: rgba(79, 195, 247, 0.9);
+          color: var(--color-muted, #999999);
+        }
+
+        &:active {
+          cursor: grabbing;
         }
       }
 
+      .editIcon,
       .deleteIcon {
-        color: rgba(255, 255, 255, 0.25);
-        font-size: 13px;
+        color: var(--color-stone, #555555);
+        font-size: 14px;
         cursor: pointer;
         transition: color 0.2s ease;
+        padding: 4px 8px;
 
         &:hover {
-          color: #ff4d4f;
+          color: var(--color-link, #c3d9f3);
         }
+      }
+
+      .deleteIcon:hover {
+        color: rgba(220, 60, 60, 0.85);
       }
     }
 
     .itemContent {
       .itemName {
-        font-size: 15px;
-        font-weight: 500;
-        color: rgba(255, 255, 255, 0.9);
+        font-family: var(--font-display, 'Saira Condensed', sans-serif);
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 1.4;
+        color: var(--color-primary, #ffffff);
+        letter-spacing: 1px;
+        text-transform: uppercase;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         display: block;
+      }
+
+      .itemUuid {
+        font-family: var(--font-mono, 'JetBrains Mono', monospace);
+        font-size: 11px;
+        color: var(--color-stone, #555555);
+        display: block;
+        margin-top: 6px;
+        letter-spacing: 0.5px;
       }
     }
 
@@ -114,178 +168,310 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--color-hairline, #262626);
 
       .count {
-        font-size: 13px;
-        color: rgba(255, 255, 255, 0.45);
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--color-muted, #999999);
+        font-family: var(--font-mono, monospace);
       }
 
       .deleteIcon {
-        color: rgba(255, 255, 255, 0.25);
-        font-size: 13px;
+        color: var(--color-stone, #555555);
+        font-size: 14px;
         cursor: pointer;
         transition: color 0.2s ease;
+        padding: 4px 8px;
 
         &:hover {
-          color: #ff4d4f;
+          color: rgba(220, 60, 60, 0.85);
         }
       }
     }
   }
 
-  .paginationWrapper {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 16px;
-
-    :global(.ant-pagination) {
-      .ant-pagination-prev,
-      .ant-pagination-next,
-      .ant-pagination-item {
-        min-width: 36px;
-        height: 34px;
-        line-height: 32px;
-        border-radius: 6px;
-        background: transparent !important;
-        border-color: rgba(255, 255, 255, 0.12) !important;
-
-        a {
-          color: rgba(255, 255, 255, 0.65);
-
-          &:hover {
-            color: #00b96b;
-          }
-        }
-      }
-
-      .ant-pagination-item-active {
-        background-color: #00b96b !important;
-        border-color: #00b96b !important;
-
-        a {
-          color: #fff;
-        }
-      }
-
-      .ant-pagination-disabled {
-        opacity: 0.35;
-      }
-    }
-  }
-}
-
-/* 弹窗表单样式 - 与系统一致 */
-.pohoto-tag-page {
+  /* ─── Modal ─── */
   :global(.ant-modal) {
     .ant-modal-header {
-      background: #141414;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: transparent;
+      border-bottom: 1px solid var(--color-hairline, #262626);
+      padding: 16px 24px;
+      border-radius: 0;
 
       .ant-modal-title {
-        color: rgba(255, 255, 255, 0.85);
+        font-family: var(--font-display, 'Saira Condensed', sans-serif);
+        font-size: 18px;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--color-primary, #ffffff);
       }
+    }
+
+    .ant-modal-close {
+      color: var(--color-muted, #999999);
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: var(--color-primary, #ffffff);
+      }
+    }
+
+    .ant-modal-content {
+      background-color: #000000;
+      border: 1px solid var(--color-hairline, #262626);
+      border-radius: 0;
     }
 
     .ant-modal-body {
-      background: #141414;
+      background: transparent;
+      padding: 24px;
     }
 
     .ant-modal-footer {
-      background: #141414;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: transparent;
+      border-top: 1px solid var(--color-hairline, #262626);
+      padding: 12px 24px;
+      border-radius: 0;
     }
   }
 
-  :global(.ant-form-item-label > label) {
-    color: rgba(255, 255, 255, 0.75);
-    font-weight: 500;
-  }
+  /* ─── Form Styles (Input 下划线风格 - 与全局一致) ─── */
+  .tag-form {
+    margin-top: 12px;
 
-  :global(.ant-input) {
-    background: rgba(8, 17, 29, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
-
-    &::placeholder {
-      color: rgba(255, 255, 255, 0.35);
+    /* 标签颜色强制白色，覆盖所有状态 */
+    :global(.ant-form-item-label > label),
+    :global(.ant-form-item-label > label.ant-form-item-required),
+    :global(.ant-form-item-label) {
+      color: #ffffff !important;
+    }
+    :global(.ant-form-item-label > label) {
+      font-size: 13px;
+      font-weight: 400;
+      height: auto;
+      font-family: var(--font-mono, 'JetBrains Mono', monospace);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
-    &:hover,
-    &:focus {
-      border-color: rgba(79, 195, 247, 0.5);
-      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+    :global(.ant-form-item) {
+      margin-bottom: 24px;
+    }
+
+    /* Input 默认 - 只保留底部一条线 */
+    :global(.ant-input) {
+      font-family: var(--font-body, 'Cormorant Garamond', serif);
+      background: transparent !important;
+      border: none !important;
+      border-bottom: 1px solid var(--color-hairline, #262626) !important;
+      border-radius: 0;
+      color: var(--color-primary, #ffffff);
+      font-size: 14px;
+      height: 40px;
+      padding: 10px 0;
+      box-shadow: none !important;
+      outline: none !important;
+      transition: border-color 0.2s ease;
+
+      &::placeholder {
+        color: var(--color-muted, #999999);
+      }
+
+      &:hover,
+      &:focus,
+      &.ant-input-focused {
+        border: none !important;
+        border-bottom: 1px solid var(--color-primary, #ffffff) !important;
+        box-shadow: none !important;
+        outline: none !important;
+      }
+    }
+
+    /* Input 容器（带前缀/后缀）- 只保留下划线 */
+    :global(.ant-input-affix-wrapper) {
+      font-family: var(--font-body, 'Cormorant Garamond', serif);
+      background: transparent !important;
+      border: none !important;
+      border-bottom: 1px solid var(--color-hairline, #262626) !important;
+      border-radius: 0;
+      padding: 4px 0 !important;
+      transition: border-color 0.2s ease;
+
+      &:hover,
+      &:focus,
+      &.ant-input-affix-wrapper-focused,
+      &.ant-input-affix-wrapper:focus-within {
+        border: none !important;
+        border-bottom: 1px solid var(--color-primary, #ffffff) !important;
+        box-shadow: none !important;
+      }
+
+      /* 容器内部的 input 完全去边框 */
+      .ant-input {
+        background: transparent !important;
+        border: none !important;
+        border-bottom: none !important;
+        box-shadow: none !important;
+        height: auto;
+        padding: 0;
+      }
+      .ant-input:hover,
+      .ant-input:focus {
+        border: none !important;
+        border-bottom: none !important;
+        box-shadow: none !important;
+      }
+    }
+
+    /* textarea 字数统计 */
+    :global(.ant-input-textarea-show-count::after) {
+      color: var(--color-stone, #555555);
+      font-size: 12px;
+    }
+
+    :global(.ant-input-count) {
+      font-size: 12px;
+      color: var(--color-stone, #555555);
+      bottom: -18px;
     }
   }
 
+  /* ─── Buttons (Pill形状) ─── */
   :global(.ant-btn-primary) {
-    background-color: #1677ff;
-    border-color: #1677ff;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    background: transparent;
+    border: 1px solid var(--color-primary, #ffffff);
+    border-radius: var(--rounded-pill, 9999px);
+    height: 36px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.43;
+    color: var(--color-primary, #ffffff);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: none;
+    transition: all 0.25s ease;
 
     &:hover {
-      background-color: #4096ff;
-      border-color: #4096ff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    &:active {
+      background: rgba(255, 255, 255, 0.12);
     }
   }
 
   :global(.ant-btn-default) {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
     background: transparent;
-    border-color: rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.75);
+    border: 1px solid var(--color-hairline, #262626);
+    border-radius: var(--rounded-pill, 9999px);
+    height: 36px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--color-body, #cccccc);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.25s ease;
 
     &:hover {
-      border-color: rgba(255, 255, 255, 0.3);
-      color: rgba(255, 255, 255, 0.9);
+      border-color: var(--color-primary, #ffffff);
+      color: var(--color-primary, #ffffff);
+    }
+
+    &:active {
+      background: var(--color-surface-card, #141414);
     }
   }
 
+  /* ─── Popconfirm / Message ─── */
   :global(.ant-popconfirm) {
     .ant-popconfirm-message-text {
-      color: rgba(255, 255, 255, 0.85);
+      color: var(--color-body, #cccccc);
+      font-size: 14px;
+    }
+
+    .ant-popconfirm-buttons {
+      .ant-btn-primary {
+        background: transparent;
+        border-color: var(--color-primary, #ffffff);
+        color: var(--color-primary, #ffffff);
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.08);
+        }
+      }
+
+      .ant-btn-default {
+        background: transparent;
+        border-color: var(--color-hairline, #262626);
+        color: var(--color-body, #cccccc);
+      }
+    }
+  }
+
+  :global(.ant-message-notice-content) {
+    background: var(--color-surface-card, #141414);
+    border: 1px solid var(--color-hairline, #262626);
+    border-radius: 0;
+    color: var(--color-body, #cccccc);
+    font-family: var(--font-body, serif);
+  }
+
+  /* ─── Responsive Design ─── */
+  @media (max-width: 768px) {
+    padding: 32px 24px;
+
+    .section {
+      margin-bottom: 48px;
+
+      .title {
+        font-size: 20px;
+        letter-spacing: 1.5px;
+        margin-bottom: 16px;
+      }
+
+      .cardList {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 16px;
+      }
+    }
+
+    .itemCard {
+      padding: 16px;
+    }
+
+    .addCard {
+      height: 80px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 24px 16px;
+
+    .section {
+      .cardList {
+        grid-template-columns: 1fr;
+      }
     }
   }
 }
 
-.tag-form {
-  margin-top: 8px;
-
-  :global(.ant-form-item-label > label) {
-    color: rgba(255, 255, 255, 0.75);
-    font-weight: 500;
-  }
-
-  :global(.ant-input) {
-    background: rgba(8, 17, 29, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
-
-    &::placeholder {
-      color: rgba(255, 255, 255, 0.35);
+/* Global overrides for Ant Design components within this page */
+::global {
+  .pohoto-tag-page {
+    .ant-form-item-label > label {
+      color: #ffffff;
     }
 
-    &:hover,
-    &:focus {
-      border-color: rgba(79, 195, 247, 0.5);
-      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+    .ant-modal-mask {
+      background-color: rgba(0, 0, 0, 0.7);
     }
-  }
-
-  :global(.ant-input-affix-wrapper) {
-    background: rgba(8, 17, 29, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
-
-    &:hover,
-    &:focus {
-      border-color: rgba(79, 195, 247, 0.5);
-      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
-    }
-  }
-
-  :global(.ant-input-textarea-show-count::after) {
-    color: rgba(255, 255, 255, 0.4);
-  }
-
-  :global(.ant-input-affix-wrapper .ant-input) {
-    background: transparent;
-    box-shadow: none;
   }
 }

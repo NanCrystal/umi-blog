@@ -345,7 +345,7 @@ const WallPaperMgt: React.FC = () => {
                 alignItems: 'center',
               }}
             >
-              <span style={{ color: 'rgba(255, 255, 255, 0.94)' }}>
+              <span style={{ color: '#fcfdff', fontWeight: 600 }}>
                 壁纸列表
               </span>
               <Button className={styles['trash-btn']} onClick={handleOpenTrash}>

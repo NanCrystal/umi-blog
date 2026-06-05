@@ -1,180 +1,396 @@
+/* ============================================================
+   ArtistMgt - 艺人管理 (Card 卡片风格)
+   ============================================================ */
+
 .artist-mgt {
   padding: 24px;
 
-  .artist-header {
+  .header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: space-between;
     margin-bottom: 24px;
 
-    h2 {
-      margin: 0;
-      color: rgba(255, 255, 255, 0.85);
-      font-size: 20px;
-    }
-
-    .artist-subtitle {
-      color: rgba(255, 255, 255, 0.45);
-      font-size: 14px;
-    }
-  }
-
-  .artist-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 20px;
-  }
-
-  .artist-card {
-    position: relative;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-
-    :global(.ant-card-body) {
-      padding: 24px;
-    }
-  }
-
-  .artist-add-card {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 200px;
-    cursor: pointer;
-    border-style: dashed !important;
-
-    :global(.ant-card-body) {
+    .header-left {
       display: flex;
       align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 100%;
-    }
-
-    .add-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: rgba(255, 255, 255, 0.45);
       gap: 12px;
     }
 
-    .add-text {
-      font-size: 14px;
+    .header-title {
+      margin: 0;
+      color: var(--color-primary, #ffffff);
+      font-size: 20px;
+      font-weight: 400;
+      font-family: var(--font-display, 'Saira Condensed', sans-serif);
+      text-transform: uppercase;
+      letter-spacing: 2px;
     }
+
+    .header-subtitle {
+      color: var(--color-muted, #999999);
+      font-size: 14px;
+      font-family: var(--font-mono, monospace);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  }
+
+  /* ─── 卡片网格 ─── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 16px;
+  }
+
+  /* ─── 卡片 ─── */
+  .artist-card {
+    border: 1px solid var(--color-hairline, #262626);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 24px;
+    transition: border-color 0.2s, background 0.2s;
+
+    position: relative;
 
     &:hover {
-      border-color: rgba(255, 255, 255, 0.25) !important;
+      border-color: var(--color-hairline-strong, #3a3a3a);
+      background: rgba(255, 255, 255, 0.04);
 
-      .add-content {
-        color: rgba(255, 255, 255, 0.75);
-      }
-    }
-  }
-
-  .artist-actions {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    display: flex;
-    gap: 4px;
-    z-index: 1;
-
-    :global(.ant-btn) {
-      color: rgba(255, 255, 255, 0.45);
-
-      &:hover {
-        color: rgba(255, 255, 255, 0.85);
-        background: rgba(255, 255, 255, 0.08);
+      .card-actions {
+        opacity: 1;
       }
     }
 
-    :global(.ant-btn-dangerous) {
-      &:hover {
-        color: #ff4d4f;
-        background: rgba(255, 77, 79, 0.1);
-      }
-    }
-  }
-
-  .artist-info {
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
-  }
-
-  .artist-avatar {
-    flex-shrink: 0;
-    border: 2px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  }
-
-  .artist-detail {
-    flex: 1;
-
-    h3 {
-      margin: 0 0 8px 0;
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 18px;
+    /* ── 卡片头部 ── */
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }
 
-    .artist-desc {
-      color: rgba(255, 255, 255, 0.5);
-      margin: 8px 0 16px;
+    .card-avatar {
+      flex-shrink: 0;
+      border: 1px solid var(--color-hairline, #262626);
+      border-radius: 4px;
+    }
+
+    .card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card-name {
+      color: var(--color-primary, #ffffff);
+      font-size: 16px;
+      font-weight: 500;
+      font-family: var(--font-body, serif);
+      margin-bottom: 4px;
+    }
+
+    .card-id {
+      line-height: 1;
+    }
+
+    .card-actions {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 1;
+    }
+
+    /* ── 平台图标行 ── */
+    .card-platforms {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--color-hairline, #262626);
+    }
+
+    .platform-icon {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      border-radius: 3px;
+    }
+
+    .no-platform {
+      color: var(--color-muted, #666666);
       font-size: 13px;
+      font-family: var(--font-mono, monospace);
     }
 
-    .artist-meta {
-      :global(.ant-descriptions-item-label) {
-        color: rgba(255, 255, 255, 0.5) !important;
-      }
+    /* ── 卡片底部 ── */
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--color-hairline, #262626);
+    }
+  }
 
-      :global(.ant-descriptions-item-content) {
-        color: rgba(255, 255, 255, 0.75) !important;
+  /* ─── 新增艺人卡片 ─── */
+  .add-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px dashed var(--color-hairline, #262626);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 24px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    min-height: 130px;
+
+    &:hover {
+      border-color: var(--color-primary, #ffffff);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .add-card-icon {
+      font-size: 36px;
+      line-height: 1;
+      color: var(--color-muted, #666666);
+      font-weight: 300;
+      transition: color 0.2s;
+    }
+
+    .add-card-text {
+      font-size: 14px;
+      color: var(--color-muted, #999999);
+      font-family: var(--font-mono, monospace);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+
+    &:hover .add-card-icon,
+    &:hover .add-card-text {
+      color: var(--color-primary, #ffffff);
+    }
+  }
+
+  .sync-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    justify-content: center;
+
+    &[disabled],
+    &:disabled {
+      align-items: center !important;
+      gap: 4px !important;
+
+      :global(.ant-btn-icon) {
+        display: inline-flex !important;
+        align-items: center !important;
+        line-height: 1;
       }
+    }
+  }
+
+  .sync-svg-icon {
+    width: 14px;
+    height: 14px;
+    display: block;
+  }
+
+  .sync-btn:disabled .sync-svg-icon,
+  .sync-btn[disabled] .sync-svg-icon {
+    opacity: 1;
+  }
+
+  /* ─── 操作按钮 ─── */
+  .action-btn,
+  .action-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    padding: 0;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .action-btn {
+    color: #cccccc !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid #333333 !important;
+
+    &:hover {
+      color: #ffffff !important;
+      background: rgba(255, 255, 255, 0.16) !important;
+      border-color: #cccccc !important;
+    }
+  }
+
+  .action-btn-danger {
+    color: rgba(220, 60, 60, 0.85) !important;
+    background: rgba(220, 60, 60, 0.1) !important;
+    border: 1px solid rgba(220, 60, 60, 0.3) !important;
+
+    &:hover {
+      color: rgba(220, 60, 60, 1) !important;
+      background: rgba(220, 60, 60, 0.2) !important;
+      border-color: rgba(220, 60, 60, 0.7) !important;
     }
   }
 }
 
-/* ─── 表单样式（参考行程弹窗） ─── */
+/* ─── 详情 Modal ─── */
+.detail-content {
+  padding: 8px 0;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-hairline, #262626);
+
+  .detail-avatar {
+    flex-shrink: 0;
+    border: 1px solid var(--color-hairline, #262626);
+    border-radius: 4px;
+  }
+
+  .detail-info {
+    .detail-name {
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--color-primary, #ffffff);
+      margin-bottom: 8px;
+    }
+
+    .detail-meta {
+      display: flex;
+      gap: 8px;
+    }
+  }
+}
+
+.detail-row {
+  display: flex;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-hairline, #262626);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .detail-label {
+    width: 120px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-muted, #999999);
+    font-size: 14px;
+    font-family: var(--font-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-top: 2px;
+
+    .detail-label-svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+  }
+
+  .detail-value {
+    flex: 1;
+    color: var(--color-primary, #ffffff);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .detail-platform-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .detail-platform-avatar {
+    flex-shrink: 0;
+    border: 1px solid var(--color-hairline, #262626);
+    border-radius: 4px;
+  }
+
+  .detail-platform-info {
+    min-width: 0;
+  }
+
+  .detail-platform-bound {
+    margin-top: 2px;
+    font-size: 12px;
+    color: #888888;
+    font-family: var(--font-mono, monospace);
+  }
+}
+
+/* ─── 表单样式 ─── */
 .artist-form {
   margin-top: 8px;
 
   :global(.ant-form-item-label > label) {
-    color: rgba(255, 255, 255, 0.75);
-    font-weight: 500;
+    color: var(--color-body, #cccccc);
+    font-weight: 400;
+    font-family: var(--font-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 13px;
   }
 
   :global(.ant-input) {
-    background: rgba(8, 17, 29, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-hairline-strong, #3a3a3a);
+    border-radius: 0;
+    color: var(--color-primary, #ffffff);
+    font-family: var(--font-body, serif);
 
     &::placeholder {
-      color: rgba(255, 255, 255, 0.35);
+      color: var(--color-muted, #999999);
     }
 
     &:hover,
     &:focus {
-      border-color: rgba(79, 195, 247, 0.5);
-      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+      border-bottom-color: var(--color-primary, #ffffff);
+      box-shadow: none;
     }
   }
 
   :global(.ant-input-affix-wrapper) {
-    background: rgba(8, 17, 29, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-hairline-strong, #3a3a3a);
+    border-radius: 0;
 
     &:hover,
     &:focus {
-      border-color: rgba(79, 195, 247, 0.5);
-      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+      border-bottom-color: var(--color-primary, #ffffff);
+      box-shadow: none;
     }
   }
 
   :global(.ant-input-textarea-show-count::after) {
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--color-muted, #999999);
   }
 
   :global(.ant-input-affix-wrapper .ant-input) {
@@ -183,6 +399,7 @@
   }
 }
 
+/* 头像上传按钮 */
 .avatar-upload-btn {
   display: flex;
   flex-direction: column;
@@ -190,11 +407,12 @@
   justify-content: center;
   width: 110px;
   height: 110px;
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
+  border: 1px dashed var(--color-hairline, #262626);
+  border-radius: 0;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-muted, #999999);
   font-size: 12px;
+  font-family: var(--font-mono, monospace);
   gap: 6px;
   transition: border-color 0.2s, color 0.2s;
 
@@ -203,8 +421,8 @@
   }
 
   &:hover {
-    border-color: rgba(255, 255, 255, 0.5);
-    color: rgba(255, 255, 255, 0.7);
+    border-color: var(--color-body, #cccccc);
+    color: var(--color-body, #cccccc);
   }
 }
 
@@ -212,7 +430,7 @@
   position: relative;
   width: 110px;
   height: 110px;
-  border-radius: 6px;
+  border-radius: 0;
   overflow: hidden;
   cursor: pointer;
 
@@ -226,8 +444,9 @@
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.55);
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--color-body, #cccccc);
     font-size: 12px;
+    font-family: var(--font-mono, monospace);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -240,18 +459,252 @@
   }
 }
 
-@media (max-width: 768px) {
-  .artist-mgt {
-    padding: 16px;
+/* ─── 社交媒体配置区域分隔 ─── */
+.social-section-title {
+  margin: 16px 0 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-hairline, #262626);
+  color: var(--color-primary, #ffffff);
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 
-    .artist-list {
-      grid-template-columns: 1fr;
+.social-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+/* ────────────── Add Page ────────────── */
+.artist-add-page {
+  padding: 24px;
+
+  .add-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+
+    .add-breadcrumb {
+      :global(.ant-breadcrumb-link) {
+        color: var(--color-muted, #999999);
+        font-family: var(--font-mono, monospace);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      :global(.ant-breadcrumb-separator) {
+        color: var(--color-hairline-strong, #3a3a3a);
+      }
+
+      a {
+        color: var(--color-muted, #999999);
+
+        &:hover {
+          color: var(--color-primary, #ffffff);
+        }
+      }
     }
 
-    .artist-info {
-      flex-direction: column;
+    .back-btn {
+      color: var(--color-muted, #999999);
+      font-family: var(--font-mono, monospace);
+      font-size: 13px;
+
+      &:hover {
+        color: var(--color-primary, #ffffff);
+      }
+    }
+  }
+
+  .add-form-container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* ─── 主头像区 ─── */
+  .main-avatar-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--color-hairline, #262626);
+
+    .main-avatar-label {
+      display: none;
+    }
+  }
+
+  /* ─── 卡片 ─── */
+  .form-card {
+    margin-bottom: 24px;
+    padding: 24px;
+    border: 1px solid var(--color-hairline, #262626);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+
+    .card-title {
+      margin-bottom: 16px;
+      color: var(--color-primary, #ffffff);
+      font-family: var(--font-mono, monospace);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--color-hairline, #262626);
+    }
+  }
+
+  .basic-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px;
+  }
+
+  .half-field {
+    margin-bottom: 0;
+  }
+
+  /* ─── 社交媒体网格 ─── */
+  .social-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .social-card {
+    border: 1px solid var(--color-hairline, #262626);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    overflow: hidden;
+
+    .social-card-header {
+      display: flex;
       align-items: center;
-      text-align: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--color-hairline, #262626);
+      background: rgba(255, 255, 255, 0.03);
+
+      .social-card-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .social-card-title {
+        color: var(--color-primary, #ffffff);
+        font-family: var(--font-mono, monospace);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+    }
+
+    .social-card-body {
+      padding: 16px;
+
+      .social-avatar-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+
+        .social-avatar-label {
+          color: var(--color-muted, #999999);
+          font-family: var(--font-mono, monospace);
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          min-width: 40px;
+        }
+      }
+
+      .social-field {
+        margin-bottom: 12px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        :global(.ant-select) {
+          width: 100%;
+        }
+
+        :global(.ant-select-selector) {
+          background: transparent !important;
+          border: none !important;
+          border-bottom: 1px solid var(--color-hairline-strong, #3a3a3a) !important;
+          border-radius: 0 !important;
+          color: var(--color-primary, #ffffff);
+          padding-left: 0 !important;
+
+          &:hover,
+          &:focus {
+            border-bottom-color: var(--color-primary, #ffffff) !important;
+            box-shadow: none !important;
+          }
+        }
+
+        :global(.ant-select-arrow) {
+          color: var(--color-muted, #999999);
+        }
+      }
+    }
+  }
+
+  .bio-field {
+    margin-bottom: 0;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px 0 0;
+    border-top: 1px solid var(--color-hairline, #262626);
+
+    .cancel-btn {
+      min-width: 120px;
+      height: 40px;
+      border: 1px solid var(--color-hairline-strong, #3a3a3a);
+      background: transparent;
+      color: var(--color-muted, #999999);
+      font-family: var(--font-mono, monospace);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 13px;
+      border-radius: 0;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: var(--color-body, #cccccc);
+        color: var(--color-body, #cccccc);
+      }
+    }
+
+    .save-btn {
+      min-width: 120px;
+      height: 40px;
+      border: none;
+      background: var(--color-primary, #ffffff);
+      color: #000000;
+      font-family: var(--font-mono, monospace);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 13px;
+      border-radius: 0;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.85);
+      }
     }
   }
 }

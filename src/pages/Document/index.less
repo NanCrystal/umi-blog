@@ -1,5 +1,5 @@
 /* ============================================================
-   Document - 瀑布流，星空暗色主题
+   Document - Bugatti 极简黑色主题
    ============================================================ */
 
 .document-wrapper {
@@ -15,11 +15,10 @@
   gap: 12px;
   max-width: 480px;
   margin: 0 auto 32px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: #141414;
+  border: 1px solid #262626;
+  border-radius: 0px;
   padding: 14px 16px;
-  backdrop-filter: blur(12px);
 }
 
 .add-input {
@@ -27,21 +26,21 @@
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  color: rgba(255, 255, 255, 0.82) !important;
+  color: #cccccc !important;
   font-size: 14px !important;
   line-height: 1.7 !important;
   padding: 0 !important;
   resize: none !important;
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.22) !important;
+    color: #999999 !important;
   }
   &:focus {
     box-shadow: none !important;
   }
   :global(.ant-input) {
     background: transparent !important;
-    color: rgba(255, 255, 255, 0.82) !important;
+    color: #cccccc !important;
   }
 }
 
@@ -49,18 +48,18 @@
   flex-shrink: 0;
   height: 32px;
   padding: 0 18px;
-  background: rgba(255, 255, 255, 0.08) !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
-  border-radius: 6px !important;
-  color: rgba(255, 255, 255, 0.75) !important;
+  background: transparent !important;
+  border: 1px solid #ffffff !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
   font-size: 13px;
-  backdrop-filter: blur(8px);
+  font-family: var(--font-mono), monospace;
   transition: background 0.2s, border-color 0.2s;
 
   &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.16) !important;
-    border-color: rgba(255, 255, 255, 0.36) !important;
-    color: #fff !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: #cccccc !important;
+    color: #ffffff !important;
   }
 }
 
@@ -77,12 +76,11 @@
   display: inline-block;
   width: 100%;
   margin-bottom: 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 10px;
+  background: #141414;
+  border: 1px solid #262626;
+  border-radius: 0px;
   padding: 14px 14px 10px;
   box-sizing: border-box;
-  backdrop-filter: blur(8px);
   position: relative;
   transition: background 0.2s, border-color 0.2s;
 
@@ -93,8 +91,8 @@
   }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.14);
+    background: #1a1a1a;
+    border-color: #333333;
 
     .item-actions {
       opacity: 1;
@@ -103,8 +101,8 @@
 
   /* 编辑态保持高亮 */
   &.is-editing {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.18);
+    background: #1a1a1a;
+    border-color: #333333;
   }
 }
 
@@ -118,7 +116,7 @@
 
   span {
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.3);
+    color: #999999;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -126,10 +124,10 @@
     user-select: none;
 
     &:first-child:hover {
-      color: rgba(255, 90, 90, 0.85);
+      color: #ff8f8f;
     }
     &:last-child:hover {
-      color: rgba(255, 255, 255, 0.8);
+      color: #ffffff;
     }
   }
 }
@@ -137,19 +135,21 @@
 /* ── 正文 ── */
 .item-content {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.75);
+  color: #cccccc;
   line-height: 1.85;
   margin: 0 0 8px;
   word-break: break-all;
   white-space: pre-wrap;
   padding: 24px 2px 8px;
+  font-family: var(--font-body), serif;
 }
 
 /* ── 时间 ── */
 .item-date {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.2);
+  color: #999999;
   letter-spacing: 0.3px;
+  font-family: var(--font-mono), monospace;
 }
 
 /* ── 加载中 ── */
@@ -176,11 +176,11 @@
 
 .edit-input {
   width: 100%;
-  background: rgba(255, 255, 255, 0.04) !important;
+  background: transparent !important;
   border: none !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-bottom: 1px solid #262626 !important;
   box-shadow: none !important;
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: #cccccc !important;
   font-size: 13px !important;
   line-height: 1.85 !important;
   padding: 4px 2px !important;
@@ -192,7 +192,7 @@
   }
   :global(.ant-input) {
     background: transparent !important;
-    color: rgba(255, 255, 255, 0.85) !important;
+    color: #cccccc !important;
   }
 }
 
@@ -207,17 +207,18 @@
     cursor: pointer;
     user-select: none;
     transition: color 0.15s;
+    font-family: var(--font-mono), monospace;
 
     &:first-child {
-      color: rgba(255, 255, 255, 0.28);
+      color: #999999;
       &:hover {
-        color: rgba(255, 255, 255, 0.55);
+        color: #cccccc;
       }
     }
     &:last-child {
-      color: rgba(110, 195, 255, 0.8);
+      color: #c3d9f3;
       &:hover {
-        color: rgba(110, 195, 255, 1);
+        color: #e0ecf9;
       }
     }
   }

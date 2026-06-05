@@ -1,58 +1,91 @@
 /* ===================================================
-   全局 antd 暗色透明主题覆盖
+   Bugatti 极简工程美学 - 全局暗色主题覆盖
    src/global.less 由 umi3 自动全局注入，无需额外配置
-   所有选择器展开（不嵌套），确保特异性足够覆盖 antd
+
+   设计原则:
+   - 纯黑背景 #000000 (无毛玻璃、无半透明)
+   - 无装饰: 无阴影、无渐变、无 backdrop-filter
+   - 圆角: 仅按钮使用 pill(9999px),其他全部 0px
+   - 字重: 全部 400 (禁止粗体)
+   - 按钮: transparent + 1px solid white + border-radius: 9999px
    =================================================== */
+
+/* ---------- Google Fonts (通过 HTML link 引入,非 Less @import) ---------- */
+
+/* ---------- CSS 变量定义 (Bugatti Design System) ---------- */
+:root {
+  --color-canvas: #000000;
+  --color-surface-card: #141414;
+  --color-hairline: #262626;
+  --color-primary: #ffffff;
+  --color-body: #cccccc;
+  --color-muted: #999999;
+  --color-link: #c3d9f3;
+  --font-display: 'Saira Condensed', -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  --font-body: 'Cormorant Garamond', Garamond, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --spacing-section: 120px;
+  --rounded-pill: 9999px;
+  --rounded-none: 0px;
+}
 
 /* ---------- 遮罩 ---------- */
 .ant-modal-mask {
-  background-color: rgba(0, 0, 0, 0.72) !important;
+  background-color: rgba(0, 0, 0, 0.85) !important;
 }
 
-/* ---------- 弹窗主体：毛玻璃 ---------- */
+/* ---------- 弹窗主体：纯色极简 ---------- */
 .ant-modal-content {
-  background: rgba(12, 12, 22, 0.82) !important;
-  backdrop-filter: blur(22px) !important;
-  -webkit-backdrop-filter: blur(22px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65) !important;
+  background: var(--color-surface-card) !important;
+  border: 1px solid var(--color-hairline) !important;
+  border-radius: var(--rounded-none) !important;
+  box-shadow: none !important;
   padding: 0 !important;
 }
 
 /* ---------- Header ---------- */
 .ant-modal-header {
   background: transparent !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 12px 12px 0 0 !important;
+  border-bottom: 1px solid var(--color-hairline) !important;
+  border-radius: var(--rounded-none) !important;
   padding: 16px 24px !important;
 }
 .ant-modal-header .ant-modal-title {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: var(--color-primary) !important;
   font-size: 16px !important;
-  font-weight: 600 !important;
+  font-weight: 400 !important;
+  font-family: var(--font-display) !important;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 /* ---------- Body ---------- */
 .ant-modal-body {
-  color: rgba(255, 255, 255, 0.65) !important;
+  color: var(--color-body) !important;
   font-size: 14px !important;
   line-height: 1.7 !important;
+  font-family: var(--font-body) !important;
+  font-weight: 400 !important;
 }
 
 /* ---------- confirm 专有 ---------- */
 .ant-modal-confirm-title {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: var(--color-primary) !important;
   font-size: 15px !important;
-  font-weight: 600 !important;
+  font-weight: 400 !important;
+  font-family: var(--font-display) !important;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 .ant-modal-confirm-content {
-  color: rgba(255, 255, 255, 0.55) !important;
+  color: var(--color-body) !important;
   font-size: 14px !important;
   margin-top: 6px !important;
+  font-family: var(--font-body) !important;
 }
 .ant-modal-confirm .anticon {
-  color: rgba(255, 200, 100, 0.85) !important;
+  color: var(--color-muted) !important;
 }
 /* confirm body 区域背景 */
 .ant-modal-confirm .ant-modal-body {
@@ -62,20 +95,137 @@
 /* ---------- Footer ---------- */
 .ant-modal-footer {
   background: transparent !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-top: 1px solid var(--color-hairline) !important;
   padding: 12px 24px !important;
 }
 
 /* ---------- 关闭 X ---------- */
 .ant-modal-close-x {
-  color: rgba(255, 255, 255, 0.35) !important;
+  color: var(--color-muted) !important;
 }
 .ant-modal-close:hover .ant-modal-close-x {
-  color: rgba(255, 255, 255, 0.75) !important;
+  color: var(--color-body) !important;
 }
 
 /* ==============================================
-   弹窗按钮 - 全部覆盖，优先级用双类名提升
+   全局 antd 按钮 - Bugatti Pill Style (透明 + 白边 + pill圆角)
+   所有类型/状态统一覆盖，彻底替换 antd 默认配色
+   ============================================== */
+
+/* ---------- 基础: 所有按钮共享 ---------- */
+.ant-btn {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid var(--color-primary) !important;
+  border-radius: var(--rounded-pill) !important;
+  color: var(--color-primary) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 400 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2.5px !important;
+  height: 44px !important;
+  padding: 4px 32px !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+}
+.ant-btn:hover,
+.ant-btn:focus,
+.ant-btn:active,
+.ant-btn:focus-visible {
+  background: rgba(255, 255, 255, 0.08) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+}
+
+/* ---------- default ---------- */
+.ant-btn.ant-btn-default {
+  /* 继承基础样式 */
+}
+
+/* ---------- primary ---------- */
+.ant-btn.ant-btn-primary:hover,
+.ant-btn.ant-btn-primary:focus,
+.ant-btn.ant-btn-primary:active {
+  background: rgba(255, 255, 255, 0.12) !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* ---------- dashed ---------- */
+.ant-btn.ant-btn-dashed {
+  border-style: dashed !important;
+}
+
+/* ---------- link ---------- */
+.ant-btn.ant-btn-link {
+  border: none !important;
+  color: var(--color-link) !important;
+  padding: 0 !important;
+  height: auto !important;
+}
+.ant-btn.ant-btn-link:hover,
+.ant-btn.ant-btn-link:focus,
+.ant-btn.ant-btn-link:active {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  color: var(--color-link) !important;
+  opacity: 0.8;
+}
+
+/* ---------- text ---------- */
+.ant-btn.ant-btn-text {
+  border: none !important;
+}
+.ant-btn.ant-btn-text:hover,
+.ant-btn.ant-btn-text:focus,
+.ant-btn.ant-btn-text:active {
+  background: rgba(255, 255, 255, 0.06) !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  border: none !important;
+}
+
+/* ---------- dangerous ---------- */
+.ant-btn.ant-btn-dangerous {
+  border-color: rgba(220, 60, 60, 0.5) !important;
+  color: rgba(255, 150, 150, 0.85) !important;
+}
+.ant-btn.ant-btn-dangerous:hover,
+.ant-btn.ant-btn-dangerous:focus,
+.ant-btn.ant-btn-dangerous:active {
+  background: rgba(220, 60, 60, 0.12) !important;
+  background-color: rgba(220, 60, 60, 0.12) !important;
+  border-color: rgba(220, 60, 60, 0.7) !important;
+  color: #ffaaaa !important;
+}
+
+/* ---------- disabled ---------- */
+.ant-btn[disabled],
+.ant-btn.ant-btn-disabled {
+  opacity: 0.3 !important;
+  pointer-events: none !important;
+}
+
+/* ---------- size: small ---------- */
+.ant-btn.ant-btn-sm {
+  height: 32px !important;
+  padding: 0 16px !important;
+  font-size: 12px !important;
+  letter-spacing: 2px !important;
+}
+
+/* ---------- size: large ---------- */
+.ant-btn.ant-btn-lg {
+  height: 48px !important;
+  padding: 4px 40px !important;
+  font-size: 15px !important;
+}
+
+/* ==============================================
+   弹窗内按钮 - 以上全局样式已覆盖，弹窗特定选择器
+   保留更精细的控制但使用一致样式
    ============================================== */
 
 /* 继续编辑 / 取消（默认按钮） */
@@ -83,80 +233,92 @@
 .ant-modal-footer .ant-btn.ant-btn-default {
   background: transparent !important;
   background-color: transparent !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  color: rgba(255, 255, 255, 0.55) !important;
-  border-radius: 6px !important;
+  border: 1px solid var(--color-primary) !important;
+  color: var(--color-primary) !important;
+  border-radius: var(--rounded-pill) !important;
   box-shadow: none !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 400 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
 }
 .ant-modal-confirm-btns .ant-btn.ant-btn-default:hover,
 .ant-modal-footer .ant-btn.ant-btn-default:hover {
   background: rgba(255, 255, 255, 0.08) !important;
   background-color: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
-  color: rgba(255, 255, 255, 0.8) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
 }
 
 /* 确定（primary 按钮） */
 .ant-modal-confirm-btns .ant-btn.ant-btn-primary,
 .ant-modal-footer .ant-btn.ant-btn-primary {
-  background: rgba(255, 255, 255, 0.1) !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.28) !important;
-  color: rgba(255, 255, 255, 0.85) !important;
-  border-radius: 6px !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid var(--color-primary) !important;
+  color: var(--color-primary) !important;
+  border-radius: var(--rounded-pill) !important;
   box-shadow: none !important;
   text-shadow: none !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 400 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2.5px !important;
 }
 .ant-modal-confirm-btns .ant-btn.ant-btn-primary:hover,
 .ant-modal-footer .ant-btn.ant-btn-primary:hover {
-  background: rgba(255, 255, 255, 0.18) !important;
-  background-color: rgba(255, 255, 255, 0.18) !important;
-  border-color: rgba(255, 255, 255, 0.45) !important;
-  color: #fff !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
 }
 
-/* 确认离开（dangerous primary） */
+/* 确认离开（dangerous primary）- 保持透明风格但用微弱红色提示 */
 .ant-modal-confirm-btns .ant-btn.ant-btn-primary.ant-btn-dangerous,
 .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-dangerous {
-  background: rgba(220, 60, 60, 0.18) !important;
-  background-color: rgba(220, 60, 60, 0.18) !important;
-  border: 1px solid rgba(255, 100, 100, 0.32) !important;
-  color: rgba(255, 150, 150, 0.9) !important;
-  border-radius: 6px !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid rgba(220, 60, 60, 0.5) !important;
+  color: rgba(255, 150, 150, 0.85) !important;
+  border-radius: var(--rounded-pill) !important;
   box-shadow: none !important;
   text-shadow: none !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 400 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
 }
 .ant-modal-confirm-btns .ant-btn.ant-btn-primary.ant-btn-dangerous:hover,
 .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-dangerous:hover {
-  background: rgba(220, 60, 60, 0.3) !important;
-  background-color: rgba(220, 60, 60, 0.3) !important;
-  border-color: rgba(255, 100, 100, 0.55) !important;
+  background: rgba(220, 60, 60, 0.12) !important;
+  background-color: rgba(220, 60, 60, 0.12) !important;
+  border-color: rgba(220, 60, 60, 0.7) !important;
   color: #ffaaaa !important;
 }
 
 /* ==============================================
-   antd message 全局提示暗色
+   antd message 全局提示 - 纯色极简
    ============================================== */
 .ant-message-notice-content {
-  background: rgba(12, 12, 22, 0.85) !important;
-  backdrop-filter: blur(14px) !important;
-  -webkit-backdrop-filter: blur(14px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 8px !important;
-  color: rgba(255, 255, 255, 0.85) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55) !important;
+  background: var(--color-surface-card) !important;
+  border: 1px solid var(--color-hairline) !important;
+  border-radius: var(--rounded-none) !important;
+  color: var(--color-body) !important;
+  box-shadow: none !important;
+  font-family: var(--font-body) !important;
+  font-weight: 400 !important;
 }
 .ant-message-notice-content .anticon {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: var(--color-muted) !important;
 }
 .ant-message-notice-content .anticon-check-circle {
-  color: rgba(100, 220, 140, 0.9) !important;
+  color: #5fa657 !important;
 }
 .ant-message-notice-content .anticon-warning {
-  color: rgba(255, 200, 80, 0.9) !important;
+  color: #d4a017 !important;
 }
 .ant-message-notice-content .anticon-close-circle {
-  color: rgba(255, 110, 110, 0.9) !important;
+  color: rgba(220, 60, 60, 0.8) !important;
 }
 
 /* ======================================================
@@ -168,6 +330,525 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ---------- 全局 Input 下划线风格 (只保留底部一条线) ---------- */
+
+/* 原生 input / textarea */
+input,
+textarea {
+  border: none !important;
+  border-bottom: 1px solid var(--color-hairline) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ant Design 输入框 - 彻底去掉所有边框 */
+.ant-input {
+  border: none !important;
+  border-bottom: 1px solid var(--color-hairline) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ant Design 输入框容器（带前缀/后缀的包裹层）- 去掉所有边框，只保留下划线 */
+.ant-input-affix-wrapper,
+.ant-input-password,
+.ant-input-search {
+  border: none !important;
+  border-bottom: 1px solid var(--color-hairline) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 4px 0 !important;
+}
+
+/* 容器内的 input 完全去边框 */
+.ant-input-affix-wrapper .ant-input,
+.ant-input-password .ant-input,
+.ant-input-search .ant-input {
+  border: none !important;
+  border-bottom: none !important;
+}
+
+/* 数字输入框 */
+.ant-input-number {
+  border: none !important;
+  border-bottom: 1px solid var(--color-hairline) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.ant-input-number-input {
+  border: none !important;
+}
+
+/* 日期选择器 */
+.ant-picker {
+  border: none !important;
+  border-bottom: 1px solid var(--color-hairline) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Select 下拉框 - 默认下划线 */
+.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  border: none !important;
+  border-bottom: 1px solid var(--color-hairline) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Select 内部搜索 input 彻底去边框 */
+.ant-select-selection-search-input {
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Select hover / open / focus - 整个链条强制只保留下划线 */
+.ant-select:hover,
+.ant-select-open,
+.ant-select-focused,
+.ant-select:focus-within {
+  border: none !important;
+  box-shadow: none !important;
+}
+.ant-select:hover .ant-select-selector,
+.ant-select-open .ant-select-selector,
+.ant-select-focused .ant-select-selector,
+.ant-select:focus-within .ant-select-selector,
+.ant-select-selector:hover,
+.ant-select-selector:focus {
+  border: none !important;
+  border-bottom: 1px solid var(--color-primary) !important;
+  box-shadow: none !important;
+}
+
+/* focus / hover 状态 - 只保留下划线变白色 */
+.ant-input:hover,
+.ant-input:focus,
+.ant-input-focused,
+input:hover,
+input:focus,
+textarea:hover,
+textarea:focus {
+  border: none !important;
+  border-bottom: 1px solid var(--color-primary) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 容器 focus / hover - 去掉所有边框 */
+.ant-input-affix-wrapper:hover,
+.ant-input-affix-wrapper-focused,
+.ant-input-affix-wrapper:focus,
+.ant-input-affix-wrapper:focus-within {
+  border: none !important;
+  border-bottom: 1px solid var(--color-primary) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 容器内的 input 在 focus / hover 时都不要边框 */
+.ant-input-affix-wrapper .ant-input,
+.ant-input-password .ant-input,
+.ant-input-search .ant-input {
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+.ant-input-affix-wrapper .ant-input:focus,
+.ant-input-affix-wrapper .ant-input:hover,
+.ant-input-password .ant-input:focus,
+.ant-input-password .ant-input:hover,
+.ant-input-search .ant-input:focus,
+.ant-input-search .ant-input:hover {
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* 数字输入框 focus */
+.ant-input-number:hover,
+.ant-input-number:focus,
+.ant-input-number-focused {
+  border: none !important;
+  border-bottom: 1px solid var(--color-primary) !important;
+  box-shadow: none !important;
+}
+
+/* 日期选择器 focus */
+.ant-picker:hover,
+.ant-picker-focused {
+  border: none !important;
+  border-bottom: 1px solid var(--color-primary) !important;
+  box-shadow: none !important;
+}
+
+/* ==============================================
+   全局 DatePicker / RangePicker 弹出面板 - Bugatti 暗色主题
+   ============================================== */
+
+/* 下拉容器 */
+.ant-picker-dropdown {
+  .ant-picker-panel-container {
+    background: var(--color-canvas, #000000) !important;
+    border: 1px solid var(--color-hairline, #262626) !important;
+    border-radius: var(--rounded-none, 0px) !important;
+    box-shadow: none !important;
+  }
+
+  /* 日期面板 */
+  .ant-picker-panel {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  /* 月/年 切换头部 */
+  .ant-picker-header {
+    color: var(--color-body, #cccccc) !important;
+    border-bottom: 1px solid var(--color-hairline, #262626) !important;
+    font-family: var(--font-mono, monospace) !important;
+  }
+
+  .ant-picker-header button {
+    color: var(--color-muted, #999999) !important;
+  }
+  .ant-picker-header button:hover {
+    color: var(--color-primary, #ffffff) !important;
+  }
+
+  /* 年/月 切换按钮箭头 */
+  .ant-picker-header-super-prev-btn,
+  .ant-picker-header-super-next-btn,
+  .ant-picker-header-prev-btn,
+  .ant-picker-header-next-btn {
+    color: var(--color-muted, #999999) !important;
+  }
+
+  /* 星期列表头 */
+  .ant-picker-content th {
+    color: var(--color-muted, #999999) !important;
+    font-family: var(--font-mono, monospace) !important;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+
+  /* 日期单元格 */
+  .ant-picker-cell {
+    color: var(--color-muted-soft, #666666) !important;
+  }
+
+  /* 当月视图内的单元格 */
+  .ant-picker-cell-in-view {
+    color: var(--color-body, #cccccc) !important;
+  }
+
+  .ant-picker-cell-in-view .ant-picker-cell-inner {
+    font-family: var(--font-body, serif) !important;
+  }
+
+  /* 选中日期 */
+  .ant-picker-cell-selected .ant-picker-cell-inner {
+    background: var(--color-primary, #ffffff) !important;
+    color: var(--color-canvas, #000000) !important;
+    font-weight: 400 !important;
+    border-radius: var(--rounded-none, 0px) !important;
+  }
+
+  /* 今天的日期 */
+  .ant-picker-cell-today .ant-picker-cell-inner::before {
+    border-color: var(--color-primary, #ffffff) !important;
+    border-radius: var(--rounded-none, 0px) !important;
+  }
+
+  /* Hover 单元格 */
+  .ant-picker-cell:hover .ant-picker-cell-inner {
+    background: var(--color-surface-soft, #0d0d0d) !important;
+  }
+
+  /* RangePicker 范围选择 */
+  .ant-picker-cell-in-range .ant-picker-cell-inner {
+    background: var(--color-surface-card, #141414) !important;
+  }
+
+  .ant-picker-cell-range-start .ant-picker-cell-inner,
+  .ant-picker-cell-range-end .ant-picker-cell-inner {
+    background: var(--color-primary, #ffffff) !important;
+    color: var(--color-canvas, #000000) !important;
+  }
+
+  /* 范围选择 Hover 预览 */
+  .ant-picker-cell-range-hover .ant-picker-cell-inner::after {
+    border-color: var(--color-primary, #ffffff) !important;
+  }
+
+  .ant-picker-cell-range-hover-start .ant-picker-cell-inner::after,
+  .ant-picker-cell-range-hover-end .ant-picker-cell-inner::after {
+    border-color: var(--color-primary, #ffffff) !important;
+  }
+
+  /* 月份选择面板 */
+  .ant-picker-month-panel,
+  .ant-picker-year-panel,
+  .ant-picker-decade-panel {
+    .ant-picker-cell-in-view {
+      color: var(--color-body, #cccccc) !important;
+    }
+  }
+
+  /* ─── 底部 Footer & 确认按钮 ─── */
+  .ant-picker-footer {
+    border-top: 1px solid var(--color-hairline, #262626) !important;
+    padding: 8px 12px !important;
+  }
+
+  .ant-picker-ranges {
+    .ant-picker-ok {
+      margin-left: auto;
+    }
+  }
+
+  /* "确认" 按钮 - Bugatti Pill 风格 */
+  .ant-picker-ok {
+    .ant-btn {
+      background: transparent !important;
+      background-color: transparent !important;
+      border: 1px solid var(--color-primary, #ffffff) !important;
+      border-radius: var(--rounded-pill, 9999px) !important;
+      color: var(--color-primary, #ffffff) !important;
+      font-family: var(--font-mono, monospace) !important;
+      font-weight: 400 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 2px !important;
+      box-shadow: none !important;
+      height: 32px !important;
+      padding: 0 16px !important;
+      font-size: 12px !important;
+
+      &:hover,
+      &:focus {
+        background: rgba(255, 255, 255, 0.08) !important;
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        border-color: var(--color-primary, #ffffff) !important;
+        color: var(--color-primary, #ffffff) !important;
+      }
+
+      &:active {
+        background: rgba(255, 255, 255, 0.12) !important;
+      }
+    }
+
+    /* 禁用状态 */
+    .ant-btn[disabled] {
+      opacity: 0.3 !important;
+    }
+  }
+
+  /* 底部额外 footer 区域（如果有） */
+  .ant-picker-footer-extra {
+    border-top: 1px solid var(--color-hairline, #262626) !important;
+    color: var(--color-muted, #999999) !important;
+  }
+
+  /* 时间选择器面板 */
+  .ant-picker-time-panel {
+    border-left: 1px solid var(--color-hairline, #262626) !important;
+  }
+
+  .ant-picker-time-panel-column {
+    &::after {
+      display: none !important; /* 去除中间的遮罩渐变 */
+    }
+
+    > li {
+      color: var(--color-muted, #999999) !important;
+      font-family: var(--font-mono, monospace) !important;
+    }
+
+    > li.ant-picker-time-panel-cell-selected {
+      .ant-picker-time-panel-cell-inner {
+        background: var(--color-primary, #ffffff) !important;
+        color: var(--color-canvas, #000000) !important;
+        font-weight: 400 !important;
+      }
+    }
+  }
+
+  /* 日期输入框（面板上方的输入框，如果有） */
+  .ant-picker-input {
+    > input {
+      color: var(--color-body, #cccccc) !important;
+      background: transparent !important;
+
+      &::placeholder {
+        color: var(--color-muted, #999999) !important;
+      }
+    }
+  }
+
+  /* range 分隔符 */
+  .ant-picker-range-separator {
+    .ant-picker-separator {
+      color: var(--color-muted, #999999) !important;
+    }
+  }
+}
+
+/* ---------- Modal 表单标签颜色（覆盖 Ant Design 默认黑色 rgba(0,0,0,0.85)） ---------- */
+.ant-form-item-label > label,
+.ant-form-item-label > label.ant-form-item-required {
+  color: #ffffff !important;
+}
+
+/* ---------- Input 文字颜色（覆盖 Ant Design 默认黑色 rgba(0,0,0,0.85)） ---------- */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-number,
+.ant-input-number-input,
+.ant-picker,
+.ant-select,
+.ant-select-selection-search-input,
+.ant-select-selection-item,
+.ant-select-selection-placeholder {
+  color: #ffffff !important;
+}
+
+/* Select 下拉弹窗字体颜色 */
+.ant-select-item-option-content {
+  color: #ffffff !important;
+}
+
+/* ---------- 全局 Table 分页样式（Bugatti 暗色主题） ---------- */
+.ant-pagination {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace) !important;
+  font-weight: 400 !important;
+  color: var(--color-muted, #999999) !important;
+
+  /* 页码按钮 */
+  .ant-pagination-item {
+    background: transparent !important;
+    border: 1px solid var(--color-hairline, #262626) !important;
+    border-radius: var(--rounded-none, 0px) !important;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace) !important;
+    font-weight: 400 !important;
+    min-width: 32px;
+    height: 32px;
+    line-height: 30px;
+    text-align: center;
+
+    a {
+      color: var(--color-muted, #999999) !important;
+      font-weight: 400 !important;
+    }
+
+    &:hover {
+      border-color: var(--color-muted, #999999) !important;
+
+      a {
+        color: var(--color-body, #cccccc) !important;
+      }
+    }
+  }
+
+  /* 选中页码 */
+  .ant-pagination-item-active {
+    background: var(--color-primary, #ffffff) !important;
+    border-color: var(--color-primary, #ffffff) !important;
+
+    a {
+      color: var(--color-canvas, #000000) !important;
+      font-weight: 400 !important;
+    }
+
+    &:hover {
+      background: var(--color-primary, #ffffff) !important;
+      border-color: var(--color-primary, #ffffff) !important;
+
+      a {
+        color: var(--color-canvas, #000000) !important;
+      }
+    }
+  }
+
+  /* 上一页/下一页箭头 */
+  .ant-pagination-prev,
+  .ant-pagination-next {
+    .ant-pagination-item-link {
+      background: transparent !important;
+      border: 1px solid var(--color-hairline, #262626) !important;
+      border-radius: var(--rounded-none, 0px) !important;
+      color: var(--color-muted, #999999) !important;
+      font-family: var(--font-mono, 'JetBrains Mono', monospace) !important;
+      font-weight: 400 !important;
+    }
+
+    &:hover .ant-pagination-item-link {
+      border-color: var(--color-muted, #999999) !important;
+      color: var(--color-body, #cccccc) !important;
+    }
+  }
+
+  /* 禁用分页箭头 */
+  .ant-pagination-disabled {
+    .ant-pagination-item-link {
+      opacity: 0.3 !important;
+      border-color: var(--color-hairline, #262626) !important;
+      color: var(--color-muted-soft, #666666) !important;
+    }
+  }
+
+  /* 省略号 */
+  .ant-pagination-jump-prev,
+  .ant-pagination-jump-next {
+    .ant-pagination-item-container {
+      .ant-pagination-item-ellipsis {
+        color: var(--color-muted-soft, #666666) !important;
+      }
+    }
+  }
+
+  /* 总条数提示 */
+  .ant-pagination-total-text {
+    color: var(--color-muted, #999999) !important;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace) !important;
+    font-weight: 400 !important;
+    font-size: 12px;
+    margin-right: 8px;
+  }
+
+  /* 每页条数选择器 */
+  .ant-pagination-options {
+    .ant-select-selector {
+      background: transparent !important;
+      border: 1px solid var(--color-hairline, #262626) !important;
+      border-radius: var(--rounded-none, 0px) !important;
+      color: var(--color-muted, #999999) !important;
+      font-family: var(--font-mono, 'JetBrains Mono', monospace) !important;
+      font-weight: 400 !important;
+    }
+
+    .ant-select-arrow {
+      color: var(--color-muted-soft, #666666) !important;
+    }
+  }
+}
+
+/* ---------- Table 内嵌分页 ---------- */
+.ant-table-pagination {
+  .ant-pagination {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace) !important;
+    font-weight: 400 !important;
+  }
+}
+
 /* 移动端 Modal 宽度自适应 */
 @media (max-width: 480px) {
   .ant-modal {
@@ -175,7 +856,7 @@
     margin: 0 auto !important;
   }
   .ant-modal-content {
-    border-radius: 10px !important;
+    border-radius: var(--rounded-none) !important;
   }
   .ant-modal-confirm-btns {
     display: flex;
@@ -185,4 +866,55 @@
     flex: 1;
     margin: 0 !important;
   }
+}
+
+/* ==============================================
+   Select 下拉弹窗 - Bugatti 暗色主题
+   覆盖 antd 默认白色背景
+   ============================================== */
+.ant-select-dropdown {
+  background: #1a1a1a !important;
+  border: 1px solid var(--color-hairline, #262626) !important;
+  border-radius: var(--rounded-none, 0px) !important;
+  box-shadow: none !important;
+  padding: 4px 0 !important;
+}
+
+/* 选项项 */
+.ant-select-item {
+  color: var(--color-body, #cccccc) !important;
+  font-family: var(--font-body, serif) !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  padding: 8px 12px !important;
+  min-height: 36px !important;
+  line-height: 1.5 !important;
+  transition: none !important;
+}
+
+/* 选项 Hover */
+.ant-select-item-option-active {
+  background: #2a2a2a !important;
+}
+
+/* 选中选项 */
+.ant-select-item-option-selected {
+  background: #262626 !important;
+  color: var(--color-primary, #ffffff) !important;
+  font-weight: 400 !important;
+}
+
+/* 选中内容（勾选图标） */
+.ant-select-item-option-selected .ant-select-item-option-state {
+  color: var(--color-primary, #ffffff) !important;
+}
+
+/* 已选的选项（从 select 本身往下传递） */
+.ant-select-selection-item {
+  color: var(--color-primary, #ffffff) !important;
+}
+
+/* 空状态提示 */
+.ant-select-item-empty {
+  color: var(--color-muted, #999999) !important;
 }

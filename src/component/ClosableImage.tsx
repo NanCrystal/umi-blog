@@ -11,30 +11,39 @@ export interface IClosableImageProps {
 
 const ImageWrapper = styled.div`
   position: relative;
-  background: #fff;
+  background: #000000;
   padding: 10px;
   display: inline-block;
-  // margin-top: 20px;
+  border: 1px solid #262626;
+
   img {
     object-fit: contain;
-    background: #f9f9f9;
+    background: #141414;
+    display: block;
   }
+
   .close {
     position: absolute;
-    right: 0;
-    top: 0;
+    right: -6px;
+    top: -6px;
     cursor: pointer;
-    color: #ff7b94;
+    color: #ffffff;
     font-size: 12px;
     transform: scale(0.833333);
-    //   background: #ff7b94;
-    //   height: 14px;
-    //   font-size: 8px;
-    //   line-height: 10px;
-    //   padding: 2px;
-    //   border-radius: 50%;
-    //   color: #fff;
-    //   transform: translate(50%, -50%);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid #262626;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
   }
 `;
 

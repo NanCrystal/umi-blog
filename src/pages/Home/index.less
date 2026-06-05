@@ -34,10 +34,12 @@
 
 .avatar-title {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.85);
+  color: #ffffff;
   letter-spacing: 4px;
   margin-bottom: 32px;
   text-align: center;
+  font-family: var(--font-display), sans-serif;
+  text-transform: uppercase;
 }
 
 .avatar-list {
@@ -59,30 +61,29 @@
     transform: scale(1.1);
 
     img {
-      box-shadow: 0 0 24px rgba(255, 255, 255, 0.3);
-      border-color: rgba(255, 255, 255, 0.5);
+      border-color: #262626;
     }
 
     span {
-      color: rgba(255, 255, 255, 0.95);
+      color: #ffffff;
     }
   }
 
   img {
     width: 100px;
     height: 100px;
-    border-radius: 50%;
+    border-radius: 0px;
     object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 0 16px rgba(255, 255, 255, 0.15);
+    border: 2px solid #262626;
     transition: all 0.3s ease;
   }
 
   span {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.75);
+    color: #cccccc;
     letter-spacing: 2px;
     transition: color 0.3s ease;
+    font-family: var(--font-body), serif;
   }
 }
 

@@ -1,3 +1,7 @@
+/* ============================================================
+   WallPaper Detail - Bugatti 极简黑色主题
+   ============================================================ */
+
 .detail-wrapper {
   padding: 76px 32px 32px;
   // max-width: 800px;
@@ -23,12 +27,12 @@
     display: inline-flex;
     align-items: center;
     cursor: pointer;
-    color: rgba(255, 255, 255, 0.65);
+    color: #999999;
     transition: color 0.2s;
     font-size: 16px;
 
     &:hover {
-      color: rgba(255, 255, 255, 1);
+      color: #ffffff;
     }
 
     .back-icon {
@@ -48,17 +52,21 @@
 
   .title {
     font-size: 24px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
+    font-weight: 400;
+    color: #ffffff;
     margin-bottom: 12px;
+    font-family: var(--font-display), sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 4px;
   }
 
   .meta {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.45);
+    color: #999999;
     display: flex;
     justify-content: center;
     gap: 16px;
+    font-family: var(--font-mono), monospace;
   }
 }
 
@@ -66,7 +74,7 @@
 .cover-row {
   width: 100%;
   margin-bottom: 24px;
-  border-radius: 8px;
+  border-radius: 0px;
   overflow: hidden;
 
   .cover-image {
@@ -83,12 +91,12 @@
   gap: 16px;
 
   .image-item {
-    width: 100%;
+    width: 100;
     /* 按照手机壁纸的格式，大概是 9:16 或类似比例 */
     aspect-ratio: 9 / 16;
-    border-radius: 8px;
+    border-radius: 0px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.05);
+    background: #141414;
 
     .wallpaper-image {
       width: 100%;

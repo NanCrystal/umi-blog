@@ -1,18 +1,28 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styles from './index.less';
 import { history } from 'umi';
-import yunyiImg from '@/assets/images/yunyi.webp';
-import haoyiranImg from '@/assets/images/haoyiran.jpg';
-import yunqiImg from '@/assets/images/yunqi.jpg';
+import { getArtistList } from '@/services/artist';
 
-const avatars = [
-  { key: 'yunyi', src: yunyiImg, label: '云熠' },
-  { key: 'haoyiran', src: haoyiranImg, label: '郝熠然' },
-  { key: 'yunqi', src: yunqiImg, label: '云旗' },
-];
+interface AvatarItem {
+  key: string;
+  src: string;
+  label: string;
+}
 
 const HomePage = (props: IRouteComponentProps) => {
+  const [avatars, setAvatars] = useState<AvatarItem[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    getArtistList().then((res: any) => {
+      const list: AvatarItem[] = (res.data ?? res).map((item: any) => ({
+        key: item.artistId,
+        src: item.avatar,
+        label: item.name,
+      }));
+      setAvatars(list);
+    });
+  }, []);
 
   // 星空背景
   useEffect(() => {

@@ -1,5 +1,9 @@
+/* ═══════════════════════════════════════════════════════════════
+   SwiperMgt — Bugatti Minimal Black Theme
+   Canvas: #000000 | Surface: #141414 | Hairline: #262626
+   ═══════════════════════════════════════════════════════════════ */
+
 .swiper-mgt-page {
-  // max-width: 1200px;
   margin: 0 auto;
   padding-bottom: 40px;
 }
@@ -12,17 +16,18 @@
   gap: 20px;
   margin-bottom: 24px;
   padding: 24px 26px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(79, 195, 247, 0.12);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(14px);
+  border-radius: 0;
+  background: #141414;
+  border: 1px solid #262626;
 }
 
 .mgt-page-title {
+  font-family: 'Saira Condensed', sans-serif;
   font-size: 28px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.94);
+  font-weight: 400;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 3px;
 }
 
 .mgt-page-desc {
@@ -30,7 +35,8 @@
   max-width: 720px;
   font-size: 14px;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.56);
+  color: #999999;
+  font-family: 'Cormorant Garamond', serif;
 }
 
 .mgt-page-actions {
@@ -41,55 +47,62 @@
 }
 
 .add-btn {
-  background: #4fc3f7 !important;
-  border-color: #4fc3f7 !important;
-  color: #08111d !important;
-  font-weight: 600 !important;
-  border-radius: 8px !important;
+  background: transparent !important;
+  border: 1px solid #ffffff !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  font-weight: 400 !important;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 
   &:hover {
-    background: #7fd4ff !important;
-    border-color: #7fd4ff !important;
+    background: rgba(255, 255, 255, 0.08) !important;
   }
 }
 
 .filter-btn {
-  background: rgba(255, 255, 255, 0.06) !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  color: rgba(255, 255, 255, 0.72) !important;
-  border-radius: 8px !important;
+  background: transparent !important;
+  border: 1px solid #333333 !important;
+  color: #999999 !important;
+  border-radius: 9999px !important;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 13px;
 
   &:hover {
-    background: rgba(79, 195, 247, 0.1) !important;
-    border-color: rgba(79, 195, 247, 0.4) !important;
-    color: #4fc3f7 !important;
+    background: rgba(195, 217, 243, 0.06) !important;
+    border-color: #c3d9f3 !important;
+    color: #c3d9f3 !important;
   }
 }
 
 .filter-btn-active {
-  background: rgba(79, 195, 247, 0.12) !important;
-  border-color: rgba(79, 195, 247, 0.45) !important;
-  color: #4fc3f7 !important;
-  border-radius: 8px !important;
-  font-weight: 500 !important;
+  background: rgba(195, 217, 243, 0.08) !important;
+  border-color: #c3d9f3 !important;
+  color: #c3d9f3 !important;
+  border-radius: 9999px !important;
+  font-weight: 400 !important;
 }
 
 /* ─── 筛选器 Popover ─── */
 .filter-popover-overlay {
   :global(.ant-popover-inner) {
-    background: rgba(12, 18, 28, 0.96) !important;
-    border: 1px solid rgba(79, 195, 247, 0.18) !important;
-    border-radius: 14px !important;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32) !important;
-    backdrop-filter: blur(20px) !important;
+    background: #141414 !important;
+    border: 1px solid #262626 !important;
+    border-radius: 0 !important;
   }
 
   :global(.ant-popover-title) {
-    color: rgba(255, 255, 255, 0.9) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff;
+    border-bottom: 1px solid #262626 !important;
     padding: 12px 16px !important;
-    font-weight: 600 !important;
-    min-height: auto !important;
+    font-weight: 400;
+    min-height: auto;
+    font-family: 'Saira Condensed', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
   }
 
   :global(.ant-popover-inner-content) {
@@ -97,8 +110,8 @@
   }
 
   :global(.ant-popover-arrow-content) {
-    background: rgba(12, 18, 28, 0.96) !important;
-    border-color: rgba(79, 195, 247, 0.18) !important;
+    background: #141414 !important;
+    border-color: #262626 !important;
   }
 }
 
@@ -116,11 +129,12 @@
 }
 
 .filter-label {
-  color: rgba(255, 255, 255, 0.65);
+  color: #999999;
   font-size: 13px;
   width: 50px;
   flex-shrink: 0;
   text-align: right;
+  font-family: 'Cormorant Garamond', serif;
 }
 
 .filter-actions {
@@ -128,70 +142,176 @@
   justify-content: flex-end;
   gap: 10px;
   padding-top: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid #262626;
+}
+
+/* ─── 筛选器 Select ─── */
+.filter-select {
+  :global(.ant-select-selector) {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid #3a3a3a !important;
+    border-radius: 0 !important;
+    height: 36px !important;
+    padding: 0 0 2px 0 !important;
+  }
+
+  :global(.ant-select-selection-placeholder) {
+    color: #666666;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 36px !important;
+  }
+
+  :global(.ant-select-selection-item) {
+    color: #ffffff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 36px !important;
+  }
+
+  &:hover :global(.ant-select-selector) {
+    border-bottom-color: #ffffff !important;
+  }
+
+  &:global(.ant-select-focused) :global(.ant-select-selector) {
+    border-bottom-color: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  :global(.ant-select-arrow) {
+    color: #666666;
+  }
+}
+
+.option-active {
+  color: #cccccc;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.option-inactive {
+  color: #666666;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ─── 筛选器操作按钮 ─── */
+.filter-action-btn-apply {
+  background: transparent !important;
+  border: 1px solid #ffffff !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  font-weight: 400 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  font-size: 12px !important;
+  height: 30px !important;
+  padding: 0 16px !important;
+  box-shadow: none !important;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  &:active {
+    background: rgba(255, 255, 255, 0.12) !important;
+  }
+}
+
+.filter-action-btn-clear {
+  background: transparent !important;
+  border: 1px solid #262626 !important;
+  border-radius: 9999px !important;
+  color: #999999 !important;
+  font-weight: 400 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  font-size: 12px !important;
+  height: 30px !important;
+  padding: 0 16px !important;
+  box-shadow: none !important;
+
+  &:hover {
+    border-color: #ffffff !important;
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+  }
+
+  &:active {
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
 }
 
 /* ─── 下拉/日期选择器暗色下拉面板 ─── */
 .dark-select-dropdown {
   :global(.ant-select-dropdown) {
-    background: rgba(12, 18, 28, 0.96) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 10px !important;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4) !important;
+    background: #141414 !important;
+    border: 1px solid #262626 !important;
+    border-radius: 0 !important;
   }
 
   :global(.ant-select-item) {
-    color: rgba(255, 255, 255, 0.75) !important;
+    color: #cccccc !important;
   }
 
   :global(.ant-select-item-option-active) {
-    background: rgba(79, 195, 247, 0.1) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
   }
 
   :global(.ant-select-item-option-selected) {
-    background: rgba(79, 195, 247, 0.16) !important;
-    color: #4fc3f7 !important;
-    font-weight: 600 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #c3d9f3 !important;
+    font-weight: 400 !important;
   }
 }
 
 .dark-picker-dropdown {
   :global(.ant-picker-panel-container) {
-    background: rgba(12, 18, 28, 0.96) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4) !important;
+    background: #141414 !important;
+    border: 1px solid #262626 !important;
+    border-radius: 0 !important;
   }
 
   :global(.ant-picker-cell) {
-    color: rgba(255, 255, 255, 0.6) !important;
+    color: #666666 !important;
   }
 
   :global(.ant-picker-cell-in-view) {
-    color: rgba(255, 255, 255, 0.85) !important;
+    color: #cccccc !important;
   }
 
   :global(.ant-picker-cell-selected .ant-picker-cell-inner) {
-    background: rgba(79, 195, 247, 0.85) !important;
-    color: #08111d !important;
-    font-weight: 600 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-weight: 400 !important;
   }
 
   :global(.ant-picker-cell-today .ant-picker-cell-inner::before) {
-    border-color: rgba(79, 195, 247, 0.8) !important;
+    border-color: #555555 !important;
   }
 
   :global(.ant-picker-header) {
-    color: rgba(255, 255, 255, 0.9) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid #262626 !important;
   }
 
   :global(.ant-picker-header-view button:hover) {
-    color: #4fc3f7 !important;
+    color: #c3d9f3 !important;
   }
 
   :global(.ant-picker-content th) {
-    color: rgba(255, 255, 255, 0.55) !important;
+    color: #666666 !important;
   }
 
   :global(
@@ -199,8 +319,8 @@
         > li.ant-picker-time-panel-cell-selected
         > .ant-picker-time-panel-cell-inner
     ) {
-    background: rgba(79, 195, 247, 0.85) !important;
-    color: #08111d !important;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 
   :global(
@@ -208,35 +328,41 @@
         > li.ant-picker-time-panel-cell
         .ant-picker-time-panel-cell-inner:hover
     ) {
-    background: rgba(79, 195, 247, 0.12) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
   }
 
   :global(
       .ant-picker-time-panel-column > li .ant-picker-time-panel-cell-inner
     ) {
-    color: rgba(255, 255, 255, 0.8) !important;
+    color: #cccccc !important;
   }
 
   :global(.ant-picker-ranges) {
-    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-top: 1px solid #262626 !important;
   }
 
   :global(.ant-picker-ok button) {
-    background: #4fc3f7 !important;
-    border-color: #4fc3f7 !important;
-    color: #08111d !important;
-    font-weight: 600 !important;
+    background: transparent;
+    border: 1px solid #ffffff !important;
+    border-radius: 9999px !important;
+    color: #ffffff !important;
+    font-weight: 400 !important;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
   }
 }
 
 /* ─── 表格面板 ─── */
 .table-panel {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  background: #141414;
+  border: 1px solid #262626;
+  border-radius: 0;
   overflow: hidden;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.16);
 
   :global(.ant-spin-nested-loading),
   :global(.ant-spin-container),
@@ -246,20 +372,24 @@
   }
 
   :global(.ant-table-thead > tr > th) {
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.7);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    font-weight: 600;
+    background: #0d0d0d;
+    color: #cccccc;
+    border-bottom: 1px solid #262626;
+    font-weight: 400;
+    font-family: 'Saira Condensed', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 13px;
   }
 
   :global(.ant-table-tbody > tr > td) {
     background: transparent;
-    color: rgba(255, 255, 255, 0.82);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    border-bottom: 1px solid #262626;
   }
 
   :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
-    background: rgba(79, 195, 247, 0.08);
+    background: #0a0a0a;
   }
 
   :global(.ant-table-placeholder:hover > td) {
@@ -268,48 +398,51 @@
 
   :global(.ant-empty-description),
   :global(.ant-table-cell) {
-    color: rgba(255, 255, 255, 0.65);
+    color: #999999;
   }
 
   :global(.ant-pagination-item),
   :global(.ant-pagination-prev .ant-pagination-item-link),
   :global(.ant-pagination-next .ant-pagination-item-link) {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.75);
+    background: transparent;
+    border: 1px solid #333333;
+    color: #999999;
+    border-radius: 0;
   }
 
   :global(.ant-pagination-item a) {
-    color: rgba(255, 255, 255, 0.75);
+    color: #999999;
   }
 
   :global(.ant-pagination-item-active) {
-    border-color: rgba(79, 195, 247, 0.8);
+    border-color: #ffffff;
+    background: transparent;
   }
 
   :global(.ant-pagination-item-active a),
   :global(.ant-pagination-item:hover a),
   :global(.ant-pagination-prev:hover .ant-pagination-item-link),
   :global(.ant-pagination-next:hover .ant-pagination-item-link) {
-    color: #4fc3f7;
+    color: #ffffff;
   }
 
   :global(.ant-pagination-disabled .ant-pagination-item-link) {
-    color: rgba(255, 255, 255, 0.28);
+    color: #444444;
   }
 
   :global(.ant-checkbox-inner) {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: transparent;
+    border: 1px solid #444444;
+    border-radius: 0;
   }
 
   :global(.ant-checkbox-checked .ant-checkbox-inner) {
-    background: rgba(79, 195, 247, 0.85);
-    border-color: rgba(79, 195, 247, 0.85);
+    background: #ffffff;
+    border-color: #ffffff;
   }
 
   :global(.ant-checkbox-checked .ant-checkbox-inner::after) {
-    border-color: #08111d;
+    border-color: #000000;
   }
 }
 
@@ -320,17 +453,21 @@
 .table-header-title {
   display: flex;
   align-items: center;
-  color: rgba(255, 255, 255, 0.94);
-  font-weight: 600;
+  color: #ffffff;
+  font-weight: 400;
   font-size: 15px;
+  font-family: 'Saira Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .filter-tag {
   margin-left: 10px;
-  background: rgba(79, 195, 247, 0.12) !important;
-  border-color: rgba(79, 195, 247, 0.3) !important;
-  color: #4fc3f7 !important;
+  background: rgba(195, 217, 243, 0.08) !important;
+  border-color: rgba(195, 217, 243, 0.2) !important;
+  color: #c3d9f3 !important;
   font-size: 12px !important;
+  border-radius: 9999px;
 }
 
 .table-empty {
@@ -338,17 +475,18 @@
   flex-direction: column;
   align-items: center;
   padding: 24px;
-  color: rgba(255, 255, 255, 0.45);
+  color: #666666;
 }
 
 /* ─── 表格内容 ─── */
 .table-title {
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 500;
+  color: #cccccc;
+  font-weight: 400;
   cursor: pointer;
+  font-family: 'Cormorant Garamond', serif;
 
   &:hover {
-    color: #4fc3f7;
+    color: #c3d9f3;
   }
 }
 
@@ -363,29 +501,35 @@
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 9999px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   white-space: nowrap;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .status-active {
   color: #65dca8;
-  background: rgba(101, 220, 168, 0.14);
+  background: rgba(101, 220, 168, 0.1);
 }
 
 .status-inactive {
   color: #ff8f8f;
-  background: rgba(255, 143, 143, 0.14);
+  background: rgba(255, 143, 143, 0.1);
 }
 
 /* ─── 位置标签 ─── */
 .position-tag {
-  background: rgba(79, 195, 247, 0.12);
-  border-color: rgba(79, 195, 247, 0.3);
-  color: #4fc3f7;
+  background: transparent;
+  border-color: #262626;
+  color: #c3d9f3;
   font-size: 12px;
-  border-radius: 999px;
+  border-radius: 9999px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 /* ─── 视频预览 ─── */
@@ -396,18 +540,19 @@
   justify-content: center;
   width: 80px;
   height: 50px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 6px;
-  color: rgba(255, 255, 255, 0.5);
+  background: #0d0d0d;
+  border: 1px solid #262626;
+  border-radius: 0;
+  color: #666666;
 }
 
 /* ─── 排序按钮 ─── */
 .sort-btn {
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: #666666 !important;
 
   &:hover:not(:disabled) {
-    color: #4fc3f7 !important;
-    background: rgba(79, 195, 247, 0.1) !important;
+    color: #c3d9f3 !important;
+    background: rgba(195, 217, 243, 0.06) !important;
   }
 
   &:disabled {
@@ -415,13 +560,13 @@
   }
 }
 
-/* ─── 点击量 ─── */
 .click-count {
   display: inline-flex;
   align-items: center;
-  color: rgba(255, 215, 106, 0.9);
+  color: #ffd76a;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
+  font-family: 'Cormorant Garamond', serif;
 }
 
 /* ─── 状态开关 ─── */
@@ -440,132 +585,140 @@
   margin-top: 8px;
 
   :global(.ant-form-item-label > label) {
-    color: rgba(255, 255, 255, 0.75);
-    font-weight: 500;
+    color: #cccccc;
+    font-weight: 400;
+    font-family: 'Cormorant Garamond', serif;
   }
 
   :global(.ant-badge-status-text) {
-    color: rgba(255, 255, 255, 0.85);
+    color: #cccccc;
   }
 
   :global(.ant-form-item-extra) {
-    color: rgba(255, 255, 255, 0.35);
+    color: #666666;
     font-size: 12px;
   }
 
   :global(.ant-input) {
-    background: rgba(8, 17, 29, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #3a3a3a;
+    border-radius: 0;
+    color: #ffffff;
 
     &::placeholder {
-      color: rgba(255, 255, 255, 0.35);
+      color: #666666;
     }
 
     &:hover,
     &:focus {
-      border-color: rgba(79, 195, 247, 0.5);
-      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+      border-bottom-color: #ffffff;
+      box-shadow: none;
     }
   }
 
   :global(.ant-input-affix-wrapper) {
-    background: rgba(8, 17, 29, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #3a3a3a;
 
     &:hover,
     &:focus {
-      border-color: rgba(79, 195, 247, 0.5);
-      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+      border-bottom-color: #ffffff;
+      box-shadow: none;
     }
   }
 
   :global(.ant-input-number) {
-    background: rgba(8, 17, 29, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #3a3a3a;
 
     :global(.ant-input-number-input) {
-      color: rgba(255, 255, 255, 0.85);
+      color: #ffffff;
 
       &::placeholder {
-        color: rgba(255, 255, 255, 0.35);
+        color: #666666;
       }
     }
 
     &:hover,
     &:focus-within {
-      border-color: rgba(79, 195, 247, 0.5);
-      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+      border-bottom-color: #ffffff;
+      box-shadow: none;
     }
   }
 
   :global(.ant-input-number-handler-wrap) {
-    background: rgba(255, 255, 255, 0.03);
+    background: transparent;
 
     :global(.ant-input-number-handler) {
-      border-color: rgba(255, 255, 255, 0.08);
-      color: rgba(255, 255, 255, 0.45);
+      border-color: #262626;
+      color: #666666;
     }
 
-    :global(.ant-input-number-handler-up):hover,
-    :global(.ant-input-number-handler-down):hover {
-      color: #4fc3f7;
+    :global(.ant-number-handler-up):hover,
+    :global(.ant-number-handler-down):hover {
+      color: #c3d9f3;
     }
   }
 
   :global(.ant-select-selector) {
-    background: rgba(8, 17, 29, 0.6) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    color: rgba(255, 255, 255, 0.85) !important;
+    background: transparent !important;
+    border: none;
+    border-bottom: 1px solid #3a3a3a !important;
+    border-radius: 0 !important;
+    color: #ffffff !important;
   }
 
   :global(.ant-select:hover .ant-select-selector) {
-    border-color: rgba(79, 195, 247, 0.5) !important;
+    border-bottom-color: #ffffff !important;
   }
 
   :global(.ant-select-focused .ant-select-selector) {
-    border-color: rgba(79, 195, 247, 0.5) !important;
-    box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12) !important;
+    border-bottom-color: #ffffff !important;
+    box-shadow: none !important;
   }
 
   :global(.ant-select-arrow) {
-    color: rgba(255, 255, 255, 0.45);
+    color: #666666;
   }
 
   :global(.ant-picker) {
-    background: rgba(8, 17, 29, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #3a3a3a;
+    color: #ffffff;
 
     &:hover,
     &:focus {
-      border-color: rgba(79, 195, 247, 0.5);
-      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+      border-bottom-color: #ffffff;
+      box-shadow: none;
     }
   }
 
   :global(.ant-picker-input > input) {
-    color: rgba(255, 255, 255, 0.85);
+    color: #ffffff;
 
     &::placeholder {
-      color: rgba(255, 255, 255, 0.35);
+      color: #666666;
     }
   }
 
   :global(.ant-picker-suffix) {
-    color: rgba(255, 255, 255, 0.45);
+    color: #666666;
   }
 
-  :global(.ant-picker-range-separator) {
-    color: rgba(255, 255, 255, 0.4);
+  :global(.picker-range-separator) {
+    color: #444444;
   }
 
   :global(.ant-picker-clear) {
-    background: rgba(8, 17, 29, 0.8);
-    color: rgba(255, 255, 255, 0.55);
+    background: transparent;
+    color: #666666;
 
     &:hover {
-      color: rgba(255, 255, 255, 0.85);
+      color: #999999;
     }
   }
 }
@@ -583,25 +736,24 @@
 .file-input {
   width: 100%;
   padding: 8px 12px;
-  background: rgba(8, 17, 29, 0.6);
-  border: 1px dashed rgba(79, 195, 247, 0.3);
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.65);
+  background: transparent;
+  border: 1px dashed #333333;
+  border-radius: 0;
+  color: #999999;
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: rgba(79, 195, 247, 0.6);
-    background: rgba(79, 195, 247, 0.05);
+    border-color: #555555;
   }
 }
 
 .preview-container {
   margin-top: 12px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
+  background: #0d0d0d;
+  border: 1px solid #262626;
+  border-radius: 0;
   display: inline-block;
 }
 

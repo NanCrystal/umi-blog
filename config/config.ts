@@ -8,15 +8,17 @@ export default defineConfig({
   },
   routes,
   fastRefresh: {},
-  // antd less 变量：从源头替换主色，干掉蓝色
+  // antd less 变量：Bugatti 极简工程美学主题
   theme: {
-    'primary-color': 'rgba(255,255,255,0.75)',
-    'btn-primary-bg': 'rgba(255,255,255,0.1)',
-    'btn-primary-border': 'rgba(255,255,255,0.25)',
+    'primary-color': '#ffffff',
+    'btn-primary-bg': 'transparent',
+    'btn-primary-border': '#ffffff',
     'btn-default-bg': 'transparent',
-    'btn-default-border': 'rgba(255,255,255,0.2)',
-    'btn-default-color': 'rgba(255,255,255,0.55)',
-    'btn-border-radius-base': '6px',
+    'btn-default-border': 'rgba(255,255,255,0.35)',
+    'btn-default-color': 'rgba(255,255,255,0.75)',
+    'btn-border-radius-base': '9999px',
+    'font-family': "'JetBrains Mono', ui-monospace, monospace",
+    'font-weight-base': '400',
   },
   chainWebpack(memo) {
     memo.resolve.alias.set(

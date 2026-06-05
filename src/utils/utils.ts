@@ -54,3 +54,23 @@ export const getImageUrl = (path?: string): string => {
   if (!path) return '';
   return path.startsWith('http') ? path : `https://cdn.tauol.online${path}`;
 };
+
+/** 格式化文件大小为可读字符串（B/KB/MB/GB） */
+export const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+};
+
+/** 获取缩略图
+ * imageView2/2  展示完整图片，不裁切
+ * imageView2/1 — 所有图片统一切成方形网格，布局整齐
+ * imageView2/1/w/200/h/200/q/75 缩放至覆盖 200×200 的最小尺寸，再居中裁剪，不变形
+ * imageView2/2/w/400/q/80 按比例缩放到宽度 ≤ 400px，高度自适应 度 400px，高度按原比例，可能不到 400px
+ *
+ */
+export const getThumbUrl = (url: string): string => {
+  return `${getImageUrl(url)}?imageView2/1/w/200/h/200/q/75`;
+};

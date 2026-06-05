@@ -1,12 +1,11 @@
 .admin-layout {
   min-height: 100vh;
-  background: #0c0e14 !important;
+  background: #000 !important;
 }
 
 .admin-sider {
-  background: rgba(12, 18, 28, 0.95) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(12px);
+  background: #000 !important;
+  border-right: 1px solid #262626;
   position: fixed;
   left: 0;
   top: 0;
@@ -20,14 +19,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid #262626;
 }
 
 .admin-sider-title {
+  font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 400;
   color: rgba(255, 255, 255, 0.92);
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 .admin-menu {
@@ -35,36 +36,78 @@
   border-inline-end: none !important;
   margin-top: 8px;
 
-  :global(.ant-menu-item) {
+  // ===== 所有一级菜单项 & 子菜单标题 =====
+  // 图标+文字必须处于同一垂直线上
+  :global(.ant-menu-item),
+  :global(.ant-menu-submenu-title) {
     height: 48px;
     line-height: 48px;
     margin: 4px 8px;
-    padding: 0 16px !important;
-    border-radius: 10px;
+    border-radius: 0;
     color: rgba(255, 255, 255, 0.65);
+    font-family: var(--font-mono);
     font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-transform: uppercase;
     transition: all 0.2s;
 
     &:hover {
       color: rgba(255, 255, 255, 0.9) !important;
-      background: rgba(255, 255, 255, 0.06) !important;
+      background: #141414 !important;
     }
 
-    .ant-menu-item-icon {
+    .ant-menu-item-icon,
+    .anticon {
       font-size: 16px;
     }
   }
 
+  // 一级菜单项左对齐：强制所有一级菜单图标左边缘处于同一垂直线
+  // 覆盖 antd 的 inlineIndent 默认 padding-left: 24px
+  :global(.ant-menu-dark .ant-menu-item) {
+    padding-left: 16px !important;
+    padding-inline-start: 16px !important;
+  }
+  // 子菜单标题需要更高特异性才能覆盖内联样式
+  :global(.ant-menu-submenu > .ant-menu-submenu-title) {
+    padding-left: 16px !important;
+    padding-inline-start: 16px !important;
+  }
+
+  // 子菜单标题右侧留出箭头空间
+  :global(.ant-menu-submenu-title) {
+    padding-right: 32px !important;
+  }
+
+  // ===== 子菜单容器 =====
+  :global(.ant-menu-sub) {
+    background: transparent !important;
+  }
+
+  // ===== 子菜单项 —— 缩进（无图标） =====
+  :global(.ant-menu-sub .ant-menu-item) {
+    margin: 2px 8px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-transform: none;
+    opacity: 0.85;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  // ===== 选中态 =====
   :global(.ant-menu-item.ant-menu-item-selected) {
     color: #fff !important;
-    background: rgba(79, 195, 247, 0.18) !important;
+    background: #141414 !important;
+  }
+
+  :global(.ant-menu-submenu-selected > .ant-menu-submenu-title) {
+    color: #fff !important;
   }
 }
-
-// // 全局覆盖 antd 默认的 #e6f7ff 选中背景色
-// :global(.ant-menu:not(.ant-menu-horizontal) .ant-menu-item-selected) {
-//   background-color: transparent !important;
-// }
 
 .admin-content-layout {
   margin-left: 220px;

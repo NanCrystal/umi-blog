@@ -4,10 +4,12 @@ import request from '@/utils/request';
 export async function createPhoto(data: {
   fileName: string;
   url: string;
+  size?: number;
   artistId: string;
   shootDate: string;
   photoTypeId?: number;
   photoLocationId?: number;
+  photoPlatformId?: number;
   itineraryId?: number;
   description?: string;
 }) {
@@ -21,6 +23,7 @@ export async function batchCreatePhotos(
     shootDate?: string;
     photoTypeId: number;
     photoLocationId?: number;
+    photoPlatformId?: number;
     description?: string;
     fileUrl: string;
   },
@@ -37,7 +40,7 @@ export async function batchCreatePhotos(
 export async function uploadPhotoFile(file: File): Promise<{ url: string }> {
   const formData = new FormData();
   formData.append('file', file);
-  return request('/upload/photo', {
+  return request('/upload/image', {
     method: 'POST',
     data: formData,
     requestType: 'form',
@@ -48,14 +51,16 @@ export async function uploadPhotoFile(file: File): Promise<{ url: string }> {
 export async function getPhotosTimeline(params: {
   typeIds?: number[];
   locationIds?: number[];
-  artistId?: string;
+  platformIds?: number[];
+  artistIds?: string[];
 }) {
   return request('/photos/timeline', {
     method: 'GET',
     params: {
       typeIds: params.typeIds?.join(','),
       locationIds: params.locationIds?.join(','),
-      artistId: params.artistId,
+      platformIds: params.platformIds?.join(','),
+      artistIds: params.artistIds?.join(','),
     },
   });
 }
@@ -67,14 +72,19 @@ export async function getPhotosByMonth(params: {
   pageSize?: number;
   typeIds?: number[];
   locationIds?: number[];
-  artistId?: string;
+  platformIds?: number[];
+  artistIds?: string[];
 }) {
   return request('/photos/by-month', {
     method: 'GET',
     params: {
-      ...params,
+      yearMonth: params.yearMonth,
+      page: params.page,
+      pageSize: params.pageSize,
       typeIds: params.typeIds?.join(','),
       locationIds: params.locationIds?.join(','),
+      platformIds: params.platformIds?.join(','),
+      artistIds: params.artistIds?.join(','),
     },
   });
 }
@@ -85,10 +95,12 @@ export async function updatePhoto(
   data: {
     fileName?: string;
     url?: string;
+    size?: number;
     artistId?: string;
     shootDate?: string;
     photoTypeId?: number;
     photoLocationId?: number;
+    photoPlatformId?: number;
     itineraryId?: number;
     description?: string;
   },

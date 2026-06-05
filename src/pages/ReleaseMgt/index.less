@@ -1,56 +1,57 @@
+/* ============================================================
+   ReleaseMgt - 发布管理 (Bugatti 极简工程美学)
+   ============================================================ */
+
 .release-mgt-page {
-  // max-width: 1200px;
   margin: 0 auto;
 }
 
+/* ─── 搜索栏 ─── */
 .release-search {
   margin-bottom: 16px;
 
   :global {
     .ant-input-group-wrapper {
-      border-radius: 10px;
+      border-radius: var(--rounded-pill, 9999px);
       overflow: hidden;
     }
 
     .ant-input-affix-wrapper,
     .ant-input {
-      background: rgba(8, 17, 29, 0.6) !important;
-      border-color: rgba(255, 255, 255, 0.1) !important;
-      color: rgba(255, 255, 255, 0.85) !important;
+      background: transparent !important;
+      border-color: var(--color-hairline, #262626) !important;
+      color: var(--color-primary, #ffffff) !important;
 
       &::placeholder {
-        color: rgba(255, 255, 255, 0.3);
-      }
-
-      &:focus {
+        color: var(--color-muted, #999999);
       }
     }
 
     .ant-input-search-button {
-      background: rgba(8, 17, 29, 0.5) !important;
-      border-color: rgba(255, 255, 255, 0.1) !important;
-      border-left-color: rgba(255, 255, 255, 0.08) !important;
-      color: rgba(255, 255, 255, 0.55) !important;
+      background: transparent !important;
+      border-color: var(--color-hairline, #262626) !important;
+      border-left-color: var(--color-hairline, #262626) !important;
+      color: var(--color-muted, #999999) !important;
 
       &:hover {
-        background: rgba(79, 195, 247, 0.12) !important;
-        color: rgba(79, 195, 247, 0.85) !important;
-        border-color: rgba(79, 195, 247, 0.25) !important;
-        border-left-color: rgba(79, 195, 247, 0.2) !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: var(--color-primary, #ffffff) !important;
+        border-color: var(--color-body, #cccccc) !important;
       }
     }
   }
 }
 
+/* ─── 排期面板 (纯色无装饰) ─── */
 .schedule-board {
   padding: 20px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(79, 195, 247, 0.12);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(14px);
+  border-radius: var(--rounded-none, 0px);
+  background: var(--color-surface-card, #141414);
+  border: 1px solid var(--color-hairline, #262626);
+  box-shadow: none; /* 移除阴影 */
 }
 
+/* ─── 标签页 ─── */
 .release-tabs {
   :global {
     .ant-tabs-nav {
@@ -58,28 +59,31 @@
     }
 
     .ant-tabs-tab {
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 15px;
-      font-weight: 500;
+      color: var(--color-muted, #999999);
+      font-size: 14px;
+      font-weight: 400;
+      font-family: var(--font-mono, 'JetBrains Mono', monospace);
+      text-transform: uppercase;
+      letter-spacing: 1px;
       padding: 10px 4px;
 
       &:hover {
-        color: rgba(255, 255, 255, 0.9);
+        color: var(--color-body, #cccccc);
       }
 
       &.ant-tabs-tab-active .ant-tabs-tab-btn {
-        color: #fff;
-        font-weight: 600;
+        color: var(--color-primary, #ffffff);
+        font-weight: 400;
       }
     }
 
     .ant-tabs-ink-bar {
-      background: rgba(79, 195, 247, 0.6);
-      border-radius: 2px;
+      background: var(--color-primary, #ffffff);
+      border-radius: 0px;
     }
 
     .ant-tabs-nav::before {
-      border-color: rgba(255, 255, 255, 0.1);
+      border-color: var(--color-hairline, #262626);
     }
 
     .ant-tabs-content-holder {
@@ -92,25 +96,31 @@
   }
 }
 
+/* ─── 排期列表 ─── */
 .schedule-list {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
+/* 排期项卡片 (无圆角、hairline边框) */
 .schedule-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   padding: 16px;
-  border-radius: 14px;
-  background: rgba(8, 17, 29, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--rounded-none, 0px);
+  background: transparent;
+  border: 1px solid var(--color-hairline, #262626);
+
+  &:hover {
+    border-color: var(--color-body, #cccccc);
+  }
 }
 
 .schedule-item-deleted {
-  opacity: 0.65;
+  opacity: 0.55;
 }
 
 .schedule-item-main {
@@ -121,13 +131,15 @@
   flex: 1;
 }
 
+/* 缩略图 (无圆角) */
 .schedule-item-cover {
   width: 58px;
   height: 78px;
-  border-radius: 10px;
+  border-radius: var(--rounded-none, 0px);
   overflow: hidden;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-surface-card, #141414);
+  border: 1px solid var(--color-hairline, #262626);
 
   img {
     width: 100%;
@@ -145,9 +157,10 @@
   justify-content: center;
   padding: 8px;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.4;
-  color: rgba(255, 255, 255, 0.46);
+  color: var(--color-muted, #999999);
+  font-family: var(--font-mono, monospace);
 }
 
 .schedule-item-body {
@@ -162,54 +175,63 @@
   margin-bottom: 8px;
 }
 
+/* 标题 (Display字体, 大写) */
 .schedule-item-title {
   min-width: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-primary, #ffffff);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: var(--font-display, 'Saira Condensed', sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
+/* 状态标签 (Monospace, 小号大写) */
 .schedule-status {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--rounded-pill, 9999px);
+  font-size: 10px;
+  font-weight: 400;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  text-transform: uppercase;
+  letter-spacing: 1px;
   white-space: nowrap;
 }
 
+/* 状态颜色 (保持低饱和度,避免鲜艳色彩) */
 .schedule-status-pending {
-  color: #ffd76a;
-  background: rgba(255, 215, 106, 0.14);
+  color: #d4a017; /* Warning */
+  background: rgba(212, 160, 23, 0.12);
 }
 
 .schedule-status-processing {
-  color: #7fd4ff;
-  background: rgba(127, 212, 255, 0.14);
+  color: var(--color-link, #c3d9f3); /* Link blue */
+  background: rgba(195, 217, 243, 0.1);
 }
 
 .schedule-status-submitted {
-  color: #7fc3ff;
-  background: rgba(127, 195, 255, 0.14);
+  color: var(--color-link, #c3d9f3);
+  background: rgba(195, 217, 243, 0.08);
 }
 
 .schedule-status-success {
-  color: #65dca8;
-  background: rgba(101, 220, 168, 0.14);
+  color: #5fa657; /* Success */
+  background: rgba(95, 166, 87, 0.12);
 }
 
 .schedule-status-danger {
-  color: #ff8f8f;
-  background: rgba(255, 143, 143, 0.14);
+  color: rgba(220, 60, 60, 0.85);
+  background: rgba(220, 60, 60, 0.12);
 }
 
 .schedule-status-muted {
-  color: rgba(255, 255, 255, 0.58);
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-muted, #999999);
+  background: rgba(153, 153, 153, 0.08);
 }
 
 .schedule-deleted-tag {
@@ -217,22 +239,26 @@
   align-items: center;
   padding: 2px 8px;
   margin-left: 10px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 143, 143, 0.85);
-  background: rgba(255, 143, 143, 0.12);
-  border: 1px solid rgba(255, 143, 143, 0.2);
+  border-radius: 0px; /* 无圆角 */
+  font-size: 10px;
+  font-weight: 400;
+  font-family: var(--font-mono, monospace);
+  color: rgba(220, 60, 60, 0.75);
+  background: rgba(220, 60, 60, 0.1);
+  border: 1px solid rgba(220, 60, 60, 0.2);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
+/* 元数据信息 (Muted, Monospace) */
 .schedule-item-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 14px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.56);
+  font-size: 11px;
+  color: var(--color-muted, #999999);
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 0.5px;
 }
 
 .schedule-item-desc,
@@ -240,30 +266,50 @@
   margin-top: 8px;
   font-size: 13px;
   line-height: 1.6;
+  font-family: var(--font-body, serif);
 }
 
 .schedule-item-desc {
-  color: rgba(255, 255, 255, 0.58);
+  color: var(--color-muted, #999999);
 }
 
 .schedule-item-error {
-  color: #ff8f8f;
+  color: rgba(220, 60, 60, 0.85);
 }
 
+/* 操作按钮组 */
 .schedule-item-actions {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+
+  :global(.ant-btn) {
+    background: transparent;
+    border: 1px solid var(--color-hairline, #262626);
+    color: var(--color-muted, #999999);
+    border-radius: var(--rounded-pill, 9999px);
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    &:hover {
+      border-color: var(--color-primary, #ffffff);
+      color: var(--color-primary, #ffffff);
+    }
+  }
 }
 
+/* 空状态 */
 .schedule-empty {
   padding: 36px 18px;
-  border-radius: 14px;
+  border-radius: var(--rounded-none, 0px);
   text-align: center;
-  color: rgba(255, 255, 255, 0.48);
-  background: rgba(8, 17, 29, 0.36);
-  border: 1px dashed rgba(255, 255, 255, 0.1);
+  color: var(--color-muted, #999999);
+  background: transparent;
+  border: 1px dashed var(--color-hairline, #262626);
+  font-family: var(--font-body, serif);
 }
 
 @media (max-width: 768px) {

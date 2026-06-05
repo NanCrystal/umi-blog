@@ -39,7 +39,7 @@ const coreStats = [
     value: 2847,
     suffix: '项',
     icon: <FileTextOutlined />,
-    color: '#4fc3f7',
+    color: '#ffffff',
     key: 'total',
   },
   {
@@ -47,7 +47,7 @@ const coreStats = [
     value: 156,
     suffix: '项',
     icon: <RiseOutlined />,
-    color: '#7ee787',
+    color: '#f0f0fa',
     key: 'month',
   },
   {
@@ -55,7 +55,7 @@ const coreStats = [
     value: 128460,
     suffix: '次',
     icon: <EyeOutlined />,
-    color: '#c084fc',
+    color: '#e0e0e8',
     key: 'views',
   },
   {
@@ -63,7 +63,7 @@ const coreStats = [
     value: 8942,
     suffix: '次',
     icon: <HeartOutlined />,
-    color: '#fb923c',
+    color: '#c0c0c8',
     key: 'interact',
   },
   {
@@ -71,7 +71,7 @@ const coreStats = [
     value: '2小时前',
     suffix: '',
     icon: <ClockCircleOutlined />,
-    color: '#f472b6',
+    color: '#a0a0a8',
     key: 'update',
     isText: true,
   },
@@ -80,7 +80,7 @@ const coreStats = [
     value: 86.4,
     suffix: 'GB',
     icon: <CloudOutlined />,
-    color: '#22d3ee',
+    color: '#ffffff',
     key: 'storage',
   },
 ];
@@ -103,11 +103,11 @@ const hotRank = [
 ];
 
 const categoryPie = [
-  { name: '行程', value: 35, color: '#4fc3f7' },
-  { name: '照片', value: 28, color: '#f472b6' },
-  { name: '视频', value: 20, color: '#fb923c' },
-  { name: '音频', value: 10, color: '#7ee787' },
-  { name: '档案', value: 7, color: '#c084fc' },
+  { name: '行程', value: 35, color: '#ffffff' },
+  { name: '照片', value: 28, color: '#e0e0e8' },
+  { name: '视频', value: 20, color: '#c0c0c8' },
+  { name: '音频', value: 10, color: '#a0a0a8' },
+  { name: '档案', value: 7, color: '#808088' },
 ];
 
 const recentActivity = [
@@ -308,7 +308,7 @@ const StatCard: React.FC<{ item: (typeof coreStats)[0] }> = ({ item }) => (
         <Statistic
           value={item.value as number}
           suffix={item.suffix}
-          valueStyle={{ color: '#fff', fontSize: 22, fontWeight: 700 }}
+          valueStyle={{ color: '#ffffff', fontSize: 23, fontWeight: 700 }}
         />
       )}
     </div>
@@ -318,7 +318,7 @@ const StatCard: React.FC<{ item: (typeof coreStats)[0] }> = ({ item }) => (
 const MiniBarChart: React.FC<{
   data: { month: string; value: number }[];
   color?: string;
-}> = ({ data, color = '#4fc3f7' }) => {
+}> = ({ data, color = '#ffffff' }) => {
   const max = Math.max(...data.map((d) => d.value));
   return (
     <div className={styles['mini-bar-chart']}>
@@ -340,7 +340,7 @@ const MiniBarChart: React.FC<{
 const RankList: React.FC<{
   data: { title: string; views: number }[];
   color?: string;
-}> = ({ data, color = '#4fc3f7' }) => {
+}> = ({ data, color = '#ffffff' }) => {
   const max = Math.max(...data.map((d) => d.views));
   return (
     <div className={styles['rank-list']}>
@@ -409,7 +409,7 @@ const DonutChart: React.FC<{
           x={cx}
           y={cy - 4}
           textAnchor="middle"
-          fill="rgba(255,255,255,0.9)"
+          fill="#ffffff"
           fontSize="14"
           fontWeight="700"
         >
@@ -444,7 +444,7 @@ const DonutChart: React.FC<{
 const HorizontalBar: React.FC<{
   data: { name: string; value: number }[];
   color?: string;
-}> = ({ data, color = '#4fc3f7' }) => {
+}> = ({ data, color = '#ffffff' }) => {
   const max = Math.max(...data.map((d) => d.value));
   return (
     <div className={styles['hbar-list']}>
@@ -531,7 +531,7 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
                   name: t.month,
                   value: t.count,
                 }))}
-                color="#4fc3f7"
+                color="#ffffff"
               />
             </Card>
           </Col>
@@ -546,7 +546,7 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
                   title: c.name,
                   views: c.count,
                 }))}
-                color="#7ee787"
+                color="#e0e0e8"
               />
             </Card>
           </Col>
@@ -578,12 +578,12 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
                   type="circle"
                   percent={d.ctr}
                   format={() => (
-                    <span style={{ color: '#fff', fontWeight: 700 }}>
+                    <span style={{ color: '#ffffff', fontWeight: 700 }}>
                       {d.ctr}%
                     </span>
                   )}
-                  strokeColor="#c084fc"
-                  trailColor="rgba(255,255,255,0.08)"
+                  strokeColor="#ffffff"
+                  trailColor="var(--ceramic)"
                   width={120}
                 />
                 <div className={styles['ctr-label']}>CTR 点击率</div>
@@ -596,7 +596,7 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
               title="Banner 点击排行"
               bordered={false}
             >
-              <RankList data={d.bannerRank} color="#c084fc" />
+              <RankList data={d.bannerRank} color="#ffffff" />
             </Card>
           </Col>
           <Col xs={24} md={8}>
@@ -626,7 +626,7 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
               title="最热门照片 TOP5"
               bordered={false}
             >
-              <RankList data={d.topPhotos} color="#f472b6" />
+              <RankList data={d.topPhotos} color="#ffffff" />
             </Card>
           </Col>
           <Col xs={24} md={12}>
@@ -649,7 +649,7 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
                   month: m.month,
                   value: m.count,
                 }))}
-                color="#f472b6"
+                color="#ffffff"
               />
             </Card>
           </Col>
@@ -679,7 +679,7 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
                   name: c.name,
                   value: c.value,
                 }))}
-                color="#fb923c"
+                color="#a0a0a8"
               />
             </Card>
           </Col>
@@ -695,7 +695,7 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
               title="热门视频排行"
               bordered={false}
             >
-              <RankList data={d.topVideos} color="#fb923c" />
+              <RankList data={d.topVideos} color="#ffffff" />
             </Card>
           </Col>
           <Col xs={24} md={8}>
@@ -724,7 +724,7 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
                   name: r.name,
                   value: r.value,
                 }))}
-                color="#4fc3f7"
+                color="#ffffff"
               />
             </Card>
           </Col>
@@ -739,7 +739,7 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
                   month: d.name,
                   value: d.value,
                 }))}
-                color="#fb923c"
+                color="#ffffff"
               />
             </Card>
           </Col>
@@ -755,7 +755,7 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
               title="热门音频 TOP3"
               bordered={false}
             >
-              <RankList data={d.topVoices} color="#7ee787" />
+              <RankList data={d.topVoices} color="#ffffff" />
             </Card>
           </Col>
           <Col xs={24} md={12}>
@@ -790,14 +790,12 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
                   <Timeline.Item
                     key={h.year}
                     label={
-                      <span style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      <span style={{ color: 'rgba(255,255,255,0.45)' }}>
                         {h.year}
                       </span>
                     }
                   >
-                    <span style={{ color: 'rgba(255,255,255,0.85)' }}>
-                      {h.event}
-                    </span>
+                    <span style={{ color: '#ffffff' }}>{h.event}</span>
                   </Timeline.Item>
                 ))}
               </Timeline>
@@ -824,71 +822,71 @@ const ModulePanel: React.FC<{ name: string }> = ({ name }) => {
   );
 };
 
-/* ─── 颜色映射 ─── */
+/* ─── 颜色映射 (Grayscale) ─── */
 function getTypeColor(name: string) {
   const map: Record<string, string> = {
-    品牌活动: '#4fc3f7',
-    演唱会: '#f472b6',
-    拍摄: '#7ee787',
-    直播: '#fb923c',
-    综艺: '#c084fc',
+    品牌活动: '#ffffff',
+    演唱会: '#e0e0e8',
+    拍摄: '#c0c0c8',
+    直播: '#a0a0a8',
+    综艺: '#808088',
   };
-  return map[name] || '#fff';
+  return map[name] || '#ffffff';
 }
 function getSwiperTypeColor(name: string) {
   const map: Record<string, string> = {
-    视频: '#c084fc',
-    GIF: '#4fc3f7',
-    图片轮播: '#f472b6',
+    视频: '#ffffff',
+    GIF: '#e0e0e8',
+    图片轮播: '#c0c0c8',
   };
-  return map[name] || '#fff';
+  return map[name] || '#ffffff';
 }
 function getOrientationColor(name: string) {
   const map: Record<string, string> = {
-    横版: '#4fc3f7',
-    竖版: '#f472b6',
-    方图: '#7ee787',
+    横版: '#ffffff',
+    竖版: '#e0e0e8',
+    方图: '#c0c0c8',
   };
-  return map[name] || '#fff';
+  return map[name] || '#ffffff';
 }
 function getVideoTypeColor(name: string) {
   const map: Record<string, string> = {
-    舞台: '#fb923c',
-    vlog: '#4fc3f7',
-    cut: '#f472b6',
-    花絮: '#7ee787',
-    MV: '#c084fc',
+    舞台: '#ffffff',
+    vlog: '#e0e0e8',
+    cut: '#c0c0c8',
+    花絮: '#a0a0a8',
+    MV: '#808088',
   };
-  return map[name] || '#fff';
+  return map[name] || '#ffffff';
 }
 function getVoiceTypeColor(name: string) {
   const map: Record<string, string> = {
-    电台: '#4fc3f7',
-    晚安语音: '#c084fc',
-    live音频: '#f472b6',
-    清唱: '#7ee787',
-    ASMR: '#fb923c',
-    采访: '#22d3ee',
+    电台: '#ffffff',
+    晚安语音: '#e0e0e8',
+    live音频: '#c0c0c8',
+    清唱: '#a0a0a8',
+    ASMR: '#808088',
+    采访: '#606068',
   };
-  return map[name] || '#fff';
+  return map[name] || '#ffffff';
 }
 function getWorkTypeColor(name: string) {
   const map: Record<string, string> = {
-    音乐: '#f472b6',
-    影视: '#4fc3f7',
-    杂志: '#fb923c',
-    综艺: '#7ee787',
+    音乐: '#ffffff',
+    影视: '#e0e0e8',
+    杂志: '#c0c0c8',
+    综艺: '#a0a0a8',
   };
-  return map[name] || '#fff';
+  return map[name] || '#ffffff';
 }
 
 const activityColorMap: Record<string, string> = {
-  photo: '#f472b6',
-  itinerary: '#4fc3f7',
-  video: '#fb923c',
-  voice: '#7ee787',
-  profile: '#c084fc',
-  swiper: '#22d3ee',
+  photo: '#ffffff',
+  itinerary: '#e0e0e8',
+  video: '#c0c0c8',
+  voice: '#a0a0a8',
+  profile: '#808088',
+  swiper: '#e0e0e8',
 };
 
 const activityIconMap: Record<string, React.ReactNode> = {
@@ -929,7 +927,7 @@ const DataMgtPage: React.FC = () => {
             title="内容增长趋势"
             bordered={false}
           >
-            <MiniBarChart data={growthData} color="#4fc3f7" />
+            <MiniBarChart data={growthData} color="#ffffff" />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
@@ -938,7 +936,7 @@ const DataMgtPage: React.FC = () => {
             title="热门内容榜"
             bordered={false}
           >
-            <RankList data={hotRank} color="#f472b6" />
+            <RankList data={hotRank} color="#ffffff" />
           </Card>
         </Col>
       </Row>
@@ -968,7 +966,7 @@ const DataMgtPage: React.FC = () => {
                       size="small"
                       icon={activityIconMap[act.type]}
                       style={{
-                        background: activityColorMap[act.type] || '#4fc3f7',
+                        background: activityColorMap[act.type] || '#00754A',
                         fontSize: 12,
                       }}
                     />
@@ -976,7 +974,7 @@ const DataMgtPage: React.FC = () => {
                 >
                   <div className={styles['activity-item']}>
                     <Badge
-                      color={activityColorMap[act.type] || '#4fc3f7'}
+                      color={activityColorMap[act.type] || '#00754A'}
                       text={act.time}
                     />
                     <div className={styles['activity-content']}>

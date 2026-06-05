@@ -13,6 +13,8 @@ const WallPaperDetailPage = '@/pages/WallPaper/detail';
 const WallPaperMgtPage = '@/pages/WallPaperMgt/index';
 const ReleaseMgtPage = '@/pages/ReleaseMgt/index';
 const ArtistMgtPage = '@/pages/ArtistMgt/index';
+const ArtistMgtAddPage = '@/pages/ArtistMgt/Add';
+const SyncMgtPage = '@/pages/SyncMgt/index';
 
 const DataMgtPage = '@/pages/DataMgt/index';
 const ItineraryMgtPage = '@/pages/ItineraryMgt/index';
@@ -21,8 +23,12 @@ const PhotoMgtPage = '@/pages/PhotoMgt/index';
 const PhotoMgtAddPage = '@/pages/PhotoMgt/Add';
 const PhotoInfoPage = '@/pages/PhotoTag/index';
 const VideoMgtPage = '@/pages/VideoMgt/index';
+const VideoMgtAddPage = '@/pages/VideoMgt/Add';
 const VoiceMgtPage = '@/pages/VoiceMgt/index';
+const VoiceMgtAddPage = '@/pages/VoiceMgt/Add';
 const ProfileMgtPage = '@/pages/ProfileMgt/index';
+const PhotoCardsMgtPage = '@/pages/PhotoCardsMgt/index';
+const ImportTasksPage = '@/pages/ImportMgt/index';
 
 export default [
   // 根路径精确匹配，跳转到登录页
@@ -43,11 +49,17 @@ export default [
       { exact: true, path: '/admin/photo', component: PhotoMgtPage },
       { exact: true, path: '/admin/photo/add', component: PhotoMgtAddPage },
       { exact: true, path: '/admin/video', component: VideoMgtPage },
+      { exact: true, path: '/admin/video/add', component: VideoMgtAddPage },
       { exact: true, path: '/admin/voice', component: VoiceMgtPage },
+      { exact: true, path: '/admin/voice/add', component: VoiceMgtAddPage },
+      { exact: true, path: '/admin/photocards', component: PhotoCardsMgtPage },
       { exact: true, path: '/admin/profile', component: ProfileMgtPage },
+      { exact: true, path: '/admin/import/tasks', component: ImportTasksPage },
       { exact: true, path: '/admin/wallpaper', component: WallPaperMgtPage },
       { exact: true, path: '/admin/release', component: ReleaseMgtPage },
       { exact: true, path: '/admin/artist', component: ArtistMgtPage },
+      { exact: true, path: '/admin/artist/add', component: ArtistMgtAddPage },
+      { exact: true, path: '/admin/sync', component: SyncMgtPage },
       { exact: true, path: '/admin/photo_info', component: PhotoInfoPage },
       { redirect: '/admin/data' },
     ],

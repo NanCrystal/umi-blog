@@ -1,3 +1,7 @@
+/* ============================================================
+   WallPaper Schedules - Bugatti 极简黑色主题
+   ============================================================ */
+
 .schedule-page {
   margin: 76px 32px 32px;
 }
@@ -9,26 +13,28 @@
   gap: 20px;
   margin-bottom: 24px;
   padding: 24px 26px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(79, 195, 247, 0.12);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(14px);
+  border-radius: 0px;
+  background: #141414;
+  border: 1px solid #262626;
 }
 
 .schedule-page-eyebrow {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #7fd4ff;
+  color: #c3d9f3;
+  font-family: var(--font-mono), monospace;
 }
 
 .schedule-page-title {
   margin-top: 10px;
   font-size: 28px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.94);
+  font-weight: 400;
+  color: #ffffff;
+  font-family: var(--font-display), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 4px;
 }
 
 .schedule-page-desc {
@@ -36,7 +42,8 @@
   max-width: 720px;
   font-size: 14px;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.56);
+  color: #999999;
+  font-family: var(--font-body), serif;
 }
 
 .schedule-page-actions {
@@ -48,11 +55,9 @@
 
 .schedule-board {
   padding: 20px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(79, 195, 247, 0.12);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(14px);
+  border-radius: 0px;
+  background: #141414;
+  border: 1px solid #262626;
 }
 
 .schedule-list {
@@ -67,9 +72,9 @@
   justify-content: space-between;
   gap: 16px;
   padding: 16px;
-  border-radius: 14px;
-  background: rgba(8, 17, 29, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0px;
+  background: #0a0a0a;
+  border: 1px solid #262626;
 }
 
 .schedule-item-main {
@@ -83,10 +88,10 @@
 .schedule-item-cover {
   width: 58px;
   height: 78px;
-  border-radius: 10px;
+  border-radius: 0px;
   overflow: hidden;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.05);
+  background: #141414;
 
   img {
     width: 100%;
@@ -106,7 +111,7 @@
   text-align: center;
   font-size: 12px;
   line-height: 1.4;
-  color: rgba(255, 255, 255, 0.46);
+  color: #999999;
 }
 
 .schedule-item-body {
@@ -124,21 +129,25 @@
 .schedule-item-title {
   min-width: 0;
   font-size: 16px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+  color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: var(--font-display), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .schedule-status {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 9999px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   white-space: nowrap;
+  font-family: var(--font-mono), monospace;
 }
 
 .schedule-status-pending {
@@ -167,7 +176,7 @@
 }
 
 .schedule-status-muted {
-  color: rgba(255, 255, 255, 0.58);
+  color: #999999;
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -176,7 +185,8 @@
   flex-wrap: wrap;
   gap: 8px 14px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.56);
+  color: #999999;
+  font-family: var(--font-mono), monospace;
 }
 
 .schedule-item-desc,
@@ -184,10 +194,11 @@
   margin-top: 8px;
   font-size: 13px;
   line-height: 1.6;
+  font-family: var(--font-body), serif;
 }
 
 .schedule-item-desc {
-  color: rgba(255, 255, 255, 0.58);
+  color: #999999;
 }
 
 .schedule-item-error {
@@ -203,11 +214,11 @@
 
 .schedule-empty {
   padding: 36px 18px;
-  border-radius: 14px;
+  border-radius: 0px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.48);
-  background: rgba(8, 17, 29, 0.36);
-  border: 1px dashed rgba(255, 255, 255, 0.1);
+  color: #999999;
+  background: #0a0a0a;
+  border: 1px dashed #262626;
 }
 
 @media (max-width: 768px) {

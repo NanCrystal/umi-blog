@@ -1,3 +1,7 @@
+/* ============================================================
+   Essay 列表 - Bugatti 极简黑色主题
+   ============================================================ */
+
 .essay-wrapper {
   margin: 76px 32px 32px;
   overflow: auto;
@@ -16,12 +20,14 @@
   justify-content: center;
   border-style: dashed;
   min-height: 200px;
+  background: #141414;
+  border-color: #262626;
 
   .add-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    color: rgba(255, 255, 255, 0.45);
+    color: #999999;
     transition: color 0.3s;
 
     .add-icon {
@@ -31,20 +37,21 @@
 
     .add-text {
       font-size: 15px;
-      font-weight: 500;
+      font-weight: 400;
+      font-family: var(--font-mono), monospace;
     }
   }
 
   &:hover .add-content {
-    color: #4fc3f7;
+    color: #c3d9f3;
   }
 }
 
 /* 单张卡片 */
 .essay-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  background: #141414;
+  border: 1px solid #262626;
+  border-radius: 0px;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.2s, background 0.2s, border-color 0.2s;
@@ -53,8 +60,8 @@
 
   &:hover {
     transform: translateY(-3px);
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.18);
+    background: #1a1a1a;
+    border-color: #333333;
   }
 }
 
@@ -89,28 +96,33 @@
 
 .card-title {
   font-size: 15px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.88);
+  font-weight: 400;
+  color: #ffffff;
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: var(--font-display), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .card-desc {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.45);
+  color: #cccccc;
   line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   flex: 1;
+  font-family: var(--font-body), serif;
 }
 
 .card-date {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.28);
+  color: #999999;
+  font-family: var(--font-mono), monospace;
 }
 
 /* 底部：时间 + 操作按钮 */
@@ -137,24 +149,24 @@
 .action-delete {
   font-size: 13px;
   padding: 3px 5px;
-  border-radius: 4px;
+  border-radius: 0px;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
 .action-edit {
-  color: rgba(255, 255, 255, 0.5);
+  color: #999999;
   &:hover {
-    color: #4fc3f7;
-    background: rgba(79, 195, 247, 0.12);
+    color: #c3d9f3;
+    background: rgba(195, 217, 243, 0.08);
   }
 }
 
 .action-delete {
-  color: rgba(255, 255, 255, 0.5);
+  color: #999999;
   &:hover {
-    color: #ff6b6b;
-    background: rgba(255, 107, 107, 0.12);
+    color: #ff8f8f;
+    background: rgba(255, 143, 143, 0.08);
   }
 }
 

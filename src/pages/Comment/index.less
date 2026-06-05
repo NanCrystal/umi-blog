@@ -1,5 +1,5 @@
 /* ============================================================
-   Comment 页 - 星空留言墙
+   Comment 页 - Bugatti 极简黑色主题
    ============================================================ */
 
 /* 整页容器 */
@@ -52,8 +52,8 @@
 .bubble-text {
   white-space: nowrap;
   letter-spacing: 0.3px;
-  text-shadow: 0 0 12px rgba(160, 200, 255, 0.35);
   user-select: none;
+  font-family: var(--font-body), serif;
 }
 
 .bubble-del {
@@ -81,12 +81,10 @@
   gap: 10px;
   width: 88vw;
   max-width: 480px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 40px;
+  background: #141414;
+  border: 1px solid #262626;
+  border-radius: 9999px;
   padding: 10px 12px 10px 20px;
-  backdrop-filter: blur(16px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
   z-index: 10;
 }
 
@@ -96,19 +94,20 @@
   border: none;
   outline: none;
   resize: none;
-  color: rgba(255, 255, 255, 0.85);
+  color: #cccccc;
   font-size: 14px;
   line-height: 1.6;
   max-height: 80px;
   overflow-y: auto;
   scrollbar-width: none;
+  font-family: var(--font-body), serif;
 
   &::-webkit-scrollbar {
     display: none;
   }
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.22);
+    color: #999999;
   }
 }
 
@@ -116,20 +115,22 @@
   flex-shrink: 0;
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(110, 195, 255, 0.2);
-  color: rgba(110, 195, 255, 0.9);
+  border-radius: 9999px;
+  border: 1px solid #ffffff;
+  background: transparent;
+  color: #ffffff;
   font-size: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
+  font-family: var(--font-mono), monospace;
 
   &:hover:not(.disabled) {
-    background: rgba(110, 195, 255, 0.35);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    color: #c3d9f3;
+    border-color: #c3d9f3;
   }
 
   &.disabled {

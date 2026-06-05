@@ -313,7 +313,6 @@ const SwiperMgtPage: React.FC = () => {
         title: '预览',
         dataIndex: 'imageUrl',
         key: 'preview',
-        width: 100,
         render: (value: string[] | string, item) =>
           item.mediaType === 'video' ? (
             <div className={styles['video-preview']}>
@@ -345,7 +344,6 @@ const SwiperMgtPage: React.FC = () => {
         title: '艺人',
         dataIndex: 'artistId',
         key: 'artistId',
-        width: 90,
         render: (value: string) => {
           const artist = artists.find((a) => a.artistId === value);
           return (
@@ -359,7 +357,6 @@ const SwiperMgtPage: React.FC = () => {
         title: '媒体类型',
         dataIndex: 'mediaType',
         key: 'mediaType',
-        width: 90,
         render: (value: string) => (
           <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>
             {value === 'video' ? '视频' : '图片'}
@@ -370,7 +367,6 @@ const SwiperMgtPage: React.FC = () => {
         title: '状态',
         dataIndex: 'status',
         key: 'status',
-        width: 90,
         render: (value: BannerStatus) => {
           const cfg = STATUS_MAP[value];
           return (
@@ -384,7 +380,6 @@ const SwiperMgtPage: React.FC = () => {
         title: '排序',
         dataIndex: 'sortOrder',
         key: 'sortOrder',
-        width: 80,
         align: 'center',
         render: (_: number, record, index) => (
           <Space size={2}>
@@ -424,7 +419,6 @@ const SwiperMgtPage: React.FC = () => {
         title: '开始时间',
         dataIndex: 'startTime',
         key: 'startTime',
-        width: 140,
         render: (value: string) =>
           value ? (
             <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>
@@ -440,7 +434,6 @@ const SwiperMgtPage: React.FC = () => {
         title: '结束时间',
         dataIndex: 'endTime',
         key: 'endTime',
-        width: 140,
         render: (value: string) =>
           value ? (
             <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>
@@ -455,7 +448,6 @@ const SwiperMgtPage: React.FC = () => {
       {
         title: '操作',
         key: 'action',
-        width: 200,
         render: (_: unknown, item) => (
           <div className={styles['table-actions']}>
             <Switch
@@ -501,17 +493,31 @@ const SwiperMgtPage: React.FC = () => {
           onChange={(v) => setFilterStatus((v || '') as BannerStatus | '')}
           style={{ width: 140 }}
           popupClassName={styles['dark-select-dropdown']}
+          className={styles['filter-select']}
         >
-          {Object.entries(STATUS_MAP).map(([key, cfg]) => (
+          {Object.entries(STATUS_MAP).map(([key]) => (
             <Option key={key} value={key}>
-              <Badge color={cfg.color} text={cfg.label} />
+              <span
+                className={
+                  key === 'active'
+                    ? styles['option-active']
+                    : styles['option-inactive']
+                }
+              >
+                {key === 'active' ? '启用' : '禁用'}
+              </span>
             </Option>
           ))}
         </Select>
       </div>
 
       <div className={styles['filter-actions']}>
-        <Button size="small" onClick={clearFilters} icon={<ClearOutlined />}>
+        <Button
+          size="small"
+          onClick={clearFilters}
+          icon={<ClearOutlined />}
+          className={styles['filter-action-btn-clear']}
+        >
           清空
         </Button>
         <Button
@@ -521,6 +527,7 @@ const SwiperMgtPage: React.FC = () => {
             applyFilter();
             setFilterVisible(false);
           }}
+          className={styles['filter-action-btn-apply']}
         >
           确定
         </Button>

@@ -10,6 +10,7 @@ export interface ItineraryItem {
   endTime: string;
   status: 'pending' | 'ongoing' | 'completed' | 'cancelled';
   description: string | null;
+  poster: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -55,6 +56,7 @@ export async function createItinerary(data: {
   endTime: string;
   status?: string;
   description?: string;
+  poster?: string;
 }) {
   const user = getCurrentUser();
   return request('/itineraries', {
@@ -73,6 +75,7 @@ export async function updateItinerary(
     endTime?: string;
     status?: string;
     description?: string;
+    poster?: string;
   },
 ) {
   return request(`/itineraries/${id}`, {

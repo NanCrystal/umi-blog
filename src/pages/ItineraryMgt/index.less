@@ -1,10 +1,13 @@
+/* ============================================================
+   ItineraryMgt - 行程管理 (Bugatti 极简工程美学)
+   ============================================================ */
+
 .itinerary-mgt-page {
-  // max-width: 1200px;
   margin: 0 auto;
   padding-bottom: 40px;
 }
 
-/* ─── 页面头部 ─── */
+/* ─── 页面头部 (纯色无装饰) ─── */
 .mgt-page-header {
   display: flex;
   align-items: flex-start;
@@ -12,17 +15,20 @@
   gap: 20px;
   margin-bottom: 24px;
   padding: 24px 26px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(79, 195, 247, 0.12);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(14px);
+  border-radius: var(--rounded-none, 0px);
+  background: var(--color-surface-card, #141414);
+  border: 1px solid var(--color-hairline, #262626);
+  box-shadow: none; /* 移除阴影 */
 }
 
+/* 页面标题 (Display字体, 大写) */
 .mgt-page-title {
   font-size: 28px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.94);
+  font-weight: 400;
+  color: var(--color-primary, #ffffff);
+  font-family: var(--font-display, 'Saira Condensed', sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 3px;
 }
 
 .mgt-page-desc {
@@ -30,7 +36,8 @@
   max-width: 720px;
   font-size: 14px;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.56);
+  color: var(--color-body, #cccccc);
+  font-family: var(--font-body, 'Cormorant Garamond', serif);
 }
 
 .mgt-page-actions {
@@ -40,55 +47,68 @@
   flex-shrink: 0;
 }
 
+/* 主要操作按钮 (Bugatti Primary Pill) */
 .add-btn {
-  background: #4fc3f7 !important;
-  border-color: #4fc3f7 !important;
-  color: #08111d !important;
-  font-weight: 600 !important;
-  border-radius: 8px !important;
+  background: transparent !important;
+  border-color: var(--color-primary, #ffffff) !important;
+  color: var(--color-primary, #ffffff) !important;
+  font-weight: 400 !important;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace) !important;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-radius: var(--rounded-pill, 9999px) !important;
 
   &:hover {
-    background: #7fd4ff !important;
-    border-color: #7fd4ff !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--color-primary, #ffffff) !important;
+    color: var(--color-primary, #ffffff) !important;
   }
 }
 
+/* 次要按钮/筛选按钮 (透明+hairline边框) */
 .filter-btn {
-  background: rgba(255, 255, 255, 0.06) !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  color: rgba(255, 255, 255, 0.72) !important;
-  border-radius: 8px !important;
+  background: transparent !important;
+  border-color: var(--color-hairline, #262626) !important;
+  color: var(--color-muted, #999999) !important;
+  font-weight: 400 !important;
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: var(--rounded-pill, 9999px) !important;
 
   &:hover {
-    background: rgba(79, 195, 247, 0.1) !important;
-    border-color: rgba(79, 195, 247, 0.4) !important;
-    color: #4fc3f7 !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: var(--color-body, #cccccc) !important;
+    color: var(--color-body, #cccccc) !important;
   }
 }
 
 .filter-btn-active {
-  background: rgba(79, 195, 247, 0.12) !important;
-  border-color: rgba(79, 195, 247, 0.45) !important;
-  color: #4fc3f7 !important;
-  border-radius: 8px !important;
-  font-weight: 500 !important;
+  background: transparent !important;
+  border-color: var(--color-primary, #ffffff) !important;
+  color: var(--color-primary, #ffffff) !important;
+  border-radius: var(--rounded-pill, 9999px) !important;
+  font-weight: 400 !important;
 }
 
-/* ─── 筛选器 Popover ─── */
+/* ─── 筛选器 Popover (纯色极简) ─── */
 .filter-popover-overlay {
   :global(.ant-popover-inner) {
-    background: rgba(12, 18, 28, 0.96) !important;
-    border: 1px solid rgba(79, 195, 247, 0.18) !important;
-    border-radius: 14px !important;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32) !important;
-    backdrop-filter: blur(20px) !important;
+    background: var(--color-surface-card, #141414) !important;
+    border: 1px solid var(--color-hairline, #262626) !important;
+    border-radius: var(--rounded-none, 0px) !important;
+    box-shadow: none !important; /* 移除阴影 */
   }
 
   :global(.ant-popover-title) {
-    color: rgba(255, 255, 255, 0.9) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: var(--color-body, #cccccc) !important;
+    border-bottom: 1px solid var(--color-hairline, #262626) !important;
     padding: 12px 16px !important;
-    font-weight: 600 !important;
+    font-weight: 400 !important;
+    font-family: var(--font-mono, monospace);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
     min-height: auto !important;
   }
 
@@ -97,8 +117,8 @@
   }
 
   :global(.ant-popover-arrow-content) {
-    background: rgba(12, 18, 28, 0.96) !important;
-    border-color: rgba(79, 195, 247, 0.18) !important;
+    background: var(--color-surface-card, #141414) !important;
+    border-color: var(--color-hairline, #262626) !important;
   }
 }
 
@@ -115,12 +135,16 @@
   gap: 12px;
 }
 
+/* 筛选标签 (Monospace) */
 .filter-label {
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 13px;
+  color: var(--color-muted, #999999);
+  font-size: 12px;
   width: 60px;
   flex-shrink: 0;
   text-align: right;
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .filter-actions {
@@ -128,115 +152,95 @@
   justify-content: flex-end;
   gap: 10px;
   padding-top: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--color-hairline, #262626);
+
+  :global(.ant-btn) {
+    @extend .filter-btn;
+  }
 }
 
-/* ─── 下拉/日期选择器暗色下拉面板 ─── */
-.dark-select-dropdown {
-  :global(.ant-select-dropdown) {
-    background: rgba(12, 18, 28, 0.96) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 10px !important;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4) !important;
+/* ─── 下拉/日期选择器面板 ─── */
+.dark-select-dropdown,
+.dark-picker-dropdown {
+  :global(.ant-select-dropdown),
+  :global(.ant-picker-panel-container) {
+    background: var(--color-canvas, #000000) !important;
+    border: 1px solid var(--color-hairline, #262626) !important;
+    border-radius: var(--rounded-none, 0px) !important;
+    box-shadow: none !important;
   }
 
   :global(.ant-select-item) {
-    color: rgba(255, 255, 255, 0.75) !important;
+    color: var(--color-body, #cccccc) !important;
+    font-family: var(--font-body, serif);
   }
 
   :global(.ant-select-item-option-active) {
-    background: rgba(79, 195, 247, 0.1) !important;
+    background: var(--color-surface-soft, #0d0d0d) !important;
   }
 
   :global(.ant-select-item-option-selected) {
-    background: rgba(79, 195, 247, 0.16) !important;
-    color: #4fc3f7 !important;
-    font-weight: 600 !important;
-  }
-}
-
-.dark-picker-dropdown {
-  :global(.ant-picker-panel-container) {
-    background: rgba(12, 18, 28, 0.96) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4) !important;
+    background: var(--color-surface-card, #141414) !important;
+    color: var(--color-primary, #ffffff) !important;
+    font-weight: 400 !important;
   }
 
   :global(.ant-picker-cell) {
-    color: rgba(255, 255, 255, 0.6) !important;
+    color: var(--color-muted, #999999) !important;
   }
 
   :global(.ant-picker-cell-in-view) {
-    color: rgba(255, 255, 255, 0.85) !important;
+    color: var(--color-body, #cccccc) !important;
   }
 
   :global(.ant-picker-cell-selected .ant-picker-cell-inner) {
-    background: rgba(79, 195, 247, 0.85) !important;
-    color: #08111d !important;
-    font-weight: 600 !important;
+    background: var(--color-primary, #ffffff) !important;
+    color: var(--color-canvas, #000000) !important;
+    font-weight: 400 !important;
   }
 
   :global(.ant-picker-cell-today .ant-picker-cell-inner::before) {
-    border-color: rgba(79, 195, 247, 0.8) !important;
+    border-color: var(--color-primary, #ffffff) !important;
   }
 
   :global(.ant-picker-header) {
-    color: rgba(255, 255, 255, 0.9) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: var(--color-body, #cccccc) !important;
+    border-bottom: 1px solid var(--color-hairline, #262626) !important;
+    font-family: var(--font-mono, monospace);
   }
 
   :global(.ant-picker-header-view button:hover) {
-    color: #4fc3f7 !important;
+    color: var(--color-primary, #ffffff) !important;
   }
 
   :global(.ant-picker-content th) {
-    color: rgba(255, 255, 255, 0.55) !important;
-  }
-
-  :global(
-      .ant-picker-time-panel-column
-        > li.ant-picker-time-panel-cell-selected
-        > .ant-picker-time-panel-cell-inner
-    ) {
-    background: rgba(79, 195, 247, 0.85) !important;
-    color: #08111d !important;
-  }
-
-  :global(
-      .ant-picker-time-panel-column
-        > li.ant-picker-time-panel-cell
-        .ant-picker-time-panel-cell-inner:hover
-    ) {
-    background: rgba(79, 195, 247, 0.12) !important;
-  }
-
-  :global(
-      .ant-picker-time-panel-column > li .ant-picker-time-panel-cell-inner
-    ) {
-    color: rgba(255, 255, 255, 0.8) !important;
-  }
-
-  :global(.ant-picker-ranges) {
-    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: var(--color-muted, #999999) !important;
+    font-family: var(--font-mono, monospace);
+    text-transform: uppercase;
+    font-size: 11px;
   }
 
   :global(.ant-picker-ok button) {
-    background: #4fc3f7 !important;
-    border-color: #4fc3f7 !important;
-    color: #08111d !important;
-    font-weight: 600 !important;
+    background: transparent !important;
+    border-color: var(--color-primary, #ffffff) !important;
+    color: var(--color-primary, #ffffff) !important;
+    font-weight: 400 !important;
+    font-family: var(--font-mono, monospace);
+    text-transform: uppercase;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
   }
 }
 
-/* ─── 表格面板 ─── */
+/* ─── 表格面板 (纯色无装饰) ─── */
 .table-panel {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  background: transparent;
+  border: 1px solid var(--color-hairline, #262626);
+  border-radius: var(--rounded-none, 0px);
   overflow: hidden;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.16);
+  box-shadow: none;
 
   :global(.ant-spin-nested-loading),
   :global(.ant-spin-container),
@@ -245,21 +249,29 @@
     background: transparent;
   }
 
+  /* 表头 */
   :global(.ant-table-thead > tr > th) {
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.7);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    font-weight: 600;
+    background: var(--color-surface-card, #141414);
+    color: var(--color-primary, #ffffff);
+    border-bottom: 1px solid var(--color-hairline, #262626);
+    font-weight: 400;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
   }
 
+  /* 表格单元格 */
   :global(.ant-table-tbody > tr > td) {
     background: transparent;
-    color: rgba(255, 255, 255, 0.82);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--color-body, #cccccc);
+    border-bottom: 1px solid var(--color-hairline, #262626);
+    font-family: var(--font-body, serif);
   }
 
+  /* Hover效果 (微弱的背景变化,非彩色) */
   :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
-    background: rgba(79, 195, 247, 0.08);
+    background: var(--color-surface-soft, #0d0d0d);
   }
 
   :global(.ant-table-placeholder:hover > td) {
@@ -268,48 +280,51 @@
 
   :global(.ant-empty-description),
   :global(.ant-table-cell) {
-    color: rgba(255, 255, 255, 0.65);
+    color: var(--color-muted, #999999);
   }
 
+  /* 分页器 */
   :global(.ant-pagination-item),
   :global(.ant-pagination-prev .ant-pagination-item-link),
   :global(.ant-pagination-next .ant-pagination-item-link) {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.75);
+    background: transparent;
+    border-color: var(--color-hairline, #262626);
+    color: var(--color-muted, #999999);
+    font-family: var(--font-mono, monospace);
   }
 
   :global(.ant-pagination-item a) {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--color-muted, #999999);
   }
 
   :global(.ant-pagination-item-active) {
-    border-color: rgba(79, 195, 247, 0.8);
+    border-color: var(--color-primary, #ffffff);
   }
 
   :global(.ant-pagination-item-active a),
   :global(.ant-pagination-item:hover a),
   :global(.ant-pagination-prev:hover .ant-pagination-item-link),
   :global(.ant-pagination-next:hover .ant-pagination-item-link) {
-    color: #4fc3f7;
+    color: var(--color-primary, #ffffff);
   }
 
   :global(.ant-pagination-disabled .ant-pagination-item-link) {
-    color: rgba(255, 255, 255, 0.28);
+    color: var(--color-muted-soft, #666666);
   }
 
+  /* 复选框 */
   :global(.ant-checkbox-inner) {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: transparent;
+    border-color: var(--color-hairline-strong, #3a3a3a);
   }
 
   :global(.ant-checkbox-checked .ant-checkbox-inner) {
-    background: rgba(79, 195, 247, 0.85);
-    border-color: rgba(79, 195, 247, 0.85);
+    background: var(--color-primary, #ffffff);
+    border-color: var(--color-primary, #ffffff);
   }
 
   :global(.ant-checkbox-checked .ant-checkbox-inner::after) {
-    border-color: #08111d;
+    border-color: var(--color-canvas, #000000);
   }
 }
 
@@ -320,17 +335,24 @@
 .table-header-title {
   display: flex;
   align-items: center;
-  color: rgba(255, 255, 255, 0.94);
-  font-weight: 600;
+  color: var(--color-primary, #ffffff);
+  font-weight: 400;
   font-size: 15px;
+  font-family: var(--font-display, sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
+/* 标签 (Monospace) */
 .filter-tag {
   margin-left: 10px;
-  background: rgba(79, 195, 247, 0.12) !important;
-  border-color: rgba(79, 195, 247, 0.3) !important;
-  color: #4fc3f7 !important;
-  font-size: 12px !important;
+  background: transparent !important;
+  border: 1px solid var(--color-hairline, #262626) !important;
+  color: var(--color-muted, #999999) !important;
+  font-size: 11px !important;
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .table-empty {
@@ -338,17 +360,19 @@
   flex-direction: column;
   align-items: center;
   padding: 24px;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--color-muted, #999999);
+  font-family: var(--font-body, serif);
 }
 
 /* ─── 表格内容 ─── */
 .table-title {
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 500;
+  color: var(--color-primary, #ffffff);
+  font-weight: 400;
   cursor: pointer;
+  font-family: var(--font-display, sans-serif);
 
   &:hover {
-    color: #4fc3f7;
+    color: var(--color-body, #cccccc); /* 非彩色hover */
   }
 }
 
@@ -356,37 +380,53 @@
   display: flex;
   align-items: center;
   gap: 2px;
+
+  :global(.ant-btn) {
+    background: transparent;
+    border: none;
+    color: var(--color-muted, #999999);
+    padding: 4px 8px;
+
+    &:hover {
+      color: var(--color-primary, #ffffff);
+      background: rgba(255, 255, 255, 0.04);
+    }
+  }
 }
 
-/* ─── 状态标签 ─── */
+/* ─── 状态标签 (Monospace, 小号大写) ─── */
 .status-tag {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: var(--rounded-pill, 9999px);
+  font-size: 11px;
+  font-weight: 400;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  text-transform: uppercase;
+  letter-spacing: 1px;
   white-space: nowrap;
 }
 
+/* 低饱和度状态颜色 */
 .status-pending {
-  color: #ffd76a;
-  background: rgba(255, 215, 106, 0.14);
+  color: #d4a017; /* Warning */
+  background: rgba(212, 160, 23, 0.1);
 }
 
 .status-ongoing {
-  color: #7fd4ff;
-  background: rgba(127, 212, 255, 0.14);
+  color: var(--color-link, #c3d9f3); /* Link blue */
+  background: rgba(195, 217, 243, 0.08);
 }
 
 .status-completed {
-  color: #65dca8;
-  background: rgba(101, 220, 168, 0.14);
+  color: #5fa657; /* Success */
+  background: rgba(95, 166, 87, 0.1);
 }
 
 .status-cancelled {
-  color: #ff8f8f;
-  background: rgba(255, 143, 143, 0.14);
+  color: rgba(220, 60, 60, 0.85);
+  background: rgba(220, 60, 60, 0.1);
 }
 
 /* ─── 批量操作栏 ─── */
@@ -399,30 +439,35 @@
   align-items: center;
   gap: 12px;
   padding: 8px 16px;
-  border-radius: 10px;
-  background: rgba(255, 59, 48, 0.95);
-  border: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  border-radius: var(--rounded-none, 0px);
+  background: var(--color-canvas, #000000);
+  border: 1px solid var(--color-hairline, #262626);
+  box-shadow: none;
   animation: fadeInScale 0.2s ease-out;
 
   :global(.ant-btn) {
-    font-weight: 600;
-    border-radius: 6px;
-    background: #fff;
-    color: #ff3b30;
-    border: none;
+    font-weight: 400;
+    font-family: var(--font-mono, monospace);
+    border-radius: var(--rounded-pill, 9999px);
+    background: transparent;
+    border: 1px solid var(--color-primary, #ffffff);
+    color: var(--color-primary, #ffffff);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.08);
     }
   }
 }
 
 .selected-count {
   font-size: 13px;
-  color: #fff;
+  color: var(--color-primary, #ffffff);
   white-space: nowrap;
-  font-weight: 500;
+  font-weight: 400;
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
 }
 
 @keyframes fadeInScale {
@@ -436,44 +481,53 @@
   }
 }
 
-/* ─── 表单样式 ─── */
+/* ─── 表单样式 (Bugatti 极简输入框) ─── */
 .itinerary-form {
   margin-top: 8px;
 
   :global(.ant-form-item-label > label) {
-    color: rgba(255, 255, 255, 0.75);
-    font-weight: 500;
+    color: var(--color-body, #cccccc);
+    font-weight: 400;
+    font-family: var(--font-mono, monospace);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
   }
 
   :global(.ant-input) {
-    background: rgba(8, 17, 29, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-hairline-strong, #3a3a3a);
+    border-radius: 0;
+    color: var(--color-primary, #ffffff);
+    font-family: var(--font-body, serif);
 
     &::placeholder {
-      color: rgba(255, 255, 255, 0.35);
+      color: var(--color-muted, #999999);
     }
 
     &:hover,
     &:focus {
-      border-color: rgba(79, 195, 247, 0.5);
-      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+      border-bottom-color: var(--color-primary, #ffffff);
+      box-shadow: none; /* 移除 antd 默认阴影 */
     }
   }
 
   :global(.ant-input-affix-wrapper) {
-    background: rgba(8, 17, 29, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-hairline-strong, #3a3a3a);
+    border-radius: 0;
 
     &:hover,
     &:focus {
-      border-color: rgba(79, 195, 247, 0.5);
-      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+      border-bottom-color: var(--color-primary, #ffffff);
+      box-shadow: none;
     }
   }
 
   :global(.ant-input-textarea-show-count::after) {
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--color-muted, #999999);
   }
 
   :global(.ant-input-affix-wrapper .ant-input) {
@@ -482,58 +536,61 @@
   }
 
   :global(.ant-select-selector) {
-    background: rgba(8, 17, 29, 0.6) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    color: rgba(255, 255, 255, 0.85) !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid var(--color-hairline-strong, #3a3a3a) !important;
+    border-radius: 0 !important;
+    color: var(--color-primary, #ffffff) !important;
   }
 
   :global(.ant-select:hover .ant-select-selector) {
-    border-color: rgba(79, 195, 247, 0.5) !important;
+    border-bottom-color: var(--color-body, #cccccc) !important;
   }
 
   :global(.ant-select-focused .ant-select-selector) {
-    border-color: rgba(79, 195, 247, 0.5) !important;
-    box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12) !important;
+    border-bottom-color: var(--color-primary, #ffffff) !important;
+    box-shadow: none !important;
   }
 
   :global(.ant-select-arrow) {
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--color-muted, #999999);
   }
 
   :global(.ant-picker) {
-    background: rgba(8, 17, 29, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-hairline-strong, #3a3a3a);
+    color: var(--color-primary, #ffffff);
 
     &:hover,
     &:focus {
-      border-color: rgba(79, 195, 247, 0.5);
-      box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.12);
+      border-bottom-color: var(--color-primary, #ffffff);
+      box-shadow: none;
     }
   }
 
   :global(.ant-picker-input > input) {
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--color-primary, #ffffff);
 
     &::placeholder {
-      color: rgba(255, 255, 255, 0.35);
+      color: var(--color-muted, #999999);
     }
   }
 
   :global(.ant-picker-suffix) {
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--color-muted, #999999);
   }
 
   :global(.ant-picker-range-separator) {
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--color-muted, #999999);
   }
 
   :global(.ant-picker-clear) {
-    background: rgba(8, 17, 29, 0.8);
-    color: rgba(255, 255, 255, 0.55);
+    background: transparent;
+    color: var(--color-muted, #999999);
 
     &:hover {
-      color: rgba(255, 255, 255, 0.85);
+      color: var(--color-body, #cccccc);
     }
   }
 }
@@ -555,20 +612,24 @@
 .detail-title {
   margin: 0;
   font-size: 18px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
+  font-weight: 400;
+  color: var(--color-primary, #ffffff);
   line-height: 1.4;
   flex: 1;
+  font-family: var(--font-display, sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
+/* 详情元数据卡片 (纯色无圆角) */
 .detail-meta {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--rounded-none, 0px);
+  background: var(--color-surface-card, #141414);
+  border: 1px solid var(--color-hairline, #262626);
 }
 
 .detail-meta-item {
@@ -578,23 +639,27 @@
 }
 
 .detail-meta-icon {
-  color: rgba(79, 195, 247, 0.75);
+  color: var(--color-muted, #999999);
   font-size: 14px;
   width: 18px;
   text-align: center;
 }
 
 .detail-meta-label {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
+  color: var(--color-muted, #999999);
+  font-size: 12px;
   width: 64px;
   flex-shrink: 0;
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .detail-meta-value {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--color-body, #cccccc);
   font-size: 13px;
   flex: 1;
+  font-family: var(--font-body, serif);
 }
 
 .detail-section {
@@ -607,22 +672,177 @@
   display: flex;
   align-items: center;
   font-size: 14px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.75);
+  font-weight: 400;
+  color: var(--color-body, #cccccc);
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .detail-desc {
   padding: 14px 16px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.7);
+  border-radius: var(--rounded-none, 0px);
+  background: var(--color-surface-card, #141414);
+  border: 1px solid var(--color-hairline, #262626);
+  color: var(--color-body, #cccccc);
   font-size: 14px;
   line-height: 1.7;
   white-space: pre-wrap;
+  font-family: var(--font-body, serif);
 }
 
-/* ─── 响应式 ─── */
+/* ─── 海报上传组件 (Bugatti 极简风格) ─── */
+.poster-upload {
+  :global(.ant-upload) {
+    background: transparent;
+    border: 1px dashed var(--color-hairline-strong, #3a3a3a);
+    border-radius: var(--rounded-none, 0px);
+    width: 100%;
+    height: 120px;
+
+    &:hover {
+      border-color: var(--color-primary, #ffffff);
+      background: rgba(255, 255, 255, 0.02);
+    }
+  }
+
+  :global(.ant-upload-select-picture-card) {
+    background: transparent !important;
+    border: 1px dashed var(--color-hairline-strong, #3a3a3a) !important;
+    border-radius: var(--rounded-none, 0px) !important;
+    width: 100% !important;
+    height: 120px !important;
+
+    &:hover {
+      border-color: var(--color-primary, #ffffff) !important;
+      background: rgba(255, 255, 255, 0.02) !important;
+    }
+  }
+
+  :global(.ant-upload-list-picture-card-container) {
+    background: transparent;
+    border-radius: var(--rounded-none, 0px);
+
+    :global(.ant-upload-list-item) {
+      background: var(--color-surface-card, #141414);
+      border: 1px solid var(--color-hairline, #262626);
+      border-radius: var(--rounded-none, 0px);
+      padding: 4px;
+
+      :global(.ant-upload-list-item-info::before) {
+        background: transparent !important;
+      }
+
+      :global(.ant-upload-list-item-actions) {
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+      }
+    }
+
+    :global(.ant-upload-list-item-image) {
+      object-fit: cover;
+      border-radius: 0;
+    }
+
+    :global(.anticon-delete),
+    :global(.anticon-eye) {
+      color: var(--color-primary, #ffffff) !important;
+
+      &:hover {
+        color: var(--color-body, #cccccc) !important;
+      }
+    }
+  }
+}
+
+.upload-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--color-muted, #999999);
+  font-size: 13px;
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+
+  .anticon {
+    font-size: 20px;
+    opacity: 0.5;
+  }
+}
+
+/* ─── 表格海报缩略图 ─── */
+.poster-thumb {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: var(--rounded-none, 0px);
+  border: 1px solid var(--color-hairline, #262626);
+
+  img,
+  :global(.ant-image-img) {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+  }
+
+  &:hover {
+    border-color: var(--color-primary, #ffffff);
+
+    .poster-thumb-icon {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.poster-thumb-icon {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 2px 4px;
+  font-size: 9px;
+  color: var(--color-primary, #ffffff);
+  background: rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+/* ─── 详情弹窗海报区域 ─── */
+.detail-poster-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-poster-wrapper {
+  overflow: hidden;
+  border-radius: var(--rounded-none, 0px);
+  background: var(--color-surface-soft, #0d0d0d);
+  border: 1px solid var(--color-hairline, #262626);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  max-height: 280px;
+
+  :global(.ant-image) {
+    max-width: 100%;
+    max-height: 260px;
+  }
+
+  :global(.ant-image-img) {
+    object-fit: contain;
+  }
+}
 @media (max-width: 768px) {
   .mgt-page-header {
     flex-direction: column;
@@ -632,7 +852,6 @@
 
   .mgt-page-actions {
     flex-direction: column;
-    align-items: stretch;
 
     :global(.ant-btn) {
       width: 100%;

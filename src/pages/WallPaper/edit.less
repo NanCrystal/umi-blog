@@ -1,3 +1,7 @@
+/* ============================================================
+   WallPaper Edit - Bugatti 极简黑色主题
+   ============================================================ */
+
 .add-page {
   min-height: calc(100vh - 120px);
   background: transparent;
@@ -9,16 +13,14 @@
   box-sizing: border-box;
 }
 
-/* 编辑主容器：透明毛玻璃卡片 */
+/* 编辑主容器 */
 .editor-container {
   max-width: 740px;
   width: 100%;
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 32px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(14px);
+  background: #141414;
+  border-radius: 0px;
+  border: 1px solid #262626;
   padding: 36px 40px 28px;
   flex: 1;
   box-sizing: border-box;
@@ -29,46 +31,47 @@
   width: 100%;
   background: transparent !important;
   border: none !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-bottom: 1px solid #262626 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
   font-size: 22px !important;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 400;
+  color: #ffffff !important;
   padding: 0 0 12px !important;
   margin-bottom: 32px;
   outline: none;
   transition: border-color 0.2s;
 
   &:focus {
-    border-bottom-color: rgba(255, 255, 255, 0.45) !important;
+    border-bottom-color: #666666 !important;
   }
   &::placeholder {
-    color: rgba(255, 255, 255, 0.25) !important;
+    color: #999999 !important;
   }
   :global(.ant-input) {
     background: transparent !important;
-    color: rgba(255, 255, 255, 0.9) !important;
+    color: #ffffff !important;
     font-size: 22px;
   }
 }
 
 /* 上传区域通用 */
 .upload-btn-content {
-  color: rgba(255, 255, 255, 0.4);
+  color: #999999;
   transition: color 0.2s;
 }
 
-:global(.ant-upload-list-picture-card-container),
-:global(.ant-upload.ant-upload-select-picture-card) {
+::global(.ant-upload-list-picture-card-container),
+::global(.ant-upload.ant-upload-select-picture-card) {
   background-color: transparent !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
+  border-color: #262626 !important;
+  border-radius: 0px !important;
 }
 
-:global(.ant-upload.ant-upload-select-picture-card:hover) {
-  border-color: rgba(255, 255, 255, 0.5) !important;
+::global(.ant-upload.ant-upload-select-picture-card:hover) {
+  border-color: #666666 !important;
   .upload-btn-content {
-    color: rgba(255, 255, 255, 0.7);
+    color: #cccccc;
   }
 }
 
@@ -94,7 +97,7 @@
 
 /* 分割线 */
 .divider {
-  border-top-color: rgba(255, 255, 255, 0.1) !important;
+  border-top-color: #262626 !important;
   margin: 32px 0 !important;
 }
 
@@ -127,7 +130,7 @@
   width: 100%;
   height: 100%;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: 0px;
   overflow: hidden;
   cursor: pointer;
 
@@ -147,7 +150,7 @@
     background: rgba(0, 0, 0, 0.5);
     opacity: 0;
     transition: opacity 0.2s;
-    border-radius: 8px;
+    border-radius: 0px;
   }
 
   &:hover &-overlay {
@@ -155,9 +158,10 @@
   }
 
   &-action {
-    color: #fff;
+    color: #ffffff;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 400;
+    font-family: var(--font-mono), monospace;
   }
 
   &-remove {
@@ -165,12 +169,12 @@
     top: 4px;
     right: 4px;
     font-size: 16px;
-    color: rgba(255, 255, 255, 0.7);
+    color: #cccccc;
     z-index: 2;
     transition: color 0.2s;
 
     &:hover {
-      color: #ff4d4f;
+      color: #ff8f8f;
     }
   }
 }
@@ -189,42 +193,41 @@
 /* 取消按钮 */
 .cancel-btn {
   background: transparent !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 6px;
+  border: 1px solid #ffffff !important;
+  border-radius: 9999px !important;
   height: 36px;
   padding: 0 20px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.5) !important;
-  backdrop-filter: blur(8px);
+  color: #ffffff !important;
+  font-family: var(--font-mono), monospace;
   transition: background 0.2s, color 0.2s;
 
   &:hover {
     background: rgba(255, 255, 255, 0.08) !important;
-    border-color: rgba(255, 255, 255, 0.35) !important;
-    color: rgba(255, 255, 255, 0.75) !important;
+    border-color: #cccccc !important;
+    color: #cccccc !important;
   }
 }
 
 /* 发表按钮 */
 .publish-btn {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  border-radius: 6px;
+  background: transparent !important;
+  border: 1px solid #ffffff !important;
+  border-radius: 9999px !important;
   height: 36px;
   padding: 0 24px;
   font-size: 14px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.85) !important;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 0 16px rgba(255, 255, 255, 0.06);
-  transition: background 0.2s, box-shadow 0.2s;
+  font-weight: 400;
+  color: #ffffff !important;
+  font-family: var(--font-mono), monospace;
+  transition: background 0.2s;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.18) !important;
-    border-color: rgba(255, 255, 255, 0.4) !important;
-    color: #fff !important;
-    box-shadow: 0 0 24px rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: #cccccc !important;
+    color: #ffffff !important;
   }
+
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
@@ -239,7 +242,7 @@
 
   .editor-container {
     padding: 24px 20px 20px;
-    border-radius: 8px;
+    border-radius: 0px;
   }
 
   .title-input {

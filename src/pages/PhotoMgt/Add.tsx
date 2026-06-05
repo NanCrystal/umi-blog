@@ -21,12 +21,16 @@ import type { UploadFile } from 'antd/es/upload/interface';
 import moment from 'moment';
 import { uploadImageFull, uploadZip } from '@/services/upload';
 import { getArtistList } from '@/services/artist';
-import { getPhotoTypes, getPhotoLocations } from '@/services/photoTag';
+import {
+  getPhotoTypes,
+  getPhotoLocations,
+  getPhotoPlatforms,
+} from '@/services/photoTag';
 import { getItineraryList } from '@/services/itinerary';
 import { createPhoto, batchCreatePhotos } from '@/services/photo';
 import styles from './Add.less';
 import ClosableImage from '@/component/ClosableImage';
-import { getImageUrl } from '@/utils/utils';
+import { getImageUrl, formatFileSize } from '@/utils/utils';
 
 const { Dragger } = Upload;
 const { TextArea } = Input;
@@ -82,6 +86,7 @@ const AddPhotoComponent: React.FC = () => {
   const [artists, setArtists] = useState<any[]>([]);
   const [photoTypes, setPhotoTypes] = useState<any[]>([]);
   const [photoLocations, setPhotoLocations] = useState<any[]>([]);
+  const [photoPlatforms, setPhotoPlatforms] = useState<any[]>([]);
   const [itineraries, setItineraries] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -89,6 +94,7 @@ const AddPhotoComponent: React.FC = () => {
   const [singleFileList, setSingleFileList] = useState<UploadFile[]>([]);
   const [singleUploaded, setSingleUploaded] = useState(false);
   const [singleFileUrl, setSingleFileUrl] = useState('');
+  const [singleFileSize, setSingleFileSize] = useState(0);
   const [singleSubmitLoading, setSingleSubmitLoading] = useState(false);
 
   // 批量上传
@@ -104,9 +110,10 @@ const AddPhotoComponent: React.FC = () => {
       getArtistList().catch(() => []),
       getPhotoTypes().catch(() => []),
       getPhotoLocations().catch(() => []),
+      getPhotoPlatforms().catch(() => []),
       getItineraryList({ pageSize: 999 }).catch(() => ({ list: [] })),
     ])
-      .then(([artistsRes, typesRes, locsRes, itineraryRes]) => {
+      .then(([artistsRes, typesRes, locsRes, platformsRes, itineraryRes]) => {
         setArtists(
           Array.isArray(artistsRes)
             ? artistsRes.map((a: any) => ({
@@ -117,6 +124,7 @@ const AddPhotoComponent: React.FC = () => {
         );
         setPhotoTypes(Array.isArray(typesRes) ? typesRes : []);
         setPhotoLocations(Array.isArray(locsRes) ? locsRes : []);
+        setPhotoPlatforms(Array.isArray(platformsRes) ? platformsRes : []);
         setItineraries(
           (itineraryRes as any)?.list ||
             (Array.isArray(itineraryRes) ? itineraryRes : []),
@@ -136,6 +144,7 @@ const AddPhotoComponent: React.FC = () => {
       }
       setSingleUploaded(true);
       setSingleFileUrl(res.url);
+      setSingleFileSize((file as File).size);
 
       // 自动回填文件名称（去掉扩展名）
       const fileName = (file as File).name.replace(/\.[^.]+$/, '');
@@ -162,6 +171,7 @@ const AddPhotoComponent: React.FC = () => {
     if (info.file.status === 'removed') {
       setSingleUploaded(false);
       setSingleFileUrl('');
+      setSingleFileSize(0);
       singleForm.setFieldsValue({ fileName: '', shootDate: undefined });
     }
   };
@@ -177,10 +187,12 @@ const AddPhotoComponent: React.FC = () => {
       await createPhoto({
         fileName: values.fileName,
         url: singleFileUrl,
+        size: singleFileSize || undefined,
         artistId: values.artistId,
-        shootDate: values.shootDate.format('YYYY-MM-DD HH:mm:ss'),
+        shootDate: values.shootDate.format('YYYY-MM-DD'),
         photoTypeId: values.photoTypeId,
         photoLocationId: values.photoLocationId,
+        photoPlatformId: values.photoPlatformId,
         itineraryId: values.itineraryId,
         description: values.description,
       });
@@ -210,9 +222,10 @@ const AddPhotoComponent: React.FC = () => {
       setBatchFileName(fileName);
       batchForm.setFieldsValue({ batchFileName: fileName });
       onSuccess({ url: res.url }, file);
-    } catch {
-      message.error('压缩包上传失败');
-      onError(new Error('上传失败'));
+    } catch (e: any) {
+      const errMsg = e?.message || '上传失败';
+      message.error(errMsg);
+      onError(new Error(errMsg));
     }
   };
 
@@ -250,10 +263,11 @@ const AddPhotoComponent: React.FC = () => {
         {
           artistId: values.artistId,
           shootDate: values.shootDate
-            ? values.shootDate.format('YYYY-MM-DD HH:mm:ss')
+            ? values.shootDate.format('YYYY-MM-DD')
             : undefined,
           photoTypeId: values.photoTypeId,
           photoLocationId: values.photoLocationId,
+          photoPlatformId: values.photoPlatformId,
           description: values.description,
           fileUrl: batchFileUrl,
         },
@@ -274,6 +288,7 @@ const AddPhotoComponent: React.FC = () => {
     setSingleFileList([]);
     setSingleUploaded(false);
     setSingleFileUrl('');
+    setSingleFileSize(0);
     singleForm.setFieldsValue({
       fileName: '',
       shootDate: undefined,
@@ -317,10 +332,23 @@ const AddPhotoComponent: React.FC = () => {
                   className={styles['upload-item']}
                 >
                   {singleUploaded && singleFileUrl ? (
-                    <ClosableImage
-                      url={getImageUrl(singleFileUrl)}
-                      onRemove={handleRemoveImage}
-                    />
+                    <>
+                      <ClosableImage
+                        url={getImageUrl(singleFileUrl)}
+                        onRemove={handleRemoveImage}
+                      />
+                      {singleFileSize > 0 && (
+                        <div
+                          style={{
+                            marginTop: 8,
+                            fontSize: 12,
+                            color: 'rgba(255,255,255,0.45)',
+                          }}
+                        >
+                          文件大小：{formatFileSize(singleFileSize)}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <Dragger
                       accept=".jpg,.jpeg,.png"
@@ -382,8 +410,7 @@ const AddPhotoComponent: React.FC = () => {
                   extra="上传图片后默认自动获取拍摄时间，选择后将统一修改拍摄时间"
                 >
                   <DatePicker
-                    showTime
-                    format="YYYY-MM-DD HH:mm:ss"
+                    format="YYYY-MM-DD"
                     style={{ width: '100%' }}
                     placeholder="选择拍摄日期"
                   />
@@ -414,6 +441,21 @@ const AddPhotoComponent: React.FC = () => {
                     {photoLocations.map((l) => (
                       <Option key={l.id} value={l.id}>
                         {l.name}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+
+                {/* 6.5 发布平台（不必填） */}
+                <Form.Item name="photoPlatformId" label="发布平台">
+                  <Select
+                    placeholder="请选择发布平台"
+                    allowClear
+                    loading={loading}
+                  >
+                    {photoPlatforms.map((p) => (
+                      <Option key={p.id} value={p.id}>
+                        {p.name}
                       </Option>
                     ))}
                   </Select>
@@ -545,19 +587,14 @@ const AddPhotoComponent: React.FC = () => {
                 {/* 3. 拍摄日期（不必填） */}
                 <Form.Item name="shootDate" label="拍摄日期">
                   <DatePicker
-                    showTime
-                    format="YYYY-MM-DD HH:mm:ss"
+                    format="YYYY-MM-DD"
                     style={{ width: '100%' }}
                     placeholder="选择拍摄日期（可选）"
                   />
                 </Form.Item>
 
                 {/* 4. 照片类型（必填） */}
-                <Form.Item
-                  name="photoTypeId"
-                  label="照片类型"
-                  rules={[{ required: true, message: '请选择照片类型' }]}
-                >
+                <Form.Item name="photoTypeId" label="照片类型">
                   <Select placeholder="请选择照片类型" loading={loading}>
                     {photoTypes.map((t) => (
                       <Option key={t.id} value={t.id}>
@@ -577,6 +614,21 @@ const AddPhotoComponent: React.FC = () => {
                     {photoLocations.map((l) => (
                       <Option key={l.id} value={l.id}>
                         {l.name}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+
+                {/* 5.5 发布平台（不必填） */}
+                <Form.Item name="photoPlatformId" label="发布平台">
+                  <Select
+                    placeholder="请选择发布平台"
+                    allowClear
+                    loading={loading}
+                  >
+                    {photoPlatforms.map((p) => (
+                      <Option key={p.id} value={p.id}>
+                        {p.name}
                       </Option>
                     ))}
                   </Select>

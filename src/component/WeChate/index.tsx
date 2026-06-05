@@ -108,7 +108,16 @@ const WeChateComponent: React.FC<any> = ({ item }) => {
 
   return (
     <>
-      <Button type="link" onClick={() => handleOpen(item)}>
+      <Button
+        type="link"
+        onClick={() => handleOpen(item)}
+        style={{
+          color: '#c3d9f3',
+          fontFamily: "'JetBrains Mono', monospace",
+          letterSpacing: '2px',
+          fontWeight: 400,
+        }}
+      >
         微信
       </Button>
       <Modal
@@ -116,16 +125,38 @@ const WeChateComponent: React.FC<any> = ({ item }) => {
         title="同步到微信公众号"
         footer={null}
         onCancel={handleClose}
+        wrapClassName="wechate-bugatti-modal"
       >
-        <div>
-          <div style={{ fontWeight: 600, marginBottom: 12 }}>
+        <div
+          style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            color: '#cccccc',
+            fontWeight: 400,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "'Saira Condensed', sans-serif",
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+              fontWeight: 400,
+              marginBottom: 12,
+              color: '#ffffff',
+            }}
+          >
             {currentItem
               ? `为「${currentItem.title}」选择同步方式`
               : '请选择同步方式'}
           </div>
           {!mode ? (
             <>
-              <div style={{ color: '#666', marginBottom: 16 }}>
+              <div
+                style={{
+                  color: '#999999',
+                  marginBottom: 16,
+                  lineHeight: 1.7,
+                }}
+              >
                 选择「发布草稿」将立即同步到公众号草稿箱；选择「定时发表」将在指定日期
                 09:00 自动提交正式群发。
               </div>
@@ -134,16 +165,42 @@ const WeChateComponent: React.FC<any> = ({ item }) => {
                   style={{
                     flex: 1,
                     padding: 16,
-                    border: '1px solid #e8e8e8',
-                    borderRadius: 8,
+                    border: '1px solid #262626',
+                    borderRadius: 0,
                     cursor: 'pointer',
                     textAlign: 'center',
+                    background: '#141414',
+                    transition: 'all 0.2s ease',
                   }}
                   onClick={() => setMode('draft')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#999999';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#262626';
+                  }}
                 >
                   <div style={{ fontSize: 24 }}>📝</div>
-                  <div style={{ fontWeight: 600, marginTop: 4 }}>发布草稿</div>
-                  <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      textTransform: 'uppercase',
+                      letterSpacing: '2px',
+                      fontWeight: 400,
+                      marginTop: 4,
+                      color: '#ffffff',
+                    }}
+                  >
+                    发布草稿
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: '#999999',
+                      marginTop: 4,
+                      fontFamily: "'Cormorant Garamond', serif",
+                    }}
+                  >
                     立即同步到公众号草稿箱
                   </div>
                 </div>
@@ -151,16 +208,42 @@ const WeChateComponent: React.FC<any> = ({ item }) => {
                   style={{
                     flex: 1,
                     padding: 16,
-                    border: '1px solid #e8e8e8',
-                    borderRadius: 8,
+                    border: '1px solid #262626',
+                    borderRadius: 0,
                     cursor: 'pointer',
                     textAlign: 'center',
+                    background: '#141414',
+                    transition: 'all 0.2s ease',
                   }}
                   onClick={() => setMode('publish')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#999999';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#262626';
+                  }}
                 >
                   <div style={{ fontSize: 24 }}>📅</div>
-                  <div style={{ fontWeight: 600, marginTop: 4 }}>定时发表</div>
-                  <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      textTransform: 'uppercase',
+                      letterSpacing: '2px',
+                      fontWeight: 400,
+                      marginTop: 4,
+                      color: '#ffffff',
+                    }}
+                  >
+                    定时发表
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: '#999999',
+                      marginTop: 4,
+                      fontFamily: "'Cormorant Garamond', serif",
+                    }}
+                  >
                     选择日期后定时正式群发
                   </div>
                 </div>
@@ -168,20 +251,48 @@ const WeChateComponent: React.FC<any> = ({ item }) => {
             </>
           ) : mode === 'draft' ? (
             <div>
-              <div style={{ marginBottom: 16 }}>
+              <div
+                style={{
+                  marginBottom: 16,
+                  lineHeight: 1.7,
+                }}
+              >
                 将「{currentItem?.title}
                 」同步到微信公众号草稿箱，同步后可在公众号后台编辑和手动发布。
               </div>
               <div
                 style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}
               >
-                <Button onClick={() => setMode(null)} disabled={submitting}>
+                <Button
+                  onClick={() => setMode(null)}
+                  disabled={submitting}
+                  style={{
+                    borderRadius: 9999,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    textTransform: 'uppercase',
+                    letterSpacing: '2px',
+                    fontWeight: 400,
+                    background: 'transparent',
+                    borderColor: '#262626',
+                    color: '#cccccc',
+                  }}
+                >
                   返回选择
                 </Button>
                 <Button
                   type="primary"
                   loading={submitting}
                   onClick={handleDraftSync}
+                  style={{
+                    borderRadius: 9999,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    textTransform: 'uppercase',
+                    letterSpacing: '2px',
+                    fontWeight: 400,
+                    background: 'transparent',
+                    borderColor: '#c3d9f3',
+                    color: '#c3d9f3',
+                  }}
                 >
                   确认发布草稿
                 </Button>
@@ -189,30 +300,78 @@ const WeChateComponent: React.FC<any> = ({ item }) => {
             </div>
           ) : (
             <div>
-              <div style={{ marginBottom: 12 }}>选择正式群发日期</div>
+              <div
+                style={{
+                  marginBottom: 12,
+                  fontFamily: "'Saira Condensed', sans-serif",
+                  textTransform: 'uppercase',
+                  letterSpacing: '2px',
+                  color: '#ffffff',
+                }}
+              >
+                选择正式群发日期
+              </div>
               <DatePicker
                 placeholder="请选择"
-                style={{ width: '100%', marginBottom: 12 }}
+                style={{
+                  width: '100%',
+                  marginBottom: 12,
+                  borderRadius: 0,
+                  background: '#141414',
+                  borderColor: '#262626',
+                  color: '#cccccc',
+                }}
                 value={publishDate}
                 disabledDate={(current) =>
                   current && current < moment().startOf('day')
                 }
                 onChange={(val) => setPublishDate(val)}
               />
-              <div style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: '#999999',
+                  marginBottom: 16,
+                  fontFamily: "'Cormorant Garamond', serif",
+                  lineHeight: 1.7,
+                }}
+              >
                 将在所选日期的 09:00
                 自动发起正式群发，同一天只允许创建一条公众号发布计划。
               </div>
               <div
                 style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}
               >
-                <Button onClick={() => setMode(null)} disabled={submitting}>
+                <Button
+                  onClick={() => setMode(null)}
+                  disabled={submitting}
+                  style={{
+                    borderRadius: 9999,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    textTransform: 'uppercase',
+                    letterSpacing: '2px',
+                    fontWeight: 400,
+                    background: 'transparent',
+                    borderColor: '#262626',
+                    color: '#cccccc',
+                  }}
+                >
                   返回选择
                 </Button>
                 <Button
                   type="primary"
                   loading={submitting}
                   onClick={handlePublishSync}
+                  style={{
+                    borderRadius: 9999,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    textTransform: 'uppercase',
+                    letterSpacing: '2px',
+                    fontWeight: 400,
+                    background: 'transparent',
+                    borderColor: '#c3d9f3',
+                    color: '#c3d9f3',
+                  }}
                 >
                   确认定时发表
                 </Button>
@@ -221,6 +380,35 @@ const WeChateComponent: React.FC<any> = ({ item }) => {
           )}
         </div>
       </Modal>
+
+      <style>{`
+        .wechate-bugatti-modal .ant-modal-content {
+          background: #000000 !important;
+          border: 1px solid #262626 !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+          backdrop-filter: none !important;
+        }
+        .wechate-bugatti-modal .ant-modal-header {
+          background: transparent !important;
+          border-bottom: 1px solid #262626 !important;
+          border-radius: 0 !important;
+        }
+        .wechate-bugatti-modal .ant-modal-title {
+          color: #ffffff !important;
+          font-family: 'Saira Condensed', sans-serif !important;
+          text-transform: uppercase !important;
+          letter-spacing: 2px !important;
+          font-weight: 400 !important;
+        }
+        .wechate-bugatti-modal .ant-modal-close-x,
+        .wechate-bugatti-modal .ant-modal-close {
+          color: #999999 !important;
+        }
+        .wechate-bugatti-modal .ant-modal-body {
+          color: #cccccc !important;
+        }
+      `}</style>
     </>
   );
 };

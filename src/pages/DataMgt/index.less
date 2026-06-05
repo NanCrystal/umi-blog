@@ -1,59 +1,107 @@
-.data-mgt-page {
-  padding-bottom: 40px;
+/* ═══════════════════════════════════════════════════════════════
+   DataMgt — Bugatti Minimal Black Theme
+   Canvas: #000000 | Surface: #141414 | Hairline: #262626
+   Font: Saira Condensed (display) / Cormorant Garamond (body) / JetBrains Mono (UI)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── CSS Variables (Bugatti Tokens) ─── */
+:root {
+  --canvas-black: #000000;
+  --surface-card: #141414;
+  --hairline: #262626;
+  --hairline-strong: #3a3a3a;
+  --text-primary: #ffffff;
+  --text-body: #cccccc;
+  --text-secondary: #999999;
+  --text-muted: #666666;
+  --link-color: #c3d9f3;
+
+  /* Spacing */
+  --sp-xxs: 4px;
+  --sp-xs: 8px;
+  --sp-sm: 12px;
+  --sp-md: 16px;
+  --sp-lg: 18px;
+  --sp-xl: 24px;
+  --sp-xxl: 32px;
+  --sp-huge: 48px;
 }
 
-/* ─── 页面标题 ─── */
+.data-mgt-page {
+  padding-bottom: var(--sp-huge);
+  font-family: 'Cormorant Garamond', serif;
+  background: var(--canvas-black);
+  min-height: 100%;
+  color: var(--text-primary);
+}
+
+/* ─── Page Header ─── */
 .page-header {
-  margin-bottom: 24px;
+  margin-bottom: var(--sp-xl);
+  padding: var(--sp-xxl) var(--sp-xl) var(--sp-lg);
+  border-bottom: 1px solid var(--hairline);
 
   h1 {
-    color: rgba(255, 255, 255, 0.92);
-    font-size: 24px;
-    font-weight: 700;
-    margin: 0 0 6px;
-    letter-spacing: 0.5px;
+    color: var(--text-primary);
+    font-family: 'Saira Condensed', sans-serif;
+    font-size: 48px;
+    font-weight: 400;
+    margin: 0 0 var(--sp-xs);
+    letter-spacing: 3px;
+    line-height: 1.25;
+    text-transform: uppercase;
   }
 
   .page-subtitle {
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--text-secondary);
     font-size: 13px;
+    letter-spacing: 0.5px;
+    font-weight: 400;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
-/* ─── 核心统计卡片 ─── */
+/* ─── Core Stats Cards ─── */
 .core-stats-row {
+  padding: 0 var(--sp-xs);
+
   .stat-card {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 12px;
-    transition: all 0.3s ease;
+    background: var(--surface-card);
+    border: 1px solid var(--hairline);
+    border-radius: 0;
+    transition: border-color 0.25s ease;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.07);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      border-color: var(--text-muted);
     }
 
     :global(.ant-card-body) {
-      padding: 16px 20px;
+      padding: var(--lg) var(--sp-md);
       display: flex;
       align-items: center;
-      gap: 12px;
-      min-width: 0; /* 允许 flex 子项收缩 */
+      gap: var(--sp-md);
+      min-width: 0;
       overflow: hidden;
     }
   }
 
   .stat-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.06);
+    width: 46px;
+    height: 46px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 20px;
     flex-shrink: 0;
+    transition: transform 0.25s ease;
+    color: var(--text-primary);
+    background: var(--text-primary);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    padding: 3px;
+    opacity: 0.15;
   }
 
   .stat-info {
@@ -63,65 +111,98 @@
   }
 
   .stat-title {
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--text-secondary);
     font-size: 12px;
-    margin-bottom: 2px;
+    margin-bottom: var(--sp-xxs);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
   }
 
   .stat-value {
-    color: #fff;
-    font-size: 22px;
-    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 23px;
+    font-weight: 400;
     line-height: 1.2;
     white-space: nowrap;
+    letter-spacing: 1px;
+    font-family: 'Saira Condensed', sans-serif;
   }
 }
 
-/* ─── 图表卡片通用 ─── */
+/* Override Ant Design Statistic inside stat cards */
+.core-stats-row :global(.ant-statistic) {
+  .ant-statistic-content {
+    color: var(--text-primary) !important;
+    font-size: 23px !important;
+    font-weight: 400 !important;
+  }
+
+  .ant-statistic-content-suffix {
+    color: var(--text-secondary) !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+  }
+}
+
+/* ─── Chart Cards ─── */
 .chart-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: 0;
+  transition: border-color 0.25s ease;
+
+  &:hover {
+    border-color: var(--text-muted);
+  }
 
   :global(.ant-card-head) {
     background: transparent;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.75);
+    border-bottom: 1px solid var(--hairline);
+    color: var(--text-primary);
+    font-family: 'Saira Condensed', sans-serif;
     font-size: 14px;
-    font-weight: 600;
-    padding: 16px 20px;
-    min-height: 52px;
+    font-weight: 400;
+    padding: var(--sp-md) var(--sp-xl) var(--sp-sm);
+    min-height: auto;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+
+    .ant-card-head-title {
+      padding: 0;
+    }
   }
 
   :global(.ant-card-body) {
-    padding: 20px;
+    padding: var(--sp-xl);
   }
 }
 
-/* ─── Mini 条形图 ─── */
+/* ─── Mini Bar Chart ─── */
 .mini-bar-chart {
   display: flex;
   align-items: flex-end;
   justify-content: space-around;
-  height: 160px;
-  padding: 0 8px;
+  height: 170px;
+  padding: 0 var(--sp-xxs);
 
   .bar-item {
     display: flex;
     flex-direction: column;
     align-items: center;
     flex: 1;
-    gap: 8px;
+    gap: 10px;
   }
 
   .bar-track {
-    width: 28px;
-    height: 120px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
+    width: 30px;
+    height: 130px;
+    background: var(--hairline);
+    border-radius: 0;
     position: relative;
     overflow: hidden;
   }
@@ -131,21 +212,24 @@
     bottom: 0;
     left: 0;
     right: 0;
-    border-radius: 6px;
-    transition: height 0.8s ease;
+    border-radius: 0;
+    transition: height 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    background: var(--text-primary);
   }
 
   .bar-label {
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--text-muted);
     font-size: 12px;
+    font-weight: 400;
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
-/* ─── 排行列表 ─── */
+/* ─── Rank List ─── */
 .rank-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--sp-md);
 
   .rank-item {
     display: flex;
@@ -154,51 +238,58 @@
   }
 
   .rank-num {
-    width: 22px;
-    font-size: 13px;
-    font-weight: 700;
+    width: 24px;
+    font-size: 14px;
+    font-weight: 400;
     text-align: center;
     flex-shrink: 0;
+    font-family: 'Saira Condensed', sans-serif;
+    color: var(--text-primary);
   }
 
   .rank-title {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--text-primary);
     font-size: 13px;
     width: 80px;
     flex-shrink: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 400;
+    font-family: 'Cormorant Garamond', serif;
   }
 
   .rank-track {
     flex: 1;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 3px;
+    height: 8px;
+    background: var(--hairline);
+    border-radius: 0;
     overflow: hidden;
   }
 
   .rank-fill {
     height: 100%;
-    border-radius: 3px;
-    transition: width 0.8s ease;
+    border-radius: 0;
+    transition: width 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    background: var(--text-primary);
   }
 
   .rank-value {
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--text-secondary);
     font-size: 12px;
     width: 56px;
     text-align: right;
     flex-shrink: 0;
+    font-weight: 400;
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
-/* ─── 环形图 ─── */
+/* ─── Donut Chart ─── */
 .donut-chart-wrap {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: var(--sp-xl);
   flex-wrap: wrap;
   justify-content: center;
 
@@ -210,39 +301,41 @@
   .donut-legend {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 9px;
   }
 
   .legend-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
+    gap: var(--sp-sm);
+    font-size: 13px;
   }
 
   .legend-dot {
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     flex-shrink: 0;
   }
 
   .legend-name {
-    color: rgba(255, 255, 255, 0.6);
-    width: 56px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    font-family: 'Cormorant Garamond', serif;
   }
 
   .legend-value {
-    color: rgba(255, 255, 255, 0.85);
-    font-weight: 600;
+    color: var(--text-primary);
+    font-weight: 400;
+    font-family: 'Saira Condensed', sans-serif;
   }
 }
 
-/* ─── 横向条形图 ─── */
+/* ─── Horizontal Bar Chart ─── */
 .hbar-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 11px;
 
   .hbar-item {
     display: flex;
@@ -251,36 +344,41 @@
   }
 
   .hbar-name {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 12px;
+    color: var(--text-secondary);
+    font-size: 13px;
     width: 60px;
     flex-shrink: 0;
+    font-weight: 400;
+    font-family: 'Cormorant Garamond', serif;
   }
 
   .hbar-track {
     flex: 1;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
+    height: 9px;
+    background: var(--hairline);
+    border-radius: 0;
     overflow: hidden;
   }
 
   .hbar-fill {
     height: 100%;
-    border-radius: 4px;
-    transition: width 0.8s ease;
+    border-radius: 0;
+    transition: width 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    background: var(--text-primary);
   }
 
   .hbar-value {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-secondary);
     font-size: 12px;
     width: 36px;
     text-align: right;
     flex-shrink: 0;
+    font-weight: 400;
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
-/* ─── 标签云 ─── */
+/* ─── Tag Cloud ─── */
 .tag-cloud {
   display: flex;
   flex-wrap: wrap;
@@ -288,31 +386,48 @@
   align-items: center;
   justify-content: center;
   min-height: 120px;
-  padding: 8px;
+  padding: var(--sp-sm);
 
   .tag-cloud-item {
-    color: rgba(255, 255, 255, 0.8);
-    font-weight: 600;
+    color: var(--text-primary);
+    border: 1px solid var(--hairline);
+    padding: 4px 16px;
+    border-radius: 9999px;
+    font-weight: 400;
     cursor: default;
-    transition: transform 0.2s;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
 
     &:hover {
-      transform: scale(1.1);
+      border-color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     sup {
       font-size: 10px;
-      color: rgba(255, 255, 255, 0.4);
+      color: inherit;
+      opacity: 0.5;
       margin-left: 2px;
       font-weight: 400;
     }
   }
 }
 
-/* ─── 动态时间线 ─── */
+/* ─── Activity Timeline ─── */
 .activity-timeline {
   :global(.ant-timeline-item-tail) {
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 1px solid var(--hairline);
+  }
+
+  :global(.ant-timeline-item-dot) {
+    width: 8px;
+    height: 8px;
+    left: 0;
+    background: var(--text-primary);
+    border: 2px solid var(--hairline);
   }
 
   .activity-item {
@@ -322,16 +437,26 @@
   }
 
   .activity-content {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--text-primary);
     font-size: 13px;
+    font-weight: 400;
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  :global(.ant-badge-status-text) {
+    color: var(--text-secondary);
+    font-size: 12px;
+    opacity: 0.7;
   }
 }
 
-/* ─── 模块 Tabs ─── */
+/* ─── Module Tabs Card ─── */
 .module-tabs-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: 0;
+  overflow: hidden;
+  margin-top: var(--sp-md);
 
   :global(.ant-card-body) {
     padding: 0;
@@ -340,47 +465,59 @@
 
 .dark-tabs {
   :global(.ant-tabs-nav) {
-    padding: 0 20px;
+    padding: 0 var(--sp-xl);
     margin-bottom: 0;
+    background: var(--canvas-black);
 
     &::before {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid var(--hairline);
     }
   }
 
   :global(.ant-tabs-tab) {
-    color: rgba(255, 255, 255, 0.45);
-    font-size: 14px;
-    padding: 14px 16px;
-    transition: color 0.2s;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 400;
+    padding: var(--sp-md) var(--sp-lg);
+    transition: all 0.2s ease;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
 
     &:hover {
-      color: rgba(255, 255, 255, 0.75);
+      color: var(--text-body);
     }
   }
 
   :global(.ant-tabs-tab-active) {
-    color: #4fc3f7 !important;
+    color: var(--text-primary) !important;
+
+    .ant-tabs-tab-btn {
+      color: var(--text-primary) !important;
+    }
   }
 
   :global(.ant-tabs-ink-bar) {
-    background: #4fc3f7;
+    background: var(--text-primary);
+    height: 2px;
+    border-radius: 0;
   }
 
   :global(.ant-tabs-content) {
-    padding: 20px;
+    padding: var(--sp-xl);
+    background: var(--surface-card);
   }
 }
 
-/* ─── 模块详情面板 ─── */
+/* ─── Module Panel ─── */
 .module-panel {
-  animation: fadeIn 0.3s ease;
+  animation: fadeInUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-@keyframes fadeIn {
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -389,108 +526,148 @@
 }
 
 .module-stat-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
+  background: var(--canvas-black);
+  border: 1px solid var(--hairline);
+  border-radius: 0;
   text-align: center;
-  transition: all 0.3s ease;
+  transition: border-color 0.25s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.07);
+    border-color: var(--text-muted);
   }
 
   :global(.ant-card-body) {
-    padding: 16px 12px;
+    padding: var(--lg) var(--sp-sm);
   }
 
   .module-stat-icon {
-    font-size: 20px;
-    color: rgba(255, 255, 255, 0.35);
-    margin-bottom: 8px;
+    font-size: 22px;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    opacity: 0.6;
   }
 
   .module-stat-value {
-    color: #fff;
-    font-size: 22px;
-    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 24px;
+    font-weight: 400;
     line-height: 1.2;
-    margin-bottom: 4px;
+    margin-bottom: var(--sp-xxs);
+    letter-spacing: 1px;
+    font-family: 'Saira Condensed', sans-serif;
   }
 
   .module-stat-label {
-    color: rgba(255, 255, 255, 0.45);
-    font-size: 12px;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
-/* ─── CTR 圆形 ─── */
+/* ─── CTR Circle ─── */
 .ctr-circle {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 12px 0;
+  padding: 14px 0;
 
   :global(.ant-progress-circle-trail) {
-    stroke: rgba(255, 255, 255, 0.08);
+    stroke: var(--hairline);
+  }
+
+  :global(.ant-progress-circle-path) {
+    stroke: var(--text-primary);
   }
 
   .ctr-label {
-    color: rgba(255, 255, 255, 0.55);
-    font-size: 13px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
-/* ─── 档案时间线覆盖 ─── */
+/* ─── Profile Timeline Override ─── */
 .profile-timeline {
   :global(.ant-timeline-item-tail) {
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 1px solid var(--hairline);
   }
 
   :global(.ant-timeline-item-content) {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 400;
   }
 }
 
-/* ─── 响应式 ─── */
+/* ═══════════════════════════════════════════════════════════════
+   Responsive Breakpoints
+   ═══════════════════════════════════════════════════════════════ */
 
-/* 平板 / 小窗口 (768px - 1024px) — 一行3个 */
 @media (max-width: 1024px) {
   .core-stats-row .stat-value {
-    font-size: 20px;
+    font-size: 21px;
   }
 
   .core-stats-row .stat-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
   }
 
   .core-stats-row .stat-card :global(.ant-card-body) {
-    padding: 14px 16px;
-    gap: 10px;
+    padding: 15px 18px;
+    gap: 12px;
+  }
+
+  .page-header {
+    padding: 22px 24px 16px;
+
+    h1 {
+      font-size: 38px;
+      letter-spacing: 2px;
+    }
   }
 }
 
-/* 手机 (<= 768px) — 一行2个 */
 @media (max-width: 768px) {
   .data-mgt-page {
-    padding: 0 4px;
+    padding: 0 var(--sp-xs);
   }
 
-  .page-header h1 {
-    font-size: 20px;
+  .page-header {
+    padding: var(--sp-lg) var(--sp-md) var(--sp-sm);
+
+    h1 {
+      font-size: 32px;
+      letter-spacing: 2px;
+    }
+
+    .page-subtitle {
+      font-size: 11px;
+    }
+  }
+
+  .core-stats-row {
+    padding: 0 2px;
   }
 
   .core-stats-row .stat-card :global(.ant-card-body) {
-    padding: 14px;
+    padding: 14px 14px;
     gap: 10px;
   }
 
   .core-stats-row .stat-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
+    width: 38px;
+    height: 38px;
+    font-size: 17px;
+    border-radius: 0;
   }
 
   .core-stats-row .stat-value {
@@ -501,41 +678,75 @@
     height: 130px;
 
     .bar-track {
-      width: 20px;
-      height: 90px;
+      width: 22px;
+      height: 95px;
     }
   }
 
   .donut-chart-wrap {
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
+    align-items: center;
   }
 
   .dark-tabs {
+    :global(.ant-tabs-nav) {
+      padding: 0 12px;
+    }
+
     :global(.ant-tabs-tab) {
-      padding: 10px 10px;
-      font-size: 13px;
+      padding: 10px 8px;
+      font-size: 11px;
     }
 
     :global(.ant-tabs-content) {
-      padding: 12px;
+      padding: var(--sp-md);
+    }
+  }
+
+  .chart-card {
+    :global(.ant-card-head) {
+      padding: 14px 16px 12px;
+      font-size: 12px;
+    }
+
+    :global(.ant-card-body) {
+      padding: var(--sp-md);
     }
   }
 }
 
-/* 大屏 (>= 1440px) — 仍一行3个，但适当放大 */
 @media (min-width: 1440px) {
+  .data-mgt-page {
+    padding: 0 var(--sp-xl);
+  }
+
+  .page-header {
+    padding: var(--sp-huge) 0 var(--sp-xxl);
+
+    h1 {
+      font-size: 60px;
+      letter-spacing: 4px;
+    }
+  }
+
   .core-stats-row .stat-value {
-    font-size: 24px;
+    font-size: 25px;
   }
 
   .core-stats-row .stat-icon {
-    width: 44px;
-    height: 44px;
-    font-size: 20px;
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+    border-radius: 0;
   }
 
   .mini-bar-chart .bar-track {
-    width: 32px;
+    width: 34px;
+    height: 140px;
+  }
+
+  .mini-bar-chart {
+    height: 190px;
   }
 }
