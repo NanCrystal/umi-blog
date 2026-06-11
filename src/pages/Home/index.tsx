@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import styles from './index.less';
 import { history } from 'umi';
 import { getArtistList } from '@/services/artist';
+import { getImageUrl } from '@/utils/utils';
 
 interface AvatarItem {
   key: string;
@@ -68,7 +69,7 @@ const HomePage = (props: IRouteComponentProps) => {
   }, []);
 
   const handleSelectAvatar = (key: string) => {
-    history.push('/admin/data');
+    history.push('/admin/photo');
   };
 
   return (
@@ -88,7 +89,7 @@ const HomePage = (props: IRouteComponentProps) => {
                 className={styles['avatar-item']}
                 onClick={() => handleSelectAvatar(item.key)}
               >
-                <img src={item.src} alt={item.label} />
+                <img src={getImageUrl(item.src)} alt={item.label} />
                 <span>{item.label}</span>
               </div>
             ))}

@@ -43,6 +43,7 @@ interface ArtistItem {
   instagramId?: string;
   igToken?: string;
   syncEnabled?: boolean;
+  enabled?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -244,9 +245,14 @@ const ArtistMgtPage = () => {
 
         {/* 底部：状态 + 同步操作 */}
         <div className={styles['card-footer']}>
-          <Tag color={item.syncEnabled !== false ? 'success' : 'default'}>
-            {item.syncEnabled !== false ? '同步中' : '已暂停'}
-          </Tag>
+          <Space size={4}>
+            <Tag color={item.enabled !== false ? 'green' : 'red'}>
+              {item.enabled !== false ? '已启用' : '已禁用'}
+            </Tag>
+            <Tag color={item.syncEnabled !== false ? 'success' : 'default'}>
+              {item.syncEnabled !== false ? '同步中' : '已暂停'}
+            </Tag>
+          </Space>
           <Space size={4}>
             {platforms.map((p) => {
               const syncKey = `${item.id}_${p.slug}`;
@@ -340,6 +346,9 @@ const ArtistMgtPage = () => {
                   <div className={styles['detail-name']}>{detailItem.name}</div>
                   <div className={styles['detail-meta']}>
                     <Tag color="blue">{detailItem.artistId}</Tag>
+                    <Tag color={detailItem.enabled !== false ? 'green' : 'red'}>
+                      {detailItem.enabled !== false ? '已启用' : '已禁用'}
+                    </Tag>
                     <Tag
                       color={
                         detailItem.syncEnabled !== false ? 'success' : 'default'
@@ -404,7 +413,15 @@ const ArtistMgtPage = () => {
                         className={styles['detail-platform-avatar']}
                       />
                       <div className={styles['detail-platform-info']}>
-                        <div>sec_uid: {detailItem.douyinSecUid}</div>
+                        <div className={styles['detail-platform-sec-uid']}>
+                          <span>sec_uid:</span>
+                          <span
+                            className={styles['detail-platform-sec-uid-value']}
+                            title={detailItem.douyinSecUid}
+                          >
+                            {detailItem.douyinSecUid}
+                          </span>
+                        </div>
                         {detailItem.douyinNickname && (
                           <div>昵称: {detailItem.douyinNickname}</div>
                         )}

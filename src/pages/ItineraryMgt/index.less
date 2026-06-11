@@ -127,6 +127,43 @@
   flex-direction: column;
   gap: 14px;
   min-width: 200px;
+
+  /* Select / DatePicker 在弹窗内的 selector 暗色样式 */
+  :global(.ant-select-selector),
+  :global(.ant-picker) {
+    background: var(--color-surface-soft, #0d0d0d) !important;
+    color: var(--color-primary, #ffffff) !important;
+    border-color: var(--color-hairline-strong, #3a3a3a) !important;
+  }
+
+  :global(.ant-select-selection-placeholder) {
+    color: var(--color-muted, #999999) !important;
+  }
+
+  :global(.ant-select-selection-item) {
+    color: var(--color-primary, #ffffff) !important;
+  }
+
+  :global(.ant-picker-input > input) {
+    color: var(--color-primary, #ffffff) !important;
+
+    &::placeholder {
+      color: var(--color-muted, #999999) !important;
+    }
+  }
+
+  :global(.ant-select-arrow),
+  :global(.ant-picker-suffix) {
+    color: var(--color-muted, #999999) !important;
+  }
+
+  :global(.ant-select-clear) {
+    color: var(--color-muted, #999999) !important;
+  }
+
+  :global(.ant-badge-status-text) {
+    color: #ffffff !important;
+  }
 }
 
 .filter-row {
@@ -160,37 +197,34 @@
 }
 
 /* ─── 下拉/日期选择器面板 ─── */
-.dark-select-dropdown,
+/* popupClassName 直接应用在 .ant-select-dropdown 自身元素上，不能用后代选择器 */
+
 .dark-picker-dropdown {
-  :global(.ant-select-dropdown),
-  :global(.ant-picker-panel-container) {
-    background: var(--color-canvas, #000000) !important;
-    border: 1px solid var(--color-hairline, #262626) !important;
-    border-radius: var(--rounded-none, 0px) !important;
-    box-shadow: none !important;
-  }
-
-  :global(.ant-select-item) {
-    color: var(--color-body, #cccccc) !important;
-    font-family: var(--font-body, serif);
-  }
-
-  :global(.ant-select-item-option-active) {
-    background: var(--color-surface-soft, #0d0d0d) !important;
-  }
-
-  :global(.ant-select-item-option-selected) {
-    background: var(--color-surface-card, #141414) !important;
-    color: var(--color-primary, #ffffff) !important;
-    font-weight: 400 !important;
-  }
+  background: var(--color-canvas, #000000) !important;
+  border: 1px solid var(--color-hairline, #262626) !important;
+  border-radius: var(--rounded-none, 0px) !important;
+  box-shadow: none !important;
 
   :global(.ant-picker-cell) {
     color: var(--color-muted, #999999) !important;
   }
 
-  :global(.ant-picker-cell-in-view) {
+  :global(.ant-picker-cell-inner) {
+    color: var(--color-muted, #999999) !important;
+  }
+
+  :global(.ant-picker-cell-in-view .ant-picker-cell-inner) {
     color: var(--color-body, #cccccc) !important;
+  }
+
+  :global(
+      .ant-picker-cell:hover:not(.ant-picker-cell-selected):not(
+          .ant-picker-cell-range-start
+        ):not(.ant-picker-cell-range-end)
+        .ant-picker-cell-inner
+    ) {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: var(--color-primary, #ffffff) !important;
   }
 
   :global(.ant-picker-cell-selected .ant-picker-cell-inner) {
@@ -201,6 +235,49 @@
 
   :global(.ant-picker-cell-today .ant-picker-cell-inner::before) {
     border-color: var(--color-primary, #ffffff) !important;
+  }
+
+  :global(.ant-picker-cell-disabled .ant-picker-cell-inner) {
+    color: var(--color-hairline, #262626) !important;
+  }
+
+  /* 时间选择列 */
+  :global(.ant-picker-time-panel-column) {
+    border-left: 1px solid var(--color-hairline, #262626) !important;
+  }
+
+  :global(.ant-picker-time-panel-column:first-child) {
+    border-left: none !important;
+  }
+
+  :global(.ant-picker-time-panel-column::after) {
+    display: none !important; /* 移除默认渐变遮罩 */
+  }
+
+  :global(.ant-picker-time-panel-cell) {
+    background: transparent !important;
+  }
+
+  :global(.ant-picker-time-panel-cell-inner) {
+    color: var(--color-body, #cccccc) !important;
+  }
+
+  :global(.ant-picker-time-panel-cell-inner:hover) {
+    background: rgba(255, 255, 255, 0.8) !important;
+    color: #ffffff !important;
+  }
+
+  :global(
+      .ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner
+    ) {
+    color: var(--color-canvas, #000000) !important;
+    background: #ffffff !important;
+  }
+
+  :global(.ant-picker-time-panel-column-header) {
+    color: #ffffff !important;
+    border-bottom: 1px solid var(--color-hairline, #262626) !important;
+    padding: 8px !important;
   }
 
   :global(.ant-picker-header) {

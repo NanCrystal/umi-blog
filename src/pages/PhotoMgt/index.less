@@ -13,9 +13,8 @@
 /* ─── 页面头部 ─── */
 .mgt-page-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
+  flex-direction: column;
+  gap: 18px;
   margin-bottom: 24px;
   padding: 24px 26px;
   border-radius: 0;
@@ -25,6 +24,22 @@
   /* 为折叠按钮定位 */
   transition: all 0.3s ease;
   overflow: hidden;
+}
+
+/* 第一行：标题 + 操作按钮 */
+.mgt-page-header-top {
+  flex-direction: column;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.mgt-page-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 /* 折叠状态 */
@@ -113,8 +128,7 @@
 }
 
 .mgt-page-header-content {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
 }
 
 .mgt-page-title {
@@ -291,7 +305,6 @@
 /* ─── 响应式 ─── */
 @media (max-width: 768px) {
   .mgt-page-header {
-    flex-direction: column;
     padding: 18px;
   }
 
@@ -312,8 +325,6 @@
 
 /* ─── 滚动区 ─── */
 .scroll-container {
-  height: calc(100vh - 340px);
-  /* 减去信息栏高度 40px */
   min-height: 320px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -804,21 +815,22 @@
 /* ─── 预览弹窗样式（左右布局，固定高度） ─── */
 .preview-content {
   display: flex;
-  gap: 32px;
-  padding: 16px 0;
-  height: 760px;
+  gap: 24px;
+  // padding: 16px 0;
+  height: 100%;
+  box-sizing: border-box;
   position: relative;
 }
 
 .preview-image {
-  flex: 3;
+  flex: 2;
   min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #141414;
   border-radius: 0;
-  padding: 20px;
+  // padding: 20px;
   position: relative;
 
   img {
@@ -834,27 +846,27 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 10px;
   overflow-y: auto;
 }
 
 .preview-info-item {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  gap: 2px;
 }
 
 .preview-info-label {
   flex-shrink: 0;
   width: 72px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   color: #999999;
   font-family: 'Cormorant Garamond', serif;
 }
 
 .preview-info-value {
-  font-size: 14px;
+  font-size: 12px;
   color: #cccccc;
   line-height: 1.6;
   word-break: break-all;
@@ -869,17 +881,17 @@
 
 .preview-download-btn {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
+  bottom: 0px;
+  right: 0px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 8px 12px;
   border-radius: 9999px;
   background: transparent;
   border: 1px solid #ffffff;
   color: #ffffff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   cursor: pointer;
   text-decoration: none !important;
@@ -941,7 +953,7 @@
 /* ─── 预览计数器 ─── */
 .preview-counter {
   position: absolute;
-  bottom: 12px;
+  bottom: 0px;
   left: 50%;
   transform: translateX(-50%);
   padding: 4px 14px;
@@ -970,13 +982,16 @@
   &::-webkit-scrollbar {
     width: 4px;
   }
+
   &::-webkit-scrollbar-track {
     background: #000000;
   }
+
   &::-webkit-scrollbar-thumb {
     background: #262626;
     border-radius: 2px;
   }
+
   &::-webkit-scrollbar-thumb:hover {
     background: #3a3a3a;
   }

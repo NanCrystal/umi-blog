@@ -234,6 +234,8 @@ const VoicePage: React.FC<Props> = () => {
   // ── 头部折叠状态 ─────────────────────────────────
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
 
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const rulerRef = useRef<HTMLDivElement>(null);
@@ -414,6 +416,18 @@ const VoicePage: React.FC<Props> = () => {
     return () => obs.disconnect();
   }, []);
 
+  // ── 监听头部高度变化（联动 voice-list-panel 高度） ──────
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(([entry]) => {
+      setHeaderHeight(entry.contentRect.height);
+    });
+    obs.observe(el);
+    setHeaderHeight(el.offsetHeight);
+    return () => obs.disconnect();
+  }, []);
+
   // ── 加载某月音频 ────
   const loadMonth = useCallback(
     async (yearMonth: string, override?: Record<string, VoiceGroup>) => {
@@ -439,14 +453,16 @@ const VoicePage: React.FC<Props> = () => {
             artistIds: activeArtistIds.length > 0 ? activeArtistIds : undefined,
           });
           if (items?.length) allItems.push(...items);
-          if (allItems.length >= total || !items || items.length < pageSize)
-            break;
+          if (!items || items.length < pageSize) break;
+          // total 可能为空或 undefined，用 allItems.length 兜底
+          if (total != null && allItems.length >= total) break;
           page++;
         }
         const newHeight = calcActualGroupHeight(allItems, cols);
         setGroups((prev) => {
           const oldH = prev[yearMonth]?.height ?? newHeight;
           const delta = newHeight - oldH;
+          if (!prev[yearMonth]) return prev; // 防止组不存在
           if (delta === 0) {
             return {
               ...prev,
@@ -463,7 +479,7 @@ const VoicePage: React.FC<Props> = () => {
             next[k] =
               k === yearMonth
                 ? { ...v, voices: allItems, loaded: true, height: newHeight }
-                : v.top > prev[yearMonth].top
+                : v.top > (prev[yearMonth]?.top ?? 0)
                 ? { ...v, top: v.top + delta }
                 : v;
           }
@@ -484,6 +500,9 @@ const VoicePage: React.FC<Props> = () => {
             return m;
           });
         });
+      } catch (err) {
+        // API 失败时不更新 state，下一轮滚动会重试
+        console.error(`[VoiceMgt] loadMonth(${yearMonth}) failed:`, err);
       } finally {
         loadingSet.current.delete(yearMonth);
       }
@@ -555,8 +574,12 @@ const VoicePage: React.FC<Props> = () => {
     setScrollRatio(scrollTop / (scrollHeight || 1));
     const visTop = scrollTop - BUFFER_PX;
     const visBottom = scrollTop + clientHeight + BUFFER_PX;
-    const toLoad: string[] = [];
+
+    // 使用变量记录最新 groups state，避免闭包 stale 问题
+    let latestGroups: Record<string, VoiceGroup> | null = null;
+
     setGroups((prev) => {
+      latestGroups = prev;
       const next = { ...prev };
       let changed = false;
       Object.values(next).forEach((g) => {
@@ -571,29 +594,35 @@ const VoicePage: React.FC<Props> = () => {
           next[g.yearMonth] = { ...g, recycled: true };
           changed = true;
         }
-        if (inView && !g.loaded) toLoad.push(g.yearMonth);
       });
       return changed ? next : prev;
     });
-    toLoad.forEach((ym) => {
-      if (!loadingSet.current.has(ym)) loadMonth(ym);
+
+    // 用 latestGroups 作为 override 调用 loadMonth，确保最新状态
+    const snapshot = latestGroups ?? groups;
+    const toLoad: string[] = [];
+    Object.values(snapshot).forEach((g) => {
+      const bottom = g.top + g.height;
+      const inView = bottom > visTop && g.top < visBottom;
+      if (inView && !g.loaded && !loadingSet.current.has(g.yearMonth)) {
+        toLoad.push(g.yearMonth);
+      }
     });
+    toLoad.forEach((ym) => loadMonth(ym, snapshot));
 
     const nearBottom = scrollHeight - scrollTop - clientHeight < 200;
     if (nearBottom && !loadingMore) {
-      setGroups((prev) => {
-        const unloaded = Object.values(prev)
-          .filter((g) => !g.loaded && !loadingSet.current.has(g.yearMonth))
-          .sort((a, b) => a.top - b.top);
-        if (unloaded.length === 0) return prev;
+      const unloaded = Object.values(snapshot)
+        .filter((g) => !g.loaded && !loadingSet.current.has(g.yearMonth))
+        .sort((a, b) => a.top - b.top);
+      if (unloaded.length > 0) {
         const batch = unloaded.slice(0, 2);
-        batch.forEach((g) => loadMonth(g.yearMonth));
-        if (batch.length > 0) setLoadingMore(true);
-        return prev;
-      });
-      setTimeout(() => setLoadingMore(false), 800);
+        batch.forEach((g) => loadMonth(g.yearMonth, snapshot));
+        setLoadingMore(true);
+        setTimeout(() => setLoadingMore(false), 800);
+      }
     }
-  }, [loadMonth, loadingMore]);
+  }, [loadMonth, loadingMore, groups]);
 
   // ── 时间轴鼠标事件 ──────────────────────────────
   useEffect(() => {
@@ -1095,6 +1124,7 @@ const VoicePage: React.FC<Props> = () => {
     <div className={styles['voice-page']}>
       {/* 页面头部（可折叠） */}
       <div
+        ref={headerRef}
         className={`${styles['mgt-page-header']} ${
           headerCollapsed ? styles['header-collapsed'] : ''
         }`}
@@ -1115,46 +1145,80 @@ const VoicePage: React.FC<Props> = () => {
 
         {!headerCollapsed && (
           <>
-            <div className={styles['mgt-page-header-content']}>
-              <div className={styles['mgt-page-title']}>音频管理</div>
-
-              {/* 艺人类型筛选 */}
-              <div className={styles['filter-tag-row']}>
-                <span className={styles['filter-tag-label']}>艺人类型</span>
-                <div className={styles['filter-tags']}>
-                  {artistsLoading ? (
-                    <Spin size="small" />
-                  ) : (
-                    <>
-                      <span
-                        className={`${styles['filter-tag-item']} ${
-                          selectedArtists.has(ALL_KEY)
-                            ? styles['filter-tag-active']
-                            : ''
-                        }`}
-                        onClick={() => handleArtistToggle(ALL_KEY)}
-                      >
-                        不限
-                      </span>
-                      {artistList.map((artist) => (
+            <div className={styles['mgt-page-header-top']}>
+              <div className={styles['mgt-page-header-section']}>
+                <div className={styles['mgt-page-title']}>音频管理</div>
+                <div className={styles['mgt-page-actions']}>
+                  <Button
+                    icon={<DeleteOutlined />}
+                    disabled={selectedRowKeys.length === 0}
+                    danger
+                    ghost
+                    onClick={handleBatchDelete}
+                  >
+                    删除
+                  </Button>
+                  <Button
+                    icon={<DownloadOutlined />}
+                    disabled={selectedRowKeys.length === 0}
+                  >
+                    下载
+                  </Button>
+                  <Button
+                    icon={<SettingOutlined />}
+                    disabled={selectedRowKeys.length === 0}
+                    onClick={handleBatchEdit}
+                  >
+                    批量设置
+                  </Button>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    className={styles['add-btn']}
+                    onClick={() => history.push('/admin/voice/add')}
+                  >
+                    添加音频
+                  </Button>
+                </div>
+              </div>
+              <div className={styles['mgt-page-header-content']}>
+                {/* 艺人类型筛选 */}
+                <div className={styles['filter-tag-row']}>
+                  <span className={styles['filter-tag-label']}>艺人类型</span>
+                  <div className={styles['filter-tags']}>
+                    {artistsLoading ? (
+                      <Spin size="small" />
+                    ) : (
+                      <>
                         <span
-                          key={artist.id}
                           className={`${styles['filter-tag-item']} ${
-                            selectedArtists.has(artist.id)
+                            selectedArtists.has(ALL_KEY)
                               ? styles['filter-tag-active']
                               : ''
                           }`}
-                          onClick={() => handleArtistToggle(artist.id)}
+                          onClick={() => handleArtistToggle(ALL_KEY)}
                         >
-                          {artist.name}
+                          不限
                         </span>
-                      ))}
-                    </>
-                  )}
+                        {artistList.map((artist) => (
+                          <span
+                            key={artist.id}
+                            className={`${styles['filter-tag-item']} ${
+                              selectedArtists.has(artist.id)
+                                ? styles['filter-tag-active']
+                                : ''
+                            }`}
+                            onClick={() => handleArtistToggle(artist.id)}
+                          >
+                            {artist.name}
+                          </span>
+                        ))}
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* 音频类型筛选（暂不展示）
+                {/* 音频类型筛选（暂不展示）
               <div className={styles['filter-tag-row']}>
                 <span className={styles['filter-tag-label']}>音频类型</span>
                 <div className={styles['filter-tags']}>
@@ -1191,7 +1255,7 @@ const VoicePage: React.FC<Props> = () => {
               </div>
               */}
 
-              {/* 拍摄地点筛选（暂不展示）
+                {/* 拍摄地点筛选（暂不展示）
               <div className={styles['filter-tag-row']}>
                 <span className={styles['filter-tag-label']}>拍摄地点</span>
                 <div className={styles['filter-tags']}>
@@ -1228,7 +1292,7 @@ const VoicePage: React.FC<Props> = () => {
               </div>
               */}
 
-              {/* 发布平台筛选（暂不展示）
+                {/* 发布平台筛选（暂不展示）
               <div className={styles['filter-tag-row']}>
                 <span className={styles['filter-tag-label']}>发布平台</span>
                 <div className={styles['filter-tags']}>
@@ -1264,39 +1328,7 @@ const VoicePage: React.FC<Props> = () => {
                 </div>
               </div>
               */}
-            </div>
-
-            <div className={styles['mgt-page-actions']}>
-              <Button
-                icon={<DeleteOutlined />}
-                disabled={selectedRowKeys.length === 0}
-                danger
-                ghost
-                onClick={handleBatchDelete}
-              >
-                删除
-              </Button>
-              <Button
-                icon={<DownloadOutlined />}
-                disabled={selectedRowKeys.length === 0}
-              >
-                下载
-              </Button>
-              <Button
-                icon={<SettingOutlined />}
-                disabled={selectedRowKeys.length === 0}
-                onClick={handleBatchEdit}
-              >
-                批量设置
-              </Button>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                className={styles['add-btn']}
-                onClick={() => history.push('/admin/voice/add')}
-              >
-                添加音频
-              </Button>
+              </div>
             </div>
           </>
         )}
@@ -1316,6 +1348,7 @@ const VoicePage: React.FC<Props> = () => {
         <div
           ref={scrollRef}
           className={styles['scroll-container']}
+          style={{ height: `calc(100vh - ${headerHeight + 60}px)` }}
           onScroll={handleScroll}
         >
           {/* 空状态 */}

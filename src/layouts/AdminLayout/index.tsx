@@ -17,6 +17,8 @@ import {
   TagsOutlined,
   IdcardOutlined,
   SyncOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
 } from '@ant-design/icons';
 import styles from './index.less';
 
@@ -25,9 +27,6 @@ const { Sider, Content } = Layout;
 type MenuItem = Required<MenuProps>['items'][number];
 
 const menuItems: MenuItem[] = [
-  { key: '/admin/data', icon: <DashboardOutlined />, label: '数据面板' },
-  { key: '/admin/itinerary', icon: <EnvironmentOutlined />, label: '行程管理' },
-  { key: '/admin/swiper', icon: <PlayCircleOutlined />, label: 'Banner管理' },
   {
     key: 'content',
     icon: <AppstoreOutlined />,
@@ -40,14 +39,18 @@ const menuItems: MenuItem[] = [
       { key: '/admin/profile', icon: <FileTextOutlined />, label: '档案管理' },
     ],
   },
+  { key: '/admin/sync', icon: <SyncOutlined />, label: '社交同步' },
   {
     key: '/admin/import/tasks',
     icon: <ImportOutlined />,
     label: '数据集管理',
   },
+  { key: '/admin/swiper', icon: <PlayCircleOutlined />, label: 'Banner管理' },
+  { key: '/admin/itinerary', icon: <EnvironmentOutlined />, label: '行程管理' },
   { key: '/admin/photo_info', icon: <TagsOutlined />, label: '标签管理' },
-  { key: '/admin/sync', icon: <SyncOutlined />, label: '社交同步' },
   { key: '/admin/artist', icon: <UserOutlined />, label: '艺人管理' },
+  { key: '/admin/data', icon: <DashboardOutlined />, label: '数据面板' },
+
   {
     key: 'wallpaper-center',
     icon: <PictureOutlined />,
@@ -73,6 +76,7 @@ const parentKeyMap: Record<string, string> = {
 const AdminLayout: React.FC<IRouteComponentProps> = (props) => {
   const { children } = props;
   const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
 
   // 收集所有叶子节点的 key
   const leafKeys = useMemo(() => {
@@ -94,22 +98,12 @@ const AdminLayout: React.FC<IRouteComponentProps> = (props) => {
   const selectedKey =
     leafKeys
       .filter((key) => location.pathname.startsWith(key))
-      .sort((a, b) => b.length - a.length)[0] || '/admin/data';
+      .sort((a, b) => b.length - a.length)[0] || '/admin/photo';
 
-  // 确定需要展开的子菜单
-  const openKeys = useMemo(() => {
-    const keys: string[] = [];
-    // 如果当前路径匹配子项，展开对应的父菜单
-    for (const [childPath, parentKey] of Object.entries(parentKeyMap)) {
-      if (location.pathname.startsWith(childPath)) {
-        keys.push(parentKey);
-        break;
-      }
-    }
-    return keys;
-  }, [location.pathname]);
+  // 默认展开"内容管理"子菜单
+  const defaultOpenKeys = useMemo(() => ['content'], []);
 
-  const [openKeysState, setOpenKeysState] = useState<string[]>(openKeys);
+  const [openKeysState, setOpenKeysState] = useState<string[]>(defaultOpenKeys);
 
   const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
     // 只处理叶子节点的点击（非父菜单key）
@@ -158,30 +152,46 @@ const AdminLayout: React.FC<IRouteComponentProps> = (props) => {
       <Sider
         width={220}
         className={styles['admin-sider']}
-        breakpoint="lg"
-        collapsedWidth="0"
+        collapsed={collapsed}
+        collapsible
+        trigger={null}
+        collapsedWidth={80}
       >
         <div
           className={styles['admin-sider-header']}
           onClick={() => history.push('/home')}
           style={{ cursor: 'pointer' }}
         >
-          <span className={styles['admin-sider-title']}>
-            N.Crystal✨管理后台
-          </span>
+          {!collapsed && (
+            <span className={styles['admin-sider-title']}>
+              N.Crystal✨管理后台
+            </span>
+          )}
         </div>
-        <Menu
-          mode="inline"
-          selectedKeys={[selectedKey]}
-          openKeys={openKeysState}
-          items={menuItems}
-          onClick={handleMenuClick}
-          onOpenChange={handleOpenChange}
-          className={styles['admin-menu']}
-          theme="dark"
-        />
+        <div className={styles['admin-menu-wrapper']}>
+          <Menu
+            mode="inline"
+            selectedKeys={[selectedKey]}
+            openKeys={openKeysState}
+            items={menuItems}
+            onClick={handleMenuClick}
+            onOpenChange={handleOpenChange}
+            className={styles['admin-menu']}
+            theme="dark"
+          />
+        </div>
+        <div
+          className={styles['admin-sider-footer']}
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+        </div>
       </Sider>
-      <Layout className={styles['admin-content-layout']}>
+      <Layout
+        className={`${styles['admin-content-layout']} ${
+          collapsed ? styles['admin-content-collapsed'] : ''
+        }`}
+      >
         <Content className={styles['admin-content']}>{children}</Content>
       </Layout>
     </Layout>

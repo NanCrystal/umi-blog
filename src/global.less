@@ -849,6 +849,16 @@ textarea:focus {
   }
 }
 
+/* ==============================================
+   全局内容宽度约束
+   设计稿：1440px
+   最低兼容：1280px
+   最佳体验：1440～1920px
+   ============================================== */
+html {
+  min-width: 1280px;
+}
+
 /* 移动端 Modal 宽度自适应 */
 @media (max-width: 480px) {
   .ant-modal {
@@ -890,6 +900,11 @@ textarea:focus {
   min-height: 36px !important;
   line-height: 1.5 !important;
   transition: none !important;
+}
+
+/* Badge 状态文字 - 覆盖 antd 默认黑色（整个应用暗色主题） */
+.ant-badge-status-text {
+  color: #ffffff !important;
 }
 
 /* 选项 Hover */

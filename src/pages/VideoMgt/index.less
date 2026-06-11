@@ -13,9 +13,8 @@
 /* ─── 页面头部 ─── */
 .mgt-page-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
+  flex-direction: column;
+  gap: 18px;
   margin-bottom: 24px;
   padding: 24px 26px;
   border-radius: 0;
@@ -24,6 +23,26 @@
   position: relative;
   transition: all 0.3s ease;
   overflow: hidden;
+}
+
+.mgt-page-header-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  row-gap: 18px;
+}
+
+.mgt-page-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.mgt-page-header-content {
+  width: 100%;
 }
 
 .header-collapsed {
@@ -43,11 +62,6 @@
   transform: translateX(-50%);
   box-sizing: content-box;
   cursor: pointer;
-}
-
-.mgt-page-header-content {
-  flex: 1;
-  min-width: 0;
 }
 
 .mgt-page-title {
@@ -214,7 +228,6 @@
 /* ─── 响应式 ─── */
 @media (max-width: 768px) {
   .mgt-page-header {
-    flex-direction: column;
     padding: 18px;
   }
 
@@ -234,7 +247,6 @@
    ================================================================ */
 
 .scroll-container {
-  height: calc(100vh - 340px);
   min-height: 320px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -785,24 +797,23 @@
   }
 }
 
-/* ─── 预览弹窗样式 ─── */
+/* ─── 预览弹窗样式（左右布局，固定高度） ─── */
 .preview-content {
   display: flex;
-  gap: 32px;
-  padding: 16px 0;
-  height: 760px;
+  gap: 24px;
+  height: 100%;
+  box-sizing: border-box;
   position: relative;
 }
 
 .preview-video {
-  flex: 3;
+  flex: 2;
   min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #141414;
   border-radius: 0;
-  padding: 20px;
   position: relative;
 
   video {
@@ -818,27 +829,27 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 10px;
   overflow-y: auto;
 }
 
 .preview-info-item {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  gap: 2px;
 }
 
 .preview-info-label {
   flex-shrink: 0;
   width: 72px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   color: #999999;
   font-family: 'Cormorant Garamond', serif;
 }
 
 .preview-info-value {
-  font-size: 14px;
+  font-size: 12px;
   color: #cccccc;
   line-height: 1.6;
   word-break: break-all;
@@ -852,17 +863,17 @@
 
 .preview-download-btn {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
+  bottom: 0px;
+  right: 0px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 8px 12px;
   border-radius: 9999px;
   background: transparent;
   border: 1px solid #ffffff;
   color: #ffffff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   cursor: pointer;
   text-decoration: none !important;
@@ -889,7 +900,7 @@
   justify-content: center;
   position: relative;
   cursor: pointer;
-  background: #000;
+  // background: #000;
 }
 
 .preview-cover-img {
@@ -959,7 +970,7 @@
 /* ─── 预览计数器 ─── */
 .preview-counter {
   position: absolute;
-  bottom: 12px;
+  bottom: 0px;
   left: 50%;
   transform: translateX(-50%);
   padding: 4px 14px;

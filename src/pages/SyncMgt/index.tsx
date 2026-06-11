@@ -529,8 +529,46 @@ const SyncMgtPage = () => {
     <div className={styles['sync-mgt']}>
       {/* 页面头部 */}
       <div className={styles['mgt-page-header']}>
+        <div className={styles['mgt-page-header-top']}>
+          <div className={styles['mgt-page-header-section']}>
+            <div className={styles['mgt-page-title']}>社交同步管理</div>
+            <div className={styles['mgt-page-actions']}>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => {
+                  setPage(1);
+                  fetchPosts();
+                }}
+              >
+                刷新
+              </Button>
+              <Button
+                icon={<SyncOutlined spin={syncing} />}
+                loading={syncing}
+                onClick={handleSyncAll}
+              >
+                增量同步
+              </Button>
+              <Button
+                type="primary"
+                danger={!fullSyncDone}
+                icon={<ThunderboltOutlined spin={fullSyncing} />}
+                loading={fullSyncing}
+                disabled={fullSyncDone}
+                onClick={handleFullSync}
+              >
+                {fullSyncDone ? '全量同步 ✓' : '全量同步'}
+              </Button>
+              <Button
+                icon={<UploadOutlined />}
+                onClick={() => setImportModalOpen(true)}
+              >
+                导入
+              </Button>
+            </div>
+          </div>
+        </div>
         <div className={styles['header-content']}>
-          <div className={styles['mgt-page-title']}>社交同步管理</div>
           <div className={styles['filter-tag-row']}>
             <span className={styles['filter-tag-label']}>艺人</span>
             <div className={styles['filter-tags']}>
@@ -563,40 +601,6 @@ const SyncMgtPage = () => {
               ))}
             </div>
           </div>
-        </div>
-        <div className={styles['mgt-page-actions']}>
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={() => {
-              setPage(1);
-              fetchPosts();
-            }}
-          >
-            刷新
-          </Button>
-          <Button
-            icon={<SyncOutlined spin={syncing} />}
-            loading={syncing}
-            onClick={handleSyncAll}
-          >
-            增量同步
-          </Button>
-          <Button
-            type="primary"
-            danger={!fullSyncDone}
-            icon={<ThunderboltOutlined spin={fullSyncing} />}
-            loading={fullSyncing}
-            disabled={fullSyncDone}
-            onClick={handleFullSync}
-          >
-            {fullSyncDone ? '全量同步 ✓' : '全量同步'}
-          </Button>
-          <Button
-            icon={<UploadOutlined />}
-            onClick={() => setImportModalOpen(true)}
-          >
-            导入
-          </Button>
         </div>
       </div>
 
@@ -889,258 +893,273 @@ const SyncMgtPage = () => {
 
       {/* 详情弹窗（与 PhotoMgt 预览样式完全一致） */}
       <Modal
-        title={null}
+        title={currentMedia?.type === 'video' ? '视频详情' : '图片详情'}
         open={detailModalOpen}
         onCancel={() => setDetailModalOpen(false)}
         footer={null}
-        width={1200}
+        width={800}
         className={styles['detail-modal']}
         destroyOnClose
-        bodyStyle={{ height: 800, overflow: 'hidden' }}
+        bodyStyle={{ height: 500, overflow: 'hidden' }}
       >
         {detailLoading ? (
           <div style={{ textAlign: 'center', padding: 60 }}>
             <Spin />
           </div>
         ) : detailRecord ? (
-          <div className={styles['detail-content']}>
-            <div className={styles['preview-content']} style={{ height: 760 }}>
-              {/* 左翻页按钮 */}
-              <span
-                className={`${styles['preview-nav-btn']} ${
-                  styles['preview-nav-prev']
-                } ${currentImgIndex <= 0 ? styles['nav-disabled'] : ''}`}
-                onClick={prevImage}
-              >
-                ‹
-              </span>
+          <div className={styles['preview-content']}>
+            {/* 左翻页按钮 */}
+            <span
+              className={`${styles['preview-nav-btn']} ${
+                styles['preview-nav-prev']
+              } ${currentImgIndex <= 0 ? styles['nav-disabled'] : ''}`}
+              onClick={prevImage}
+            >
+              ‹
+            </span>
 
-              {/* 左侧：预览（图片或视频） */}
-              <div className={styles['preview-image']}>
-                {currentMedia?.type === 'video' ? (
-                  <video
-                    src={currentMedia.url}
-                    controls
-                    style={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      display: 'block',
-                    }}
-                  >
-                    您的浏览器不支持视频播放
-                  </video>
-                ) : (
-                  <img
-                    src={
-                      currentMedia?.url
-                        ? `${currentMedia.url}?imageView2/2/w/800/q/90`
-                        : ''
-                    }
-                    alt={`媒体 ${currentImgIndex + 1}`}
-                  />
-                )}
-                {displayMedia.length > 0 && (
+            {/* 左侧：预览（图片或视频） */}
+            <div
+              className={
+                styles[
+                  currentMedia?.type === 'video'
+                    ? 'preview-video'
+                    : 'preview-image'
+                ]
+              }
+            >
+              {currentMedia?.type === 'video' ? (
+                <video
+                  src={currentMedia.url}
+                  controls
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    display: 'block',
+                  }}
+                >
+                  您的浏览器不支持视频播放
+                </video>
+              ) : (
+                <img
+                  src={
+                    currentMedia?.url
+                      ? `${currentMedia.url}?imageView2/2/w/800/q/90`
+                      : ''
+                  }
+                  alt={`媒体 ${currentImgIndex + 1}`}
+                />
+              )}
+              {displayMedia.length > 0 && (
+                <span
+                  className={styles['preview-download-btn']}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const url = currentMedia?.url;
+                    if (!url) return;
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download =
+                      currentMedia.type === 'video' ? 'video.mp4' : 'image.jpg';
+                    a.target = '_blank';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                  }}
+                >
+                  <DownloadOutlined />
+                  {currentMedia?.type === 'video' ? '下载视频' : '下载'}
+                </span>
+              )}
+            </div>
+
+            {/* 右侧：详细信息 */}
+            <div className={styles['preview-info']}>
+              <div className={styles['preview-info-item']}>
+                <span className={styles['preview-info-label']}>平台</span>
+                <span className={styles['preview-info-value']}>
                   <span
-                    className={styles['preview-download-btn']}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const url = currentMedia?.url;
-                      if (!url) return;
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download =
-                        currentMedia.type === 'video'
-                          ? 'video.mp4'
-                          : 'image.jpg';
-                      a.target = '_blank';
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                    }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                   >
-                    <DownloadOutlined />
-                    下载{currentMedia?.type === 'video' ? '视频' : '原图'}
+                    {platformIcons[detailRecord.platform] || null}
+                    {platformLabels[detailRecord.platform] ||
+                      detailRecord.platform}
                   </span>
-                )}
+                </span>
+              </div>
+              <div className={styles['preview-info-item']}>
+                <span className={styles['preview-info-label']}>艺人</span>
+                <span className={styles['preview-info-value']}>
+                  {detailRecord.artist?.name || `#${detailRecord.artistId}`}
+                </span>
+              </div>
+              <div className={styles['preview-info-item']}>
+                <span className={styles['preview-info-label']}>平台ID</span>
+                <span className={styles['detail-value-mono']}>
+                  {detailRecord.platformPostId}
+                </span>
+              </div>
+              <div className={styles['preview-info-item']}>
+                <span className={styles['preview-info-label']}>发布时间</span>
+                <span className={styles['preview-info-value']}>
+                  {new Date(detailRecord.publishTime).toLocaleString('zh-CN')}
+                </span>
+              </div>
+              <div className={styles['preview-info-item']}>
+                <span className={styles['preview-info-label']}>状态</span>
+                <span className={styles['preview-info-value']}>
+                  <Tag
+                    color={
+                      detailRecord.syncStatus === 'ACTIVE'
+                        ? 'success'
+                        : 'default'
+                    }
+                    style={{ margin: 0 }}
+                  >
+                    {detailRecord.syncStatus === 'ACTIVE'
+                      ? '正常'
+                      : detailRecord.syncStatus}
+                  </Tag>
+                </span>
               </div>
 
-              {/* 右侧：详细信息 */}
-              <div className={styles['preview-info']}>
-                <div className={styles['preview-info-item']}>
-                  <span className={styles['preview-info-label']}>平台</span>
-                  <span className={styles['preview-info-value']}>
-                    <span
-                      style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-                    >
-                      {platformIcons[detailRecord.platform] || null}
-                      {platformLabels[detailRecord.platform] ||
-                        detailRecord.platform}
-                    </span>
+              <div
+                className={styles['preview-info-item']}
+                style={{ alignItems: 'flex-start' }}
+              >
+                <span className={styles['preview-info-label']}>标题</span>
+                <span className={styles['preview-info-value']}>
+                  {detailRecord.title || '无'}
+                </span>
+              </div>
+              <div
+                className={styles['preview-info-item']}
+                style={{ alignItems: 'flex-start' }}
+              >
+                <span className={styles['preview-info-label']}>内容</span>
+                <span className={styles['preview-info-value']}>
+                  {detailRecord.content?.replace(/<[^>]*>/g, '') || '无)'}
+                </span>
+              </div>
+              <div className={styles['preview-info-item']}>
+                <span className={styles['preview-info-label']}>关联</span>
+                <span className={styles['preview-info-value']}>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: linkedMedia.length > 0 ? '#5fa657' : '#666',
+                    }}
+                  >
+                    {linkedMedia.length > 0
+                      ? (() => {
+                          const pc = linkedMedia.filter(
+                            (m: any) => m.mediaType === 'PHOTO',
+                          ).length;
+                          const vc = linkedMedia.filter(
+                            (m: any) => m.mediaType === 'VIDEO',
+                          ).length;
+                          const parts: string[] = [];
+                          if (pc) parts.push(`${pc} 张照片`);
+                          if (vc) parts.push(`${vc} 个视频`);
+                          return `已关联 ${parts.join('，')}`;
+                        })()
+                      : '未关联'}
                   </span>
-                </div>
-                <div className={styles['preview-info-item']}>
-                  <span className={styles['preview-info-label']}>艺人</span>
-                  <span className={styles['preview-info-value']}>
-                    {detailRecord.artist?.name || `#${detailRecord.artistId}`}
-                  </span>
-                </div>
-                <div className={styles['preview-info-item']}>
-                  <span className={styles['preview-info-label']}>平台ID</span>
-                  <span className={styles['detail-value-mono']}>
-                    {detailRecord.platformPostId}
-                  </span>
-                </div>
-                <div className={styles['preview-info-item']}>
-                  <span className={styles['preview-info-label']}>发布时间</span>
-                  <span className={styles['preview-info-value']}>
-                    {new Date(detailRecord.publishTime).toLocaleString('zh-CN')}
-                  </span>
-                </div>
-                <div className={styles['preview-info-item']}>
-                  <span className={styles['preview-info-label']}>状态</span>
-                  <span className={styles['preview-info-value']}>
-                    <Tag
-                      color={
-                        detailRecord.syncStatus === 'ACTIVE'
-                          ? 'success'
-                          : 'default'
-                      }
-                      style={{ margin: 0 }}
-                    >
-                      {detailRecord.syncStatus === 'ACTIVE'
-                        ? '正常'
-                        : detailRecord.syncStatus}
-                    </Tag>
-                  </span>
-                </div>
-
+                </span>
+              </div>
+              {/* 已关联媒体列表 */}
+              {linkedMedia.length > 0 && (
                 <div
-                  className={styles['preview-info-item']}
-                  style={{ alignItems: 'flex-start' }}
+                  style={{
+                    marginTop: 16,
+                    borderTop: '1px solid #262626',
+                    paddingTop: 12,
+                  }}
                 >
-                  <span className={styles['preview-info-label']}>标题</span>
-                  <span className={styles['preview-info-value']}>
-                    {detailRecord.title || '无'}
-                  </span>
-                </div>
-                <div
-                  className={styles['preview-info-item']}
-                  style={{ alignItems: 'flex-start' }}
-                >
-                  <span className={styles['preview-info-label']}>内容</span>
-                  <span className={styles['preview-info-value']}>
-                    {detailRecord.content?.replace(/<[^>]*>/g, '') || '无)'}
-                  </span>
-                </div>
-                <div className={styles['preview-info-item']}>
-                  <span className={styles['preview-info-label']}>关联</span>
-                  <span className={styles['preview-info-value']}>
-                    <span
-                      style={{
-                        fontSize: 13,
-                        color: linkedMedia.length > 0 ? '#5fa657' : '#666',
-                      }}
-                    >
-                      {linkedMedia.length > 0
-                        ? (() => {
-                            const pc = linkedMedia.filter(
-                              (m: any) => m.mediaType === 'PHOTO',
-                            ).length;
-                            const vc = linkedMedia.filter(
-                              (m: any) => m.mediaType === 'VIDEO',
-                            ).length;
-                            const parts: string[] = [];
-                            if (pc) parts.push(`${pc} 张照片`);
-                            if (vc) parts.push(`${vc} 个视频`);
-                            return `已关联 ${parts.join('，')}`;
-                          })()
-                        : '未关联'}
-                    </span>
-                  </span>
-                </div>
-                {/* 已关联媒体列表 */}
-                {linkedMedia.length > 0 && (
+                  <div style={{ fontSize: 12, color: '#999', marginBottom: 8 }}>
+                    已关联媒体
+                  </div>
                   <div
                     style={{
-                      marginTop: 16,
-                      borderTop: '1px solid #262626',
-                      paddingTop: 12,
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      width: '100%',
+                      overflow: 'hidden',
                     }}
                   >
-                    <div
-                      style={{ fontSize: 13, color: '#999', marginBottom: 8 }}
-                    >
-                      已关联媒体
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      {linkedMedia.map((m: any) => (
-                        <div
-                          key={m.id}
+                    {linkedMedia.map((m: any) => (
+                      <div
+                        key={m.id}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 16,
+                          padding: '4px 10px',
+                          borderBottom: '1px solid #333',
+                          fontSize: 12,
+                          maxWidth: '100%',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <Tag
+                          color={m.mediaType === 'PHOTO' ? 'green' : 'blue'}
+                          style={{ margin: 0, fontSize: 11, flexShrink: 0 }}
+                        >
+                          {m.mediaType === 'PHOTO' ? '照片' : '视频'}
+                        </Tag>
+                        <span
                           style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 20,
-                            padding: '4px 10px',
-                            border: '1px solid #333',
-                            borderRadius: 4,
-                            fontSize: 12,
+                            color: '#ccc',
+                            fontFamily: "'JetBrains Mono',monospace",
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: 120,
                           }}
                         >
-                          <Tag
-                            color={m.mediaType === 'PHOTO' ? 'green' : 'blue'}
-                            style={{ margin: 0, fontSize: 11 }}
-                          >
-                            {m.mediaType === 'PHOTO' ? '照片' : '视频'}
-                          </Tag>
-                          <span
-                            style={{
-                              color: '#ccc',
-                              fontFamily: "'JetBrains Mono',monospace",
-                            }}
-                          >
-                            #{m.media?.id}
-                          </span>
-                          <Button
-                            type="link"
-                            size="small"
-                            danger
-                            style={{
-                              padding: '0 4px',
-                              height: 'auto',
-                              fontSize: 11,
-                            }}
-                            onClick={() => handleUnlinkMedia(m)}
-                          >
-                            取消关联
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
+                          #{m.media?.id}
+                        </span>
+                        <Button
+                          type="link"
+                          size="small"
+                          danger
+                          style={{
+                            padding: '0 4px',
+                            height: 'auto',
+                            fontSize: 11,
+                            flexShrink: 0,
+                          }}
+                          onClick={() => handleUnlinkMedia(m)}
+                        >
+                          取消关联
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </div>
-
-              {/* 右翻页按钮 */}
-              <span
-                className={`${styles['preview-nav-btn']} ${
-                  styles['preview-nav-next']
-                } ${
-                  currentImgIndex >= displayMedia.length - 1
-                    ? styles['nav-disabled']
-                    : ''
-                }`}
-                onClick={nextImage}
-              >
-                ›
-              </span>
-
-              {/* 计数器 */}
-              {displayMedia.length > 1 && (
-                <div className={styles['preview-counter']}>
-                  {currentImgIndex + 1} / {displayMedia.length}
                 </div>
               )}
             </div>
+
+            {/* 右翻页按钮 */}
+            <span
+              className={`${styles['preview-nav-btn']} ${
+                styles['preview-nav-next']
+              } ${
+                currentImgIndex >= displayMedia.length - 1
+                  ? styles['nav-disabled']
+                  : ''
+              }`}
+              onClick={nextImage}
+            >
+              ›
+            </span>
+
+            {/* 计数器 */}
+            {displayMedia.length > 1 && (
+              <div className={styles['preview-counter']}>
+                {currentImgIndex + 1} / {displayMedia.length}
+              </div>
+            )}
           </div>
         ) : null}
       </Modal>

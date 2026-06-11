@@ -38,18 +38,16 @@
 /* ─── Page Header ─── */
 .page-header {
   margin-bottom: var(--sp-xl);
-  padding: var(--sp-xxl) var(--sp-xl) var(--sp-lg);
+  padding: var(--sp-lg) var(--sp-xl) var(--sp-lg);
   border-bottom: 1px solid var(--hairline);
 
-  h1 {
-    color: var(--text-primary);
-    font-family: 'Saira Condensed', sans-serif;
-    font-size: 48px;
+  .page-title {
+    font-size: 28px;
     font-weight: 400;
-    margin: 0 0 var(--sp-xs);
-    letter-spacing: 3px;
-    line-height: 1.25;
+    color: var(--color-primary, #ffffff);
+    font-family: var(--font-display);
     text-transform: uppercase;
+    letter-spacing: 3px;
   }
 
   .page-subtitle {
@@ -519,6 +517,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

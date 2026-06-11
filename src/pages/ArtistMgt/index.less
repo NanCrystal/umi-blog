@@ -341,6 +341,21 @@
     font-size: 12px;
     color: #888888;
     font-family: var(--font-mono, monospace);
+    word-wrap: break-word;
+  }
+
+  .detail-platform-sec-uid {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .detail-platform-sec-uid-value {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
   }
 }
 

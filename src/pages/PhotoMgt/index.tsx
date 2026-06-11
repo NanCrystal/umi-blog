@@ -248,6 +248,8 @@ const PhotoPage: React.FC<Props> = () => {
   // ── 头部折叠状态 ───────────────────────────────────────
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
 
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const rulerRef = useRef<HTMLDivElement>(null);
@@ -517,6 +519,18 @@ const PhotoPage: React.FC<Props> = () => {
     return () => obs.disconnect();
   }, []);
 
+  // ── 监听头部高度变化（联动 photo-list-panel 高度） ──────
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(([entry]) => {
+      setHeaderHeight(entry.contentRect.height);
+    });
+    obs.observe(el);
+    setHeaderHeight(el.offsetHeight);
+    return () => obs.disconnect();
+  }, []);
+
   // ── 新增：加载某月图片 ────────────────────────────────────
   const loadMonth = useCallback(
     async (yearMonth: string, override?: Record<string, PhotoGroup>) => {
@@ -542,8 +556,9 @@ const PhotoPage: React.FC<Props> = () => {
             artistIds: activeArtistIds.length > 0 ? activeArtistIds : undefined,
           });
           if (items?.length) allItems.push(...items);
-          if (allItems.length >= total || !items || items.length < pageSize)
-            break;
+          if (!items || items.length < pageSize) break;
+          // total 可能为空或 undefined，用 allItems.length 兜底
+          if (total != null && allItems.length >= total) break;
           page++;
         }
         // 根据实际日分组数量精确计算高度
@@ -551,6 +566,7 @@ const PhotoPage: React.FC<Props> = () => {
         setGroups((prev) => {
           const oldH = prev[yearMonth]?.height ?? newHeight;
           const delta = newHeight - oldH;
+          if (!prev[yearMonth]) return prev; // 防止组不存在
           if (delta === 0) {
             return {
               ...prev,
@@ -567,7 +583,7 @@ const PhotoPage: React.FC<Props> = () => {
             next[k] =
               k === yearMonth
                 ? { ...v, photos: allItems, loaded: true, height: newHeight }
-                : v.top > prev[yearMonth].top
+                : v.top > (prev[yearMonth]?.top ?? 0)
                 ? { ...v, top: v.top + delta }
                 : v;
           }
@@ -588,8 +604,9 @@ const PhotoPage: React.FC<Props> = () => {
             return m;
           });
         });
-      } catch {
-        /* silent */
+      } catch (err) {
+        // API 失败时不更新 state，下一轮滚动会重试
+        console.error(`[PhotoMgt] loadMonth(${yearMonth}) failed:`, err);
       } finally {
         loadingSet.current.delete(yearMonth);
       }
@@ -662,8 +679,12 @@ const PhotoPage: React.FC<Props> = () => {
     setScrollRatio(scrollTop / (scrollHeight || 1));
     const visTop = scrollTop - BUFFER_PX;
     const visBottom = scrollTop + clientHeight + BUFFER_PX;
-    const toLoad: string[] = [];
+
+    // 使用变量记录最新 groups state，避免闭包 stale 问题
+    let latestGroups: Record<string, PhotoGroup> | null = null;
+
     setGroups((prev) => {
+      latestGroups = prev;
       const next = { ...prev };
       let changed = false;
       Object.values(next).forEach((g) => {
@@ -678,33 +699,39 @@ const PhotoPage: React.FC<Props> = () => {
           next[g.yearMonth] = { ...g, recycled: true };
           changed = true;
         }
-        if (inView && !g.loaded) toLoad.push(g.yearMonth);
       });
       return changed ? next : prev;
     });
-    toLoad.forEach((ym) => {
-      if (!loadingSet.current.has(ym)) loadMonth(ym);
+
+    // 用 latestGroups 作为 override 调用 loadMonth，确保最新状态
+    const snapshot = latestGroups ?? groups;
+    const toLoad: string[] = [];
+    Object.values(snapshot).forEach((g) => {
+      const bottom = g.top + g.height;
+      const inView = bottom > visTop && g.top < visBottom;
+      if (inView && !g.loaded && !loadingSet.current.has(g.yearMonth)) {
+        toLoad.push(g.yearMonth);
+      }
     });
+    toLoad.forEach((ym) => loadMonth(ym, snapshot));
 
     // ── 触底加载：距离底部 < 200px 时，加载后续未加载的月份 ──
     const nearBottom = scrollHeight - scrollTop - clientHeight < 200;
     if (nearBottom && !loadingMore) {
-      setGroups((prev) => {
-        // 找到所有未加载的月份，按 top 升序（即时间从新到旧）
-        const unloaded = Object.values(prev)
-          .filter((g) => !g.loaded && !loadingSet.current.has(g.yearMonth))
-          .sort((a, b) => a.top - b.top);
-        if (unloaded.length === 0) return prev;
+      // 找到所有未加载的月份，按 top 升序（即时间从新到旧）
+      const unloaded = Object.values(snapshot)
+        .filter((g) => !g.loaded && !loadingSet.current.has(g.yearMonth))
+        .sort((a, b) => a.top - b.top);
+      if (unloaded.length > 0) {
         // 加载接下来的 2 个月份
         const batch = unloaded.slice(0, 2);
-        batch.forEach((g) => loadMonth(g.yearMonth));
-        if (batch.length > 0) setLoadingMore(true);
-        return prev;
-      });
-      // 标记加载完成（延迟重置状态，避免频繁触发）
-      setTimeout(() => setLoadingMore(false), 800);
+        batch.forEach((g) => loadMonth(g.yearMonth, snapshot));
+        setLoadingMore(true);
+        // 标记加载完成（延迟重置状态，避免频繁触发）
+        setTimeout(() => setLoadingMore(false), 800);
+      }
     }
-  }, [loadMonth, loadingMore]);
+  }, [loadMonth, loadingMore, groups]);
 
   // ── 新增：时间轴鼠标事件 ─────────────────────────────────
   useEffect(() => {
@@ -1169,6 +1196,7 @@ const PhotoPage: React.FC<Props> = () => {
       {/* 页面头部（可折叠） */}
 
       <div
+        ref={headerRef}
         className={`${styles['mgt-page-header']} ${
           headerCollapsed ? styles['header-collapsed'] : ''
         }`}
@@ -1194,197 +1222,199 @@ const PhotoPage: React.FC<Props> = () => {
         {/* 头部内容（折叠时隐藏） */}
         {!headerCollapsed && (
           <>
-            <div className={styles['mgt-page-header-content']}>
-              <div className={styles['mgt-page-title']}>照片管理</div>
-
-              {/* 艺人类型筛选 */}
-              <div className={styles['filter-tag-row']}>
-                <span className={styles['filter-tag-label']}>艺人类型</span>
-                <div className={styles['filter-tags']}>
-                  {artistsLoading ? (
-                    <Spin size="small" />
-                  ) : (
-                    <>
-                      <span
-                        className={`${styles['filter-tag-item']} ${
-                          selectedArtists.has(ALL_KEY)
-                            ? styles['filter-tag-active']
-                            : ''
-                        }`}
-                        onClick={() => handleArtistToggle(ALL_KEY)}
-                      >
-                        不限
-                      </span>
-                      {artistList.map((artist) => (
+            <div className={styles['mgt-page-header-top']}>
+              <div className={styles['mgt-page-header-section']}>
+                <div className={styles['mgt-page-title']}>照片管理</div>
+                <div className={styles['mgt-page-actions']}>
+                  <Button
+                    icon={<DeleteOutlined />}
+                    disabled={selectedRowKeys.length === 0}
+                    danger
+                    ghost
+                    onClick={handleBatchDelete}
+                  >
+                    删除
+                  </Button>
+                  <Button
+                    icon={<DownloadOutlined />}
+                    disabled={selectedRowKeys.length === 0}
+                  >
+                    下载
+                  </Button>
+                  <Button
+                    icon={<SettingOutlined />}
+                    disabled={selectedRowKeys.length === 0}
+                    onClick={handleBatchEdit}
+                  >
+                    批量设置
+                  </Button>
+                  <Button
+                    icon={<LinkOutlined />}
+                    disabled={selectedRowKeys.length === 0}
+                    onClick={() => {
+                      const ids = Array.from(selectedIds);
+                      setLinkingPhotoIds(ids);
+                      setSearchKeyword('');
+                      setPostsPage(1);
+                      setLinkPostModalVisible(true);
+                      fetchSelectablePosts('', 1);
+                      fetchLinkedPostIds(ids);
+                    }}
+                  >
+                    关联到帖子
+                  </Button>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    className={styles['add-btn']}
+                    onClick={() => history.push('/admin/photo/add')}
+                  >
+                    添加照片
+                  </Button>
+                </div>
+              </div>
+              <div className={styles['mgt-page-header-content']}>
+                {/* 艺人类型筛选 */}
+                <div className={styles['filter-tag-row']}>
+                  <span className={styles['filter-tag-label']}>艺人类型</span>
+                  <div className={styles['filter-tags']}>
+                    {artistsLoading ? (
+                      <Spin size="small" />
+                    ) : (
+                      <>
                         <span
-                          key={artist.id}
                           className={`${styles['filter-tag-item']} ${
-                            selectedArtists.has(artist.id)
+                            selectedArtists.has(ALL_KEY)
                               ? styles['filter-tag-active']
                               : ''
                           }`}
-                          onClick={() => handleArtistToggle(artist.id)}
+                          onClick={() => handleArtistToggle(ALL_KEY)}
                         >
-                          {artist.name}
+                          不限
                         </span>
-                      ))}
-                    </>
-                  )}
+                        {artistList.map((artist) => (
+                          <span
+                            key={artist.id}
+                            className={`${styles['filter-tag-item']} ${
+                              selectedArtists.has(artist.id)
+                                ? styles['filter-tag-active']
+                                : ''
+                            }`}
+                            onClick={() => handleArtistToggle(artist.id)}
+                          >
+                            {artist.name}
+                          </span>
+                        ))}
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className={styles['filter-tag-row']}>
-                <span className={styles['filter-tag-label']}>照片类型</span>
-                <div className={styles['filter-tags']}>
-                  {typesLoading ? (
-                    <Spin size="small" />
-                  ) : (
-                    <>
-                      <span
-                        className={`${styles['filter-tag-item']} ${
-                          selectedTypes.has(ALL_KEY)
-                            ? styles['filter-tag-active']
-                            : ''
-                        }`}
-                        onClick={() => handleTypeToggle(ALL_KEY)}
-                      >
-                        不限
-                      </span>
-                      {photoTypes.map((type) => (
+                <div className={styles['filter-tag-row']}>
+                  <span className={styles['filter-tag-label']}>照片类型</span>
+                  <div className={styles['filter-tags']}>
+                    {typesLoading ? (
+                      <Spin size="small" />
+                    ) : (
+                      <>
                         <span
-                          key={type.id}
                           className={`${styles['filter-tag-item']} ${
-                            selectedTypes.has(type.id)
+                            selectedTypes.has(ALL_KEY)
                               ? styles['filter-tag-active']
                               : ''
                           }`}
-                          onClick={() => handleTypeToggle(type.id)}
+                          onClick={() => handleTypeToggle(ALL_KEY)}
                         >
-                          {type.name}
+                          不限
                         </span>
-                      ))}
-                    </>
-                  )}
+                        {photoTypes.map((type) => (
+                          <span
+                            key={type.id}
+                            className={`${styles['filter-tag-item']} ${
+                              selectedTypes.has(type.id)
+                                ? styles['filter-tag-active']
+                                : ''
+                            }`}
+                            onClick={() => handleTypeToggle(type.id)}
+                          >
+                            {type.name}
+                          </span>
+                        ))}
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className={styles['filter-tag-row']}>
-                <span className={styles['filter-tag-label']}>拍摄地点</span>
-                <div className={styles['filter-tags']}>
-                  {locationsLoading ? (
-                    <Spin size="small" />
-                  ) : (
-                    <>
-                      <span
-                        className={`${styles['filter-tag-item']} ${
-                          selectedLocations.has(ALL_KEY)
-                            ? styles['filter-tag-active']
-                            : ''
-                        }`}
-                        onClick={() => handleLocationToggle(ALL_KEY)}
-                      >
-                        不限
-                      </span>
-                      {photoLocations.map((loc) => (
+                <div className={styles['filter-tag-row']}>
+                  <span className={styles['filter-tag-label']}>拍摄地点</span>
+                  <div className={styles['filter-tags']}>
+                    {locationsLoading ? (
+                      <Spin size="small" />
+                    ) : (
+                      <>
                         <span
-                          key={loc.id}
                           className={`${styles['filter-tag-item']} ${
-                            selectedLocations.has(loc.id)
+                            selectedLocations.has(ALL_KEY)
                               ? styles['filter-tag-active']
                               : ''
                           }`}
-                          onClick={() => handleLocationToggle(loc.id)}
+                          onClick={() => handleLocationToggle(ALL_KEY)}
                         >
-                          {loc.name}
+                          不限
                         </span>
-                      ))}
-                    </>
-                  )}
+                        {photoLocations.map((loc) => (
+                          <span
+                            key={loc.id}
+                            className={`${styles['filter-tag-item']} ${
+                              selectedLocations.has(loc.id)
+                                ? styles['filter-tag-active']
+                                : ''
+                            }`}
+                            onClick={() => handleLocationToggle(loc.id)}
+                          >
+                            {loc.name}
+                          </span>
+                        ))}
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className={styles['filter-tag-row']}>
-                <span className={styles['filter-tag-label']}>发布平台</span>
-                <div className={styles['filter-tags']}>
-                  {platformsLoading ? (
-                    <Spin size="small" />
-                  ) : (
-                    <>
-                      <span
-                        className={`${styles['filter-tag-item']} ${
-                          selectedPlatforms.has(ALL_KEY)
-                            ? styles['filter-tag-active']
-                            : ''
-                        }`}
-                        onClick={() => handlePlatformToggle(ALL_KEY)}
-                      >
-                        不限
-                      </span>
-                      {photoPlatforms.map((pf) => (
+                <div className={styles['filter-tag-row']}>
+                  <span className={styles['filter-tag-label']}>发布平台</span>
+                  <div className={styles['filter-tags']}>
+                    {platformsLoading ? (
+                      <Spin size="small" />
+                    ) : (
+                      <>
                         <span
-                          key={pf.id}
                           className={`${styles['filter-tag-item']} ${
-                            selectedPlatforms.has(pf.id)
+                            selectedPlatforms.has(ALL_KEY)
                               ? styles['filter-tag-active']
                               : ''
                           }`}
-                          onClick={() => handlePlatformToggle(pf.id)}
+                          onClick={() => handlePlatformToggle(ALL_KEY)}
                         >
-                          {pf.name}
+                          不限
                         </span>
-                      ))}
-                    </>
-                  )}
+                        {photoPlatforms.map((pf) => (
+                          <span
+                            key={pf.id}
+                            className={`${styles['filter-tag-item']} ${
+                              selectedPlatforms.has(pf.id)
+                                ? styles['filter-tag-active']
+                                : ''
+                            }`}
+                            onClick={() => handlePlatformToggle(pf.id)}
+                          >
+                            {pf.name}
+                          </span>
+                        ))}
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className={styles['mgt-page-actions']}>
-              <Button
-                icon={<DeleteOutlined />}
-                disabled={selectedRowKeys.length === 0}
-                danger
-                ghost
-                onClick={handleBatchDelete}
-              >
-                删除
-              </Button>
-              <Button
-                icon={<DownloadOutlined />}
-                disabled={selectedRowKeys.length === 0}
-              >
-                下载
-              </Button>
-              <Button
-                icon={<SettingOutlined />}
-                disabled={selectedRowKeys.length === 0}
-                onClick={handleBatchEdit}
-              >
-                批量设置
-              </Button>
-              <Button
-                icon={<LinkOutlined />}
-                disabled={selectedRowKeys.length === 0}
-                onClick={() => {
-                  const ids = Array.from(selectedIds);
-                  setLinkingPhotoIds(ids);
-                  setSearchKeyword('');
-                  setPostsPage(1);
-                  setLinkPostModalVisible(true);
-                  fetchSelectablePosts('', 1);
-                  fetchLinkedPostIds(ids);
-                }}
-              >
-                关联到帖子
-              </Button>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                className={styles['add-btn']}
-                onClick={() => history.push('/admin/photo/add')}
-              >
-                添加照片
-              </Button>
             </div>
           </>
         )}
@@ -1406,6 +1436,7 @@ const PhotoPage: React.FC<Props> = () => {
         <div
           ref={scrollRef}
           className={styles['scroll-container']}
+          style={{ height: `calc(100vh - ${headerHeight + 60}px)` }}
           onScroll={handleScroll}
         >
           {/* 空状态 */}
@@ -1847,9 +1878,9 @@ const PhotoPage: React.FC<Props> = () => {
           setPreviewIndex(-1);
         }}
         footer={null}
-        width={1200}
+        width={800}
         destroyOnClose
-        bodyStyle={{ height: 800, overflow: 'hidden' }}
+        bodyStyle={{ height: 500, overflow: 'hidden' }}
       >
         {previewingPhoto && (
           <div className={styles['preview-content']}>
@@ -1871,24 +1902,6 @@ const PhotoPage: React.FC<Props> = () => {
                 )}?imageView2/2/w/800/q/90`}
                 alt={previewingPhoto.fileName || '照片预览'}
               />
-              {/* 下载按钮 */}
-              <span
-                className={styles['preview-download-btn']}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const url = getImageUrl(previewingPhoto.url);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = previewingPhoto.fileName || 'photo.jpg';
-                  a.target = '_blank';
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                }}
-              >
-                <DownloadOutlined />
-                下载原图
-              </span>
             </div>
 
             {/* 右边：详细信息 */}
@@ -1987,7 +2000,24 @@ const PhotoPage: React.FC<Props> = () => {
                 </span>
               </div>
             </div>
-
+            {/* 下载按钮 */}
+            <span
+              className={styles['preview-download-btn']}
+              onClick={(e) => {
+                e.stopPropagation();
+                const url = getImageUrl(previewingPhoto.url);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = previewingPhoto.fileName || 'photo.jpg';
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+              }}
+            >
+              <DownloadOutlined />
+              下载原图
+            </span>
             {/* 右翻页按钮 */}
             <span
               className={`${styles['preview-nav-btn']} ${

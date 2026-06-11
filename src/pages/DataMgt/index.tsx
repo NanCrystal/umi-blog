@@ -906,7 +906,7 @@ const DataMgtPage: React.FC = () => {
     <div className={styles['data-mgt-page']}>
       {/* 页面标题 */}
       <div className={styles['page-header']}>
-        <h1>数据面板</h1>
+        <div className={styles['page-title']}>数据面板</div>
         <span className={styles['page-subtitle']}>实时运营数据概览</span>
       </div>
 

@@ -28,6 +28,7 @@ const VoiceMgtPage = '@/pages/VoiceMgt/index';
 const VoiceMgtAddPage = '@/pages/VoiceMgt/Add';
 const ProfileMgtPage = '@/pages/ProfileMgt/index';
 const PhotoCardsMgtPage = '@/pages/PhotoCardsMgt/index';
+const PhotoCardsMgtAddPage = '@/pages/PhotoCardsMgt/Add';
 const ImportTasksPage = '@/pages/ImportMgt/index';
 
 export default [
@@ -43,9 +44,6 @@ export default [
     path: '/admin',
     component: '@/layouts/AdminLayout/index',
     routes: [
-      { exact: true, path: '/admin/data', component: DataMgtPage },
-      { exact: true, path: '/admin/itinerary', component: ItineraryMgtPage },
-      { exact: true, path: '/admin/swiper', component: SwiperMgtPage },
       { exact: true, path: '/admin/photo', component: PhotoMgtPage },
       { exact: true, path: '/admin/photo/add', component: PhotoMgtAddPage },
       { exact: true, path: '/admin/video', component: VideoMgtPage },
@@ -53,15 +51,23 @@ export default [
       { exact: true, path: '/admin/voice', component: VoiceMgtPage },
       { exact: true, path: '/admin/voice/add', component: VoiceMgtAddPage },
       { exact: true, path: '/admin/photocards', component: PhotoCardsMgtPage },
+      {
+        exact: true,
+        path: '/admin/photocards/add',
+        component: PhotoCardsMgtAddPage,
+      },
       { exact: true, path: '/admin/profile', component: ProfileMgtPage },
       { exact: true, path: '/admin/import/tasks', component: ImportTasksPage },
+      { exact: true, path: '/admin/data', component: DataMgtPage },
+      { exact: true, path: '/admin/itinerary', component: ItineraryMgtPage },
+      { exact: true, path: '/admin/swiper', component: SwiperMgtPage },
       { exact: true, path: '/admin/wallpaper', component: WallPaperMgtPage },
       { exact: true, path: '/admin/release', component: ReleaseMgtPage },
       { exact: true, path: '/admin/artist', component: ArtistMgtPage },
       { exact: true, path: '/admin/artist/add', component: ArtistMgtAddPage },
       { exact: true, path: '/admin/sync', component: SyncMgtPage },
       { exact: true, path: '/admin/photo_info', component: PhotoInfoPage },
-      { redirect: '/admin/data' },
+      { redirect: '/admin/photo' },
     ],
   },
 

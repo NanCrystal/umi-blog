@@ -75,3 +75,26 @@ export async function updatePlatformSortOrder(
 ) {
   return request('/photo-platforms/sort', { method: 'PUT', data: items });
 }
+
+/** 小卡类型 */
+export async function getPhotoCardTypes() {
+  return request('/photo-card-types');
+}
+
+export async function createPhotoCardType(name: string) {
+  return request('/photo-card-types', { method: 'POST', data: { name } });
+}
+
+export async function updatePhotoCardType(id: number, name: string) {
+  return request(`/photo-card-types/${id}`, { method: 'PUT', data: { name } });
+}
+
+export async function deletePhotoCardType(id: number) {
+  return request(`/photo-card-types/${id}`, { method: 'DELETE' });
+}
+
+export async function updateCardTypeSortOrder(
+  items: { id: number; sortOrder: number }[],
+) {
+  return request('/photo-card-types/sort', { method: 'PUT', data: items });
+}

@@ -442,25 +442,29 @@ const ImportTasksPage: React.FC = () => {
     <div className={styles['import-mgt-page']}>
       {/* ─── 页面头部 ─── */}
       <div className={styles['mgt-page-header']}>
-        <div className={styles['mgt-page-title']}>导入数据集</div>
-        <div className={styles['mgt-page-actions']}>
-          <Button
-            icon={<DeleteOutlined />}
-            disabled={selectedRowKeys.length === 0}
-            danger
-            ghost
-            onClick={handleBatchDelete}
-          >
-            批量删除
-          </Button>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            className={styles['add-btn']}
-            onClick={handleOpenUploadModal}
-          >
-            上传数据集
-          </Button>
+        <div className={styles['mgt-page-header-top']}>
+          <div className={styles['mgt-page-header-section']}>
+            <div className={styles['mgt-page-title']}>导入数据集</div>
+            <div className={styles['mgt-page-actions']}>
+              <Button
+                icon={<DeleteOutlined />}
+                disabled={selectedRowKeys.length === 0}
+                danger
+                ghost
+                onClick={handleBatchDelete}
+              >
+                批量删除
+              </Button>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                className={styles['add-btn']}
+                onClick={handleOpenUploadModal}
+              >
+                上传数据集
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 

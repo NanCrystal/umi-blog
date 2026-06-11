@@ -172,6 +172,7 @@ const ArtistAddPage: React.FC = () => {
         igNickname: item.igNickname,
         igPlatformId: item.igPlatformId ?? undefined,
         syncEnabled: item.syncEnabled ?? true,
+        enabled: item.enabled ?? true,
       });
     } catch {
       message.error('获取艺人信息失败');
@@ -234,6 +235,7 @@ const ArtistAddPage: React.FC = () => {
           : null,
         igPlatformId: values.igPlatformId ? Number(values.igPlatformId) : null,
         syncEnabled: values.syncEnabled ?? true,
+        enabled: values.enabled ?? true,
       };
 
       if (isEdit) {
@@ -321,7 +323,7 @@ const ArtistAddPage: React.FC = () => {
             layout="vertical"
             className={styles['artist-form']}
             autoComplete="off"
-            initialValues={{ syncEnabled: true }}
+            initialValues={{ syncEnabled: true, enabled: true }}
           >
             {/* ─── 基本信息 ─── */}
             <div className={styles['form-card']}>
@@ -481,6 +483,13 @@ const ArtistAddPage: React.FC = () => {
               <Form.Item
                 name="syncEnabled"
                 label="开启自动同步"
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+              <Form.Item
+                name="enabled"
+                label="启用账号"
                 valuePropName="checked"
               >
                 <Switch />

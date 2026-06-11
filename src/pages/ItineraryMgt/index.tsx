@@ -133,6 +133,8 @@ const ItineraryMgt: React.FC = () => {
     setLoading(true);
     getItineraryList({ page, pageSize, status, startDate, endDate })
       .then((res: any) => {
+        console.log('res?.list', res?.list);
+
         setList(res?.list || []);
         setTotal(res?.total || 0);
         setPagination({ current: page, pageSize });
@@ -414,8 +416,7 @@ const ItineraryMgt: React.FC = () => {
         title: '修改时间',
         dataIndex: 'updatedAt',
         key: 'updatedAt',
-        sorter: (a, b) =>
-          new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime(),
+
         defaultSortOrder: 'descend',
         render: (value: string) => (
           <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>
@@ -489,7 +490,10 @@ const ItineraryMgt: React.FC = () => {
         >
           {Object.entries(STATUS_MAP).map(([key, cfg]) => (
             <Option key={key} value={key}>
-              <Badge color={cfg.color} text={cfg.label} />
+              <Badge
+                color={cfg.color}
+                text={<span style={{ color: '#ffffff' }}>{cfg.label}</span>}
+              />
             </Option>
           ))}
         </Select>
@@ -672,6 +676,7 @@ const ItineraryMgt: React.FC = () => {
               format="YYYY-MM-DD HH:mm"
               style={{ width: '100%' }}
               placeholder={['开始时间', '结束时间']}
+              popupClassName={styles['dark-picker-dropdown']}
             />
           </Form.Item>
           <Form.Item

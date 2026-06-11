@@ -31,6 +31,7 @@ export async function createArtist(data: {
   igAvatar?: string;
   igPlatformId?: number;
   syncEnabled?: boolean;
+  enabled?: boolean;
 }) {
   return request('/artists', {
     method: 'POST',
@@ -63,6 +64,7 @@ export async function updateArtist(
     igAvatar?: string;
     igPlatformId?: number;
     syncEnabled?: boolean;
+    enabled?: boolean;
   },
 ) {
   return request(`/artists/${id}`, {

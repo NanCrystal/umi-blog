@@ -447,6 +447,7 @@ const SwiperMgtPage: React.FC = () => {
       },
       {
         title: '操作',
+        width: 240,
         key: 'action',
         render: (_: unknown, item) => (
           <div className={styles['table-actions']}>

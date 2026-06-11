@@ -69,7 +69,7 @@ const LoginPage: React.FC<Props> = () => {
       localStorage.setItem('user', res.user);
       localStorage.setItem('token', res.token);
       if (res.user === 'admin') {
-        history.push('/admin/data');
+        history.push('/admin/photo');
       } else {
         history.push('/home');
       }

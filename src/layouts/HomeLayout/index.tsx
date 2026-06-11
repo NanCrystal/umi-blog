@@ -135,7 +135,7 @@ const HomeLayout = (props: IRouteComponentProps) => {
   };
 
   const handleAdmin = () => {
-    confirmLeave(() => history.push('/admin/data'));
+    confirmLeave(() => history.push('/admin/photo'));
   };
 
   const dropdownItems: MenuProps['items'] = [

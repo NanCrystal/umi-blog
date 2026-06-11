@@ -39,6 +39,11 @@ import {
   updatePhotoPlatform,
   deletePhotoPlatform,
   updatePlatformSortOrder,
+  getPhotoCardTypes,
+  createPhotoCardType,
+  updatePhotoCardType,
+  deletePhotoCardType,
+  updateCardTypeSortOrder,
 } from '@/services/photoTag';
 
 import styles from './index.less';
@@ -90,7 +95,7 @@ const SortableCard: React.FC<{
       </div>
       <div className={styles.itemContent}>
         <span className={styles.itemName}>{item.name}</span>
-        {item.uuid && <span className={styles.itemUuid}>{item.uuid}</span>}
+        {/* {item.uuid && <span className={styles.itemUuid}>{item.uuid}</span>} */}
       </div>
     </div>
   );
@@ -106,6 +111,9 @@ const PhotoTagPage: React.FC<Props> = () => {
   // 拍摄地点状态
   const [locations, setLocations] = useState<TagItem[]>([]);
 
+  // 小卡类型状态
+  const [cardTypes, setCardTypes] = useState<TagItem[]>([]);
+
   // 弹窗状态
   const [typeModalVisible, setTypeModalVisible] = useState(false);
   const [typeEditItem, setTypeEditItem] = useState<TagItem | null>(null);
@@ -117,11 +125,16 @@ const PhotoTagPage: React.FC<Props> = () => {
   const [locationEditItem, setLocationEditItem] = useState<TagItem | null>(
     null,
   );
+  const [cardTypeModalVisible, setCardTypeModalVisible] = useState(false);
+  const [cardTypeEditItem, setCardTypeEditItem] = useState<TagItem | null>(
+    null,
+  );
 
   // 表单实例
   const [typeForm] = Form.useForm();
   const [platformForm] = Form.useForm();
   const [locationForm] = Form.useForm();
+  const [cardTypeForm] = Form.useForm();
 
   // 拖拽传感器
   const sensors = useSensors(
@@ -135,6 +148,7 @@ const PhotoTagPage: React.FC<Props> = () => {
     loadPhotoTypes();
     loadPlatforms();
     loadLocations();
+    loadCardTypes();
   }, []);
 
   // 加载照片类型列表
@@ -152,6 +166,16 @@ const PhotoTagPage: React.FC<Props> = () => {
     try {
       const data = await getPhotoPlatforms();
       setPlatforms(data || []);
+    } catch {
+      // 错误由拦截器统一处理
+    }
+  };
+
+  // 加载小卡类型列表
+  const loadCardTypes = async () => {
+    try {
+      const data = await getPhotoCardTypes();
+      setCardTypes(data || []);
     } catch {
       // 错误由拦截器统一处理
     }
@@ -189,6 +213,18 @@ const PhotoTagPage: React.FC<Props> = () => {
       platformForm.resetFields();
     }
     setPlatformModalVisible(true);
+  };
+
+  // 打开小卡类型新增/编辑弹窗
+  const openCardTypeModal = (item?: TagItem) => {
+    if (item) {
+      setCardTypeEditItem(item);
+      cardTypeForm.setFieldsValue({ name: item.name });
+    } else {
+      setCardTypeEditItem(null);
+      cardTypeForm.resetFields();
+    }
+    setCardTypeModalVisible(true);
   };
 
   // 打开拍摄地点新增/编辑弹窗
@@ -243,6 +279,24 @@ const PhotoTagPage: React.FC<Props> = () => {
     }
   };
 
+  // 提交小卡类型表单
+  const submitCardTypeForm = async () => {
+    try {
+      const values = await cardTypeForm.validateFields();
+      if (cardTypeEditItem) {
+        await updatePhotoCardType(cardTypeEditItem.id, values.name);
+        message.success('修改成功');
+      } else {
+        await createPhotoCardType(values.name);
+        message.success('添加成功');
+      }
+      setCardTypeModalVisible(false);
+      loadCardTypes();
+    } catch (error) {
+      console.error('Validation failed:', error);
+    }
+  };
+
   // 提交拍摄地点表单
   const submitLocationForm = async () => {
     try {
@@ -292,6 +346,25 @@ const PhotoTagPage: React.FC<Props> = () => {
           await deletePhotoPlatform(id);
           message.success('删除成功');
           loadPlatforms();
+        } catch {
+          // 错误由拦截器统一处理
+        }
+      },
+    });
+  };
+
+  // 删除小卡类型
+  const deleteCardType = (id: number) => {
+    Modal.confirm({
+      title: '提示',
+      content: '确定要删除该小卡类型吗？',
+      okText: '确定',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await deletePhotoCardType(id);
+          message.success('删除成功');
+          loadCardTypes();
         } catch {
           // 错误由拦截器统一处理
         }
@@ -377,6 +450,26 @@ const PhotoTagPage: React.FC<Props> = () => {
       );
     } catch {
       loadLocations();
+    }
+  };
+
+  const handleCardTypeDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = cardTypes.findIndex((c) => c.id === active.id);
+    const newIndex = cardTypes.findIndex((c) => c.id === over.id);
+    const newItems = arrayMove(cardTypes, oldIndex, newIndex).map(
+      (item, index) => ({ ...item, sortOrder: index + 1 }),
+    );
+    setCardTypes(newItems);
+
+    try {
+      await updateCardTypeSortOrder(
+        newItems.map((item) => ({ id: item.id, sortOrder: item.sortOrder })),
+      );
+    } catch {
+      loadCardTypes();
     }
   };
 
@@ -474,6 +567,39 @@ const PhotoTagPage: React.FC<Props> = () => {
                   item={item}
                   onEdit={openLocationModal}
                   onDelete={deleteLocation}
+                />
+              ))}
+            </SortableContext>
+          </div>
+        </DndContext>
+      </div>
+
+      {/* 小卡类型区域 */}
+      <div className={styles.section}>
+        <h2 className={styles.title}>
+          <span className={styles.dot}></span>
+          小卡类型
+        </h2>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleCardTypeDragEnd}
+        >
+          <div className={styles.cardList}>
+            <div className={styles.addCard} onClick={() => openCardTypeModal()}>
+              <PlusOutlined className={styles.addIcon} />
+              <span>新建小卡类型</span>
+            </div>
+            <SortableContext
+              items={cardTypes.map((i) => i.id)}
+              strategy={horizontalListSortingStrategy}
+            >
+              {cardTypes.map((item) => (
+                <SortableCard
+                  key={item.id}
+                  item={item}
+                  onEdit={openCardTypeModal}
+                  onDelete={deleteCardType}
                 />
               ))}
             </SortableContext>
@@ -580,6 +706,36 @@ const PhotoTagPage: React.FC<Props> = () => {
             ]}
           >
             <Input placeholder="请输入地点名称" maxLength={10} showCount />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 小卡类型新增/编辑弹窗 */}
+      <Modal
+        title={cardTypeEditItem ? '编辑小卡类型' : '新建小卡类型'}
+        open={cardTypeModalVisible}
+        onOk={submitCardTypeForm}
+        onCancel={() => setCardTypeModalVisible(false)}
+        okText="保存"
+        cancelText="取消"
+        destroyOnClose
+      >
+        <Form
+          form={cardTypeForm}
+          layout="vertical"
+          className={styles['tag-form']}
+          preserve={false}
+          autoComplete="off"
+        >
+          <Form.Item
+            label="小卡类型名称"
+            name="name"
+            rules={[
+              { required: true, message: '请输入小卡类型名称' },
+              { min: 1, max: 10, message: '长度在1-10个字符' },
+            ]}
+          >
+            <Input placeholder="请输入小卡类型名称" maxLength={10} showCount />
           </Form.Item>
         </Form>
       </Modal>

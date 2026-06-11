@@ -3,7 +3,9 @@
    ============================================================ */
 
 .essay-wrapper {
-  margin: 76px 32px 32px;
+  max-width: 1440px;
+  margin: 76px auto 32px;
+  padding: 0 32px;
   overflow: auto;
 }
 
@@ -177,7 +179,8 @@
 /* 平板：两列 */
 @media (max-width: 1024px) {
   .essay-wrapper {
-    margin: 76px 20px 20px;
+    padding: 0 20px;
+    margin: 76px auto 20px;
   }
   .essay-main {
     grid-template-columns: repeat(2, 1fr);
@@ -188,7 +191,8 @@
 /* 手机横屏：两列 */
 @media (max-width: 768px) {
   .essay-wrapper {
-    margin: 72px 16px 16px;
+    padding: 0 16px;
+    margin: 72px auto 16px;
   }
   .essay-main {
     grid-template-columns: repeat(2, 1fr);
@@ -199,7 +203,8 @@
 /* 手机竖屏：单列 */
 @media (max-width: 480px) {
   .essay-wrapper {
-    margin: 68px 12px 12px;
+    padding: 0 12px;
+    margin: 68px auto 12px;
   }
   .essay-main {
     grid-template-columns: 1fr;
