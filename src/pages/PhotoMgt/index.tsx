@@ -1646,7 +1646,7 @@ const PhotoPage: React.FC<Props> = () => {
         )}
       </div>
 
-      {/* 底部选中提示 */}
+      {/* 选中提示 */}
       {selectedIds.size > 0 && (
         <div className={styles['select-bar']}>
           已选 <strong>{selectedIds.size}</strong> 张
