@@ -19,12 +19,16 @@ export function createImportTask(data: {
   name: string;
   file: File;
   type?: string;
+  artistId?: string;
+  artistName?: string;
   onProgress?: (percent: number) => void;
 }) {
   const formData = new FormData();
   formData.append('file', data.file);
   formData.append('name', data.name);
   if (data.type) formData.append('type', data.type);
+  if (data.artistId) formData.append('artistId', data.artistId);
+  if (data.artistName) formData.append('artistName', data.artistName);
 
   const xhr = new XMLHttpRequest();
 
@@ -106,4 +110,28 @@ export async function batchDeleteImportTasks(ids: number[]) {
     method: 'POST',
     data: { ids },
   });
+}
+
+/** 通过后端代理下载导入任务的 ZIP 文件 */
+export function downloadImportTask(id: number, filename: string): void {
+  const token = localStorage.getItem('token');
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', `/api/import-tasks/${id}/download`);
+  if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+  xhr.responseType = 'blob';
+
+  xhr.addEventListener('load', () => {
+    if (xhr.status >= 200 && xhr.status < 300 && xhr.response) {
+      const blob = new Blob([xhr.response], { type: 'application/zip' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
+  });
+
+  xhr.send();
 }

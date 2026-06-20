@@ -71,6 +71,9 @@ export const formatFileSize = (bytes: number): string => {
  * imageView2/2/w/400/q/80 按比例缩放到宽度 ≤ 400px，高度自适应 度 400px，高度按原比例，可能不到 400px
  *
  */
+export const getThumbFullUrl = (url: string): string => {
+  return `${getImageUrl(url)}? imageView2/2`;
+};
 export const getThumbUrl = (url: string): string => {
   return `${getImageUrl(url)}?imageView2/1/w/200/h/200/q/75`;
 };

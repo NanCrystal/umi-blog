@@ -79,6 +79,16 @@ export async function deleteArtist(id: number) {
   });
 }
 
+/** 更新艺人排序 */
+export async function updateArtistSortOrder(
+  items: { id: number; sortOrder: number }[],
+) {
+  return request('/artists/sort-order', {
+    method: 'PUT',
+    data: { items },
+  });
+}
+
 // 社交同步相关
 export async function runSyncAll(mode = 'incremental') {
   const url = mode === 'full' ? '/sync/full-run' : '/sync/run';

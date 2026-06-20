@@ -8,8 +8,10 @@ import request from '@/utils/request';
 export interface PhotoCardCategory {
   id: number;
   name: string;
+  coverImage?: string;
   parentId: number | null;
   sortOrder: number;
+  children?: PhotoCardCategory[];
 }
 
 /** 小卡 */
@@ -49,17 +51,22 @@ export async function getPhotoCardCategories() {
 export async function createPhotoCardCategory(
   name: string,
   parentId?: number | null,
+  coverImage?: string,
 ) {
   return request<PhotoCardCategory>('/photo-card-categories', {
     method: 'POST',
-    data: { name, parentId },
+    data: { name, parentId, coverImage },
   });
 }
 
-export async function updatePhotoCardCategory(id: number, name: string) {
+export async function updatePhotoCardCategory(
+  id: number,
+  name: string,
+  coverImage?: string,
+) {
   return request<PhotoCardCategory>(`/photo-card-categories/${id}`, {
     method: 'PUT',
-    data: { name },
+    data: { name, coverImage },
   });
 }
 
@@ -75,13 +82,27 @@ export async function updateCategorySortOrder(
 
 // ─── 小卡 API ───
 
+/** 分页响应 */
+export interface PaginatedResponse<T> {
+  list: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export async function getPhotoCards(params?: {
   categoryId?: number;
   categoryIds?: string;
   artistId?: number;
   artistIds?: string;
+  page?: number;
+  pageSize?: number;
 }) {
-  return request<PhotoCardItem[]>('/photo-cards', { method: 'GET', params });
+  return request<PaginatedResponse<PhotoCardItem>>('/photo-cards', {
+    method: 'GET',
+    params,
+  });
 }
 
 export async function createPhotoCard(data: CreatePhotoCardParams) {

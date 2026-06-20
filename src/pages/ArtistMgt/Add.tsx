@@ -10,6 +10,7 @@ import {
   message,
   Spin,
   Switch,
+  Space,
 } from 'antd';
 import {
   PlusOutlined,
@@ -19,6 +20,7 @@ import {
 } from '@ant-design/icons';
 import { createArtist, updateArtist, getArtistDetail } from '@/services/artist';
 import { uploadImage } from '@/services/article';
+import { uploadImageFull } from '@/services/upload';
 import { getPhotoPlatforms } from '@/services/photoTag';
 import styles from './index.less';
 import { getImageUrl } from '@/utils/utils';
@@ -45,6 +47,7 @@ interface SocialSection {
   nicknameLabel: string;
   avatarField: string;
   platformField: string;
+  syncField: string;
   hasToken?: boolean;
   tokenField?: string;
   tokenLabel?: string;
@@ -68,6 +71,7 @@ const socialSections: SocialSection[] = [
     nicknameLabel: '微博昵称',
     avatarField: 'weiboAvatar',
     platformField: 'weiboPlatformId',
+    syncField: 'syncWeibo',
   },
   {
     key: 'douyin',
@@ -79,6 +83,7 @@ const socialSections: SocialSection[] = [
     nicknameLabel: '抖音昵称',
     avatarField: 'douyinAvatar',
     platformField: 'douyinPlatformId',
+    syncField: 'syncDouyin',
   },
   {
     key: 'xhs',
@@ -90,6 +95,7 @@ const socialSections: SocialSection[] = [
     nicknameLabel: '小红书昵称',
     avatarField: 'xhsAvatar',
     platformField: 'xhsPlatformId',
+    syncField: 'syncXiaohongshu',
   },
   {
     key: 'ig',
@@ -101,6 +107,7 @@ const socialSections: SocialSection[] = [
     nicknameLabel: 'Instagram 昵称',
     avatarField: 'igAvatar',
     platformField: 'igPlatformId',
+    syncField: 'syncInstagram',
     hasToken: true,
     tokenField: 'igToken',
     tokenLabel: 'Instagram Token',
@@ -116,7 +123,9 @@ const ArtistAddPage: React.FC = () => {
   const [form] = Form.useForm();
   const [platforms, setPlatforms] = useState<PlatformItem[]>([]);
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [appCoverUrl, setAppCoverUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [appCoverUploading, setAppCoverUploading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [socialAvatars, setSocialAvatars] = useState<Record<string, string>>(
@@ -127,26 +136,23 @@ const ArtistAddPage: React.FC = () => {
   >({});
 
   useEffect(() => {
+    let cancelled = false;
     fetchPlatforms();
     if (isEdit && editId) {
-      loadArtist(Number(editId));
+      loadArtist(Number(editId), cancelled);
     }
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const fetchPlatforms = async () => {
-    try {
-      const data = await getPhotoPlatforms();
-      setPlatforms(data || []);
-    } catch {
-      // ignore
-    }
-  };
-
-  const loadArtist = async (id: number) => {
+  const loadArtist = async (id: number, cancelled?: boolean) => {
     setPageLoading(true);
     try {
       const item = await getArtistDetail(id);
+      if (cancelled) return;
       setAvatarUrl(item.avatar || '');
+      setAppCoverUrl(item.appCover || '');
       const socialAvatarsMap: Record<string, string> = {};
       if (item.weiboAvatar) socialAvatarsMap.weibo = item.weiboAvatar;
       if (item.douyinAvatar) socialAvatarsMap.douyin = item.douyinAvatar;
@@ -172,13 +178,27 @@ const ArtistAddPage: React.FC = () => {
         igNickname: item.igNickname,
         igPlatformId: item.igPlatformId ?? undefined,
         syncEnabled: item.syncEnabled ?? true,
-        enabled: item.enabled ?? true,
+        enabled: !!item.enabled,
+        syncWeibo: item.syncWeibo ?? false,
+        syncDouyin: item.syncDouyin ?? false,
+        syncXiaohongshu: item.syncXiaohongshu ?? false,
+        syncInstagram: item.syncInstagram ?? false,
       });
     } catch {
+      if (cancelled) return;
       message.error('获取艺人信息失败');
       history.push('/admin/artist');
     } finally {
-      setPageLoading(false);
+      if (!cancelled) setPageLoading(false);
+    }
+  };
+
+  const fetchPlatforms = async () => {
+    try {
+      const data = await getPhotoPlatforms();
+      setPlatforms(data || []);
+    } catch {
+      // ignore
     }
   };
 
@@ -208,6 +228,19 @@ const ArtistAddPage: React.FC = () => {
     return false;
   };
 
+  const handleAppCoverUpload = async (file: File) => {
+    setAppCoverUploading(true);
+    try {
+      const res = await uploadImageFull(file);
+      setAppCoverUrl(res.url);
+    } catch {
+      message.error('App封面上传失败');
+    } finally {
+      setAppCoverUploading(false);
+    }
+    return false;
+  };
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -220,6 +253,7 @@ const ArtistAddPage: React.FC = () => {
       const payload = {
         ...values,
         avatar: avatarUrl,
+        appCover: appCoverUrl || null,
         weiboAvatar: socialAvatars.weibo || null,
         douyinAvatar: socialAvatars.douyin || null,
         xhsAvatar: socialAvatars.xhs || null,
@@ -236,6 +270,10 @@ const ArtistAddPage: React.FC = () => {
         igPlatformId: values.igPlatformId ? Number(values.igPlatformId) : null,
         syncEnabled: values.syncEnabled ?? true,
         enabled: values.enabled ?? true,
+        syncWeibo: values.syncWeibo ?? true,
+        syncDouyin: values.syncDouyin ?? true,
+        syncXiaohongshu: values.syncXiaohongshu ?? true,
+        syncInstagram: values.syncInstagram ?? true,
       };
 
       if (isEdit) {
@@ -375,17 +413,33 @@ const ArtistAddPage: React.FC = () => {
                     </Form.Item>
                   </div>
                   <Form.Item
-                    name="bio"
-                    style={{ marginTop: 16, marginBottom: 0 }}
+                    shouldUpdate={(prev, cur) => prev.enabled !== cur.enabled}
                   >
-                    <TextArea
-                      placeholder="请输入简介（可选）"
-                      rows={2}
-                      maxLength={500}
-                      showCount
-                    />
+                    {({ getFieldValue }) => (
+                      <Space style={{ marginBottom: 0 }}>
+                        <span className={styles['form-label']}>启用账号</span>
+                        <Switch
+                          checked={getFieldValue('enabled')}
+                          onChange={(val) => {
+                            const formInst = form;
+                            formInst.setFieldsValue({ enabled: val });
+                          }}
+                        />
+                      </Space>
+                    )}
                   </Form.Item>
                 </div>
+              </div>
+
+              {/* App 封面 */}
+              <div style={{ marginTop: 16 }}>
+                <div style={{ marginBottom: 8, fontWeight: 500 }}>App 封面</div>
+                {renderAvatarUpload(
+                  appCoverUrl,
+                  appCoverUploading,
+                  handleAppCoverUpload,
+                  120,
+                )}
               </div>
             </div>
 
@@ -407,6 +461,14 @@ const ArtistAddPage: React.FC = () => {
                     <span className={styles['social-card-title']}>
                       {section.label}
                     </span>
+                    <Form.Item
+                      name={section.syncField}
+                      valuePropName="checked"
+                      style={{ marginBottom: 0, marginLeft: 'auto' }}
+                      tooltip="开启后将自动同步该平台内容"
+                    >
+                      <Switch size="small" />
+                    </Form.Item>
                   </div>
 
                   <div className={styles['social-card-body']}>
@@ -480,19 +542,20 @@ const ArtistAddPage: React.FC = () => {
 
             {/* ─── 同步设置 ─── */}
             <div className={styles['form-card']}>
-              <Form.Item
+              {/* <Form.Item
                 name="syncEnabled"
                 label="开启自动同步"
                 valuePropName="checked"
               >
                 <Switch />
-              </Form.Item>
-              <Form.Item
-                name="enabled"
-                label="启用账号"
-                valuePropName="checked"
-              >
-                <Switch />
+              </Form.Item> */}
+              <Form.Item name="bio" style={{ marginTop: 16, marginBottom: 0 }}>
+                <TextArea
+                  placeholder="请输入简介（可选）"
+                  rows={2}
+                  maxLength={500}
+                  showCount
+                />
               </Form.Item>
             </div>
 

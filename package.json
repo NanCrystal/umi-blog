@@ -44,6 +44,7 @@
     "@umijs/preset-react": "1.x",
     "@umijs/test": "^3.5.24",
     "cross-env": "^7.0.3",
+    "docx": "^9.7.1",
     "file-loader": "^6.2.0",
     "lint-staged": "^10.0.7",
     "prettier": "^2.2.0",

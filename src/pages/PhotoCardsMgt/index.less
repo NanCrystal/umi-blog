@@ -304,9 +304,9 @@
   width: 100%;
   min-height: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
-  padding: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  padding: 18px;
   overflow-y: auto;
   align-content: start;
 
@@ -345,17 +345,17 @@
 /* 横屏 badge */
 .landscape-badge {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 4px;
+  right: 4px;
   background: rgba(0, 0, 0, 0.65);
   color: #ffd666;
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 11px;
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 214, 102, 0.3);
   z-index: 2;
@@ -375,24 +375,24 @@
 /* 卡片悬浮操作按钮 */
 .card-hover-actions {
   position: absolute;
-  bottom: 6px;
-  right: 6px;
+  bottom: 4px;
+  right: 4px;
   display: flex;
-  gap: 4px;
+  gap: 3px;
   z-index: 3;
 
   .card-action-btn {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 4px !important;
+    border-radius: 3px !important;
     color: var(--color-primary, #ffffff) !important;
-    font-size: 12px;
+    font-size: 11px;
     backdrop-filter: blur(4px);
     transition: all 0.2s ease;
 
@@ -416,15 +416,15 @@
 }
 
 .card-info {
-  padding: 10px 12px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .card-name {
   font-family: var(--font-display, 'Saira Condensed', sans-serif);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--color-primary, #ffffff);
   letter-spacing: 0.5px;
@@ -435,7 +435,7 @@
 
 .card-date {
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-stone, #555555);
   letter-spacing: 0.5px;
 }
@@ -1725,4 +1725,79 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ─── 分页 ─── */
+.pagination-wrap {
+  display: flex;
+  justify-content: right;
+  padding-bottom: 12px;
+  // padding: 24px 0 8px;
+
+  :global(.ant-pagination-item) {
+    background: transparent;
+    border-color: #333333;
+    border-radius: 0;
+
+    a {
+      color: #cccccc;
+    }
+
+    &:hover {
+      border-color: #ffffff;
+
+      a {
+        color: #ffffff;
+      }
+    }
+  }
+
+  :global(.ant-pagination-item-active) {
+    border-color: #ffffff;
+    background: transparent;
+
+    a {
+      color: #ffffff;
+    }
+  }
+
+  :global(.ant-pagination-prev),
+  :global(.ant-pagination-next) {
+    .ant-pagination-item-link {
+      background: transparent;
+      border-color: #333333;
+      border-radius: 0;
+      color: #cccccc;
+    }
+
+    &:hover .ant-pagination-item-link {
+      border-color: #ffffff;
+      color: #ffffff;
+    }
+  }
+
+  :global(.ant-pagination-options-quick-jumper) {
+    input {
+      background: transparent;
+      border-color: #333333;
+      border-radius: 0;
+      color: #ffffff;
+
+      &:hover,
+      &:focus {
+        border-color: #ffffff;
+      }
+    }
+  }
+
+  :global(.ant-select-selector) {
+    background: transparent !important;
+    border-color: #333333 !important;
+    border-radius: 0 !important;
+    color: #cccccc !important;
+  }
+
+  :global(.ant-pagination-total-text) {
+    color: #666666;
+  }
 }

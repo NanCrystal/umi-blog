@@ -46,6 +46,29 @@ export async function updateLocationSortOrder(
   return request('/photo-locations/sort', { method: 'PUT', data: items });
 }
 
+/** 问题反馈 */
+export async function getPhotoFeedbacks() {
+  return request('/photo-feedback');
+}
+
+export async function createPhotoFeedback(name: string) {
+  return request('/photo-feedback', { method: 'POST', data: { name } });
+}
+
+export async function updatePhotoFeedback(id: number, name: string) {
+  return request(`/photo-feedback/${id}`, { method: 'PUT', data: { name } });
+}
+
+export async function deletePhotoFeedback(id: number) {
+  return request(`/photo-feedback/${id}`, { method: 'DELETE' });
+}
+
+export async function updateFeedbackSortOrder(
+  items: { id: number; sortOrder: number }[],
+) {
+  return request('/photo-feedback/sort', { method: 'PUT', data: items });
+}
+
 /** 发布平台 */
 export async function getPhotoPlatforms() {
   return request('/photo-platforms');

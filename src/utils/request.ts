@@ -46,7 +46,17 @@ request.interceptors.request.use((url, options) => {
 
 // 响应拦截器（统一处理返回结构 + 错误提示）
 request.interceptors.response.use(async (response) => {
-  const data = await response.clone().json();
+  // 处理空响应体（如 200/204 无 body 的情况）
+  const text = await response.clone().text();
+  let data: any = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      // 非 JSON 文本原样返回
+      return text;
+    }
+  }
 
   // 非 2xx 统一抛错并显示提示
   if (!response.ok) {
@@ -57,6 +67,9 @@ request.interceptors.response.use(async (response) => {
     }
     throw new Error(errMsg);
   }
+
+  // 空 body 200/204 直接返回 true 表示成功
+  if (!data) return true;
 
   // 后端统一返回 { code, data, message } 结构
   if (data?.code === 0) {

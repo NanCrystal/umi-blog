@@ -10,21 +10,29 @@ import {
   Spin,
   Space,
   Tooltip,
+  Table,
 } from 'antd';
-import { EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import type { ColumnsType } from 'antd/es/table';
+import {
+  EyeOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
 import {
   getArtistList,
   getArtistDetail,
   deleteArtist,
   runSyncForArtistPlatform,
+  updateArtistSortOrder,
 } from '@/services/artist';
 import { getPhotoPlatforms } from '@/services/photoTag';
+import ModuleSettingsModal from './ModuleSettingsModal';
 import styles from './index.less';
 import { getImageUrl } from '@/utils/utils';
-import weiboIcon from '@/assets/images/weibo.png';
-import douyinIcon from '@/assets/images/douyin.png';
-import xhsIcon from '@/assets/images/xiaohongshu.png';
-import igIcon from '@/assets/images/instagram.png';
 import weiboSvg from '@/assets/images/weibo.svg';
 import douyinSvg from '@/assets/images/douyin.svg';
 import xhsSvg from '@/assets/images/xiaohongshu.svg';
@@ -35,6 +43,7 @@ interface ArtistItem {
   name: string;
   artistId: string;
   avatar: string;
+  appCover?: string;
   bio?: string;
   weiboId?: string;
   douyinSecUid?: string;
@@ -46,6 +55,7 @@ interface ArtistItem {
   enabled?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  sortOrder?: number;
 }
 
 // 平台配置
@@ -71,6 +81,13 @@ const ArtistMgtPage = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [platformMap, setPlatformMap] = useState<Record<number, string>>({});
 
+  // APP 模块设置弹窗
+  const [moduleSettingsVisible, setModuleSettingsVisible] = useState(false);
+  const [moduleSettingsArtist, setModuleSettingsArtist] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+
   const fetchList = async () => {
     setLoading(true);
     try {
@@ -79,7 +96,11 @@ const ArtistMgtPage = () => {
         (a: any, b: any) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
       );
-      setList(sorted);
+      const withOrder = sorted.map((item: any, index: number) => ({
+        ...item,
+        sortOrder: index + 1,
+      }));
+      setList(withOrder);
     } catch {
       message.error('获取艺人列表失败');
     } finally {
@@ -160,126 +181,156 @@ const ArtistMgtPage = () => {
     instagram: igSvg,
   };
 
-  const platformImgMap: Record<string, string> = {
-    weibo: weiboIcon,
-    douyin: douyinIcon,
-    xiaohongshu: xhsIcon,
-    instagram: igIcon,
+  const handleMove = async (index: number, direction: 'up' | 'down') => {
+    const newList = [...list];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newList.length) return;
+    [newList[index], newList[targetIndex]] = [
+      newList[targetIndex],
+      newList[index],
+    ];
+    const reordered = newList.map((item, i) => ({ ...item, sortOrder: i + 1 }));
+    setList(reordered);
+    try {
+      await updateArtistSortOrder(
+        reordered.map((item) => ({ id: item.id, sortOrder: item.sortOrder })),
+      );
+    } catch {
+      message.error('排序更新失败');
+      fetchList();
+    }
   };
 
-  const renderCard = (item: ArtistItem) => {
-    const hasPlatform = (p: PlatformConfig) => !!item[p.key];
-    const platformCount = platforms.filter(hasPlatform).length;
-
-    return (
-      <div key={item.id} className={styles['artist-card']}>
-        {/* 右上角操作按钮（hover 显示） */}
-        <div className={styles['card-actions']}>
-          <Button
-            type="default"
-            size="small"
-            icon={<EyeOutlined />}
-            className={styles['action-btn']}
-            onClick={() => handleShowDetail(item.id)}
-          />
-          <Button
-            type="default"
-            size="small"
-            icon={<EditOutlined />}
-            className={styles['action-btn']}
-            onClick={() => history.push(`/admin/artist/add?id=${item.id}`)}
-          />
-          <Popconfirm
-            title="删除后不可恢复，是否继续？"
-            onConfirm={() => handleDelete(item.id)}
-            okText="删除"
-            cancelText="取消"
-          >
-            <Button
-              type="default"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              className={styles['action-btn-danger']}
-            />
-          </Popconfirm>
-        </div>
-
-        {/* 头部：头像 + 基本信息 */}
-        <div className={styles['card-header']}>
+  const columns: ColumnsType<ArtistItem> = [
+    {
+      title: '排序',
+      dataIndex: 'sortOrder',
+      key: 'sortOrder',
+      width: 72,
+      align: 'center',
+      sorter: (a, b) => (a.sortOrder || 0) - (b.sortOrder || 0),
+      defaultSortOrder: 'ascend',
+    },
+    {
+      title: '艺人',
+      key: 'artist',
+      render: (_, record) => (
+        <Space>
           <Avatar
-            src={getImageUrl(item.avatar)}
-            size={56}
-            className={styles['card-avatar']}
+            src={getImageUrl(record.avatar)}
+            size={36}
+            style={{
+              flexShrink: 0,
+              border: '1px solid var(--color-hairline, #262626)',
+              borderRadius: 4,
+            }}
           />
-          <div className={styles['card-info']}>
-            <div className={styles['card-name']}>{item.name}</div>
-            <div className={styles['card-id']}>
-              <Tag color="blue" style={{ margin: 0 }}>
-                {item.artistId}
-              </Tag>
+          <div>
+            <div
+              style={{
+                color: 'var(--color-primary, #ffffff)',
+                fontSize: 14,
+                fontWeight: 500,
+              }}
+            >
+              {record.name}
             </div>
+            <Tag color="blue" style={{ margin: 0 }}>
+              {record.artistId}
+            </Tag>
           </div>
-        </div>
-
-        {/* 平台图标 */}
-        {/* {platformCount > 0 ? (
-          <div className={styles['card-platforms']}>
-            {platforms.map((p) =>
-              hasPlatform(p) ? (
+        </Space>
+      ),
+    },
+    {
+      title: '平台',
+      key: 'platforms',
+      render: (_, record) => (
+        <Space size={4}>
+          {platforms.map((p) => {
+            if (!record[p.key]) return null;
+            return (
+              <Tooltip key={p.key} title={p.label}>
                 <img
-                  key={p.key}
-                  src={platformImgMap[p.slug]}
+                  src={svgMap[p.slug]}
                   alt={p.label}
-                  title={p.label}
-                  className={styles['platform-icon']}
+                  style={{ width: 18, height: 18, display: 'block' }}
                 />
-              ) : null,
-            )}
-          </div>
-        ) : (
-          <div className={styles['card-platforms']}>
-            <span className={styles['no-platform']}>未配置平台</span>
-          </div>
-        )} */}
-
-        {/* 底部：状态 + 同步操作 */}
-        <div className={styles['card-footer']}>
+              </Tooltip>
+            );
+          })}
+          {platforms.every((p) => !record[p.key]) && (
+            <span style={{ color: 'var(--color-muted, #666)', fontSize: 13 }}>
+              未配置
+            </span>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: '账号状态',
+      key: 'enabledStatus',
+      render: (_, record) => (
+        <Tag color={record.enabled !== false ? 'green' : 'red'}>
+          {record.enabled !== false ? '已启用' : '已禁用'}
+        </Tag>
+      ),
+    },
+    // {
+    //   title: '同步状态',
+    //   key: 'syncStatus',
+    //   render: (_, record) => {
+    //     const enabledPlatforms = platforms.filter((p) => record[p.key]);
+    //     if (enabledPlatforms.length === 0) {
+    //       return (
+    //         <Tag color="default">未配置</Tag>
+    //       );
+    //     }
+    //     return (
+    //       <Space size={4}>
+    //         {enabledPlatforms.map((p) => (
+    //           <Tooltip key={p.slug} title={`${p.label} ${record.syncEnabled !== false ? '同步中' : '已暂停'}`}>
+    //             <Tag color={record.syncEnabled !== false ? 'success' : 'default'} style={{ margin: 0 }}>
+    //               {p.label}
+    //             </Tag>
+    //           </Tooltip>
+    //         ))}
+    //       </Space>
+    //     );
+    //   },
+    // },
+    {
+      title: '同步操作',
+      key: 'syncOps',
+      render: (_, record) => {
+        const enabledPlatforms = platforms.filter(
+          (p) => record[p.key] && record.syncEnabled !== false,
+        );
+        if (enabledPlatforms.length === 0) {
+          return (
+            <span style={{ color: 'var(--color-muted, #666)', fontSize: 13 }}>
+              -
+            </span>
+          );
+        }
+        return (
           <Space size={4}>
-            <Tag color={item.enabled !== false ? 'green' : 'red'}>
-              {item.enabled !== false ? '已启用' : '已禁用'}
-            </Tag>
-            <Tag color={item.syncEnabled !== false ? 'success' : 'default'}>
-              {item.syncEnabled !== false ? '同步中' : '已暂停'}
-            </Tag>
-          </Space>
-          <Space size={4}>
-            {platforms.map((p) => {
-              const syncKey = `${item.id}_${p.slug}`;
+            {enabledPlatforms.map((p) => {
+              const syncKey = `${record.id}_${p.slug}`;
               const isSyncing = syncingMap[syncKey];
-              const disabled = !item[p.key] || isSyncing;
               return (
-                <Tooltip
-                  key={p.slug}
-                  title={
-                    !item[p.key] ? `未配置${p.label}ID` : `同步${p.label}数据`
-                  }
-                >
+                <Tooltip key={p.slug} title={`同步${p.label}数据`}>
                   <Button
                     size="small"
-                    disabled={disabled}
+                    disabled={isSyncing}
                     loading={isSyncing}
                     icon={
                       <img
                         src={svgMap[p.slug]}
-                        className={styles['sync-svg-icon']}
-                        style={{
-                          display: 'inline-flex',
-                          verticalAlign: 'middle',
-                        }}
+                        style={{ width: 14, height: 14, display: 'block' }}
                       />
                     }
-                    onClick={() => handleSyncPlatform(item, p)}
+                    onClick={() => handleSyncPlatform(record, p)}
                     className={styles['sync-btn']}
                     style={{
                       display: 'inline-flex',
@@ -293,10 +344,93 @@ const ArtistMgtPage = () => {
               );
             })}
           </Space>
-        </div>
-      </div>
-    );
-  };
+        );
+      },
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      sorter: (a, b) =>
+        new Date(a.createdAt || 0).getTime() -
+        new Date(b.createdAt || 0).getTime(),
+      render: (val: string) => (val ? new Date(val).toLocaleDateString() : '-'),
+    },
+    {
+      title: '排序',
+      key: 'move',
+      width: 80,
+      align: 'center',
+      render: (_, _record, index) => (
+        <Space size={2}>
+          <Button
+            type="default"
+            size="small"
+            icon={<ArrowUpOutlined />}
+            className={styles['action-btn']}
+            disabled={index === 0}
+            onClick={() => handleMove(index, 'up')}
+          />
+          <Button
+            type="default"
+            size="small"
+            icon={<ArrowDownOutlined />}
+            className={styles['action-btn']}
+            disabled={index === list.length - 1}
+            onClick={() => handleMove(index, 'down')}
+          />
+        </Space>
+      ),
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      width: 200,
+      render: (_, record) => (
+        <Space size={4}>
+          <Button
+            type="default"
+            size="small"
+            icon={<EyeOutlined />}
+            className={styles['action-btn']}
+            onClick={() => handleShowDetail(record.id)}
+          />
+          <Button
+            type="default"
+            size="small"
+            icon={<EditOutlined />}
+            className={styles['action-btn']}
+            onClick={() => history.push(`/admin/artist/add?id=${record.id}`)}
+          />
+          <Button
+            type="default"
+            size="small"
+            title="APP设置"
+            icon={<SettingOutlined />}
+            className={styles['action-btn']}
+            onClick={() => {
+              setModuleSettingsArtist({ id: record.id, name: record.name });
+              setModuleSettingsVisible(true);
+            }}
+          />
+          <Popconfirm
+            title="删除后不可恢复，是否继续？"
+            onConfirm={() => handleDelete(record.id)}
+            okText="删除"
+            cancelText="取消"
+          >
+            <Button
+              type="default"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              className={styles['action-btn-danger']}
+            />
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
 
   return (
     <div className={styles['artist-mgt']}>
@@ -307,19 +441,24 @@ const ArtistMgtPage = () => {
             共 {list.length} 位艺人
           </span>
         </div>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => history.push('/admin/artist/add')}
+          className={styles['add-btn']}
+        >
+          新增艺人
+        </Button>
       </div>
 
       <Spin spinning={loading}>
-        <div className={styles['card-grid']}>
-          <div
-            className={styles['add-card']}
-            onClick={() => history.push('/admin/artist/add')}
-          >
-            <div className={styles['add-card-icon']}>+</div>
-            <div className={styles['add-card-text']}>新增艺人</div>
-          </div>
-          {list.map(renderCard)}
-        </div>
+        <Table
+          columns={columns}
+          dataSource={list}
+          rowKey="id"
+          pagination={false}
+          className={styles['artist-table']}
+        />
       </Spin>
 
       <Modal
@@ -349,13 +488,13 @@ const ArtistMgtPage = () => {
                     <Tag color={detailItem.enabled !== false ? 'green' : 'red'}>
                       {detailItem.enabled !== false ? '已启用' : '已禁用'}
                     </Tag>
-                    <Tag
+                    {/* <Tag
                       color={
                         detailItem.syncEnabled !== false ? 'success' : 'default'
                       }
                     >
                       {detailItem.syncEnabled !== false ? '同步中' : '已暂停'}
-                    </Tag>
+                    </Tag> */}
                   </div>
                 </div>
               </div>
@@ -390,6 +529,19 @@ const ArtistMgtPage = () => {
                               `平台#${detailItem.weiboPlatformId}`}
                           </div>
                         )}
+                        <div className={styles['detail-platform-sync']}>
+                          <Tag
+                            color={
+                              detailItem.syncWeibo !== false
+                                ? 'success'
+                                : 'default'
+                            }
+                          >
+                            {detailItem.syncWeibo !== false
+                              ? '已开启同步'
+                              : '已关闭同步'}
+                          </Tag>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -432,6 +584,19 @@ const ArtistMgtPage = () => {
                               `平台#${detailItem.douyinPlatformId}`}
                           </div>
                         )}
+                        <div className={styles['detail-platform-sync']}>
+                          <Tag
+                            color={
+                              detailItem.syncDouyin !== false
+                                ? 'success'
+                                : 'default'
+                            }
+                          >
+                            {detailItem.syncDouyin !== false
+                              ? '已开启同步'
+                              : '已关闭同步'}
+                          </Tag>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -466,6 +631,19 @@ const ArtistMgtPage = () => {
                               `平台#${detailItem.xhsPlatformId}`}
                           </div>
                         )}
+                        <div className={styles['detail-platform-sync']}>
+                          <Tag
+                            color={
+                              detailItem.syncXiaohongshu !== false
+                                ? 'success'
+                                : 'default'
+                            }
+                          >
+                            {detailItem.syncXiaohongshu !== false
+                              ? '已开启同步'
+                              : '已关闭同步'}
+                          </Tag>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -503,6 +681,19 @@ const ArtistMgtPage = () => {
                               `平台#${detailItem.igPlatformId}`}
                           </div>
                         )}
+                        <div className={styles['detail-platform-sync']}>
+                          <Tag
+                            color={
+                              detailItem.syncInstagram !== false
+                                ? 'success'
+                                : 'default'
+                            }
+                          >
+                            {detailItem.syncInstagram !== false
+                              ? '已开启同步'
+                              : '已关闭同步'}
+                          </Tag>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -529,6 +720,27 @@ const ArtistMgtPage = () => {
 
               {/* 简介 */}
               <div className={styles['detail-row']}>
+                <div className={styles['detail-label']}>App 封面</div>
+                <div className={styles['detail-value']}>
+                  {detailItem.appCover ? (
+                    <img
+                      src={getImageUrl(detailItem.appCover)}
+                      alt="App封面"
+                      style={{
+                        maxWidth: 200,
+                        maxHeight: 120,
+                        borderRadius: 8,
+                        objectFit: 'cover',
+                      }}
+                    />
+                  ) : (
+                    <span style={{ color: '#999' }}>未设置</span>
+                  )}
+                </div>
+              </div>
+
+              {/* 简介 */}
+              <div className={styles['detail-row']}>
                 <div className={styles['detail-label']}>简介</div>
                 <div className={styles['detail-value']}>
                   {detailItem.bio || '无'}
@@ -538,6 +750,16 @@ const ArtistMgtPage = () => {
           )}
         </Spin>
       </Modal>
+
+      <ModuleSettingsModal
+        visible={moduleSettingsVisible}
+        artistId={moduleSettingsArtist?.id ?? 0}
+        artistName={moduleSettingsArtist?.name ?? ''}
+        onClose={() => {
+          setModuleSettingsVisible(false);
+          setModuleSettingsArtist(null);
+        }}
+      />
     </div>
   );
 };

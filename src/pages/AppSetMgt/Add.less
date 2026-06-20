@@ -1,0 +1,228 @@
+/* ============================================================
+   AppSetMgt - 新增模块页面 (参考小卡新增样式)
+   ============================================================ */
+
+.add-module-page {
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
+/* ─── 面包屑 ─── */
+.breadcrumb-wrap {
+  margin-bottom: 20px;
+}
+
+.breadcrumb {
+  :global(.ant-breadcrumb-link) {
+    color: #999999;
+    font-family: 'Cormorant Garamond', serif;
+
+    a {
+      color: #999999;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #c3d9f3;
+      }
+    }
+  }
+
+  :global(.ant-breadcrumb-separator) {
+    color: #444444;
+  }
+
+  :global(.ant-breadcrumb-link:last-child) {
+    color: #ffffff;
+    font-weight: 400;
+    font-family: 'Saira Condensed', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+}
+
+/* ─── 表单容器 ─── */
+.tab-panel {
+  background: #141414;
+  border: 1px solid #262626;
+  border-radius: 0;
+  padding: 24px 32px 40px;
+}
+
+.form-wrap {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px 0;
+}
+
+/* ─── 表单样式 ─── */
+.add-form {
+  :global(.ant-form-item-label > label) {
+    color: #cccccc;
+    font-weight: 400;
+    font-size: 14px;
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  :global(.ant-form-item-label > label.ant-form-item-required::before) {
+    color: #ff4d4f !important;
+  }
+
+  :global(.ant-form-item-extra) {
+    color: #666666;
+    font-size: 12px;
+  }
+
+  :global(.ant-input) {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #3a3a3a;
+    border-radius: 0;
+    color: #ffffff;
+
+    &::placeholder {
+      color: #666666;
+    }
+
+    &:hover,
+    &:focus {
+      border-bottom-color: #ffffff;
+      box-shadow: none;
+    }
+  }
+
+  :global(.ant-select-selector) {
+    background: transparent !important;
+    border: none;
+    border-bottom: 1px solid #3a3a3a !important;
+    border-radius: 0 !important;
+    color: #ffffff !important;
+  }
+
+  :global(.ant-select:hover .ant-select-selector) {
+    border-bottom-color: #ffffff !important;
+  }
+
+  :global(.ant-select-focused .ant-select-selector) {
+    border-bottom-color: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  :global(.ant-select-arrow) {
+    color: #666666;
+  }
+
+  /* 多选 Tag 样式 */
+  :global(.ant-select-selection-item) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 4px !important;
+    color: #ffffff !important;
+
+    .ant-select-selection-item-remove {
+      color: #999999 !important;
+
+      &:hover {
+        color: #ff4d4f !important;
+      }
+    }
+  }
+
+  :global(.ant-input-number) {
+    background: transparent;
+    width: 100%;
+
+    .ant-input-number-input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #3a3a3a;
+      border-radius: 0;
+      color: #ffffff;
+
+      &::placeholder {
+        color: #666666;
+      }
+
+      &:hover,
+      &:focus {
+        border-bottom-color: #ffffff;
+        box-shadow: none;
+      }
+    }
+
+    .ant-input-number-handler-wrap {
+      background: transparent;
+      border-left: 1px solid #262626;
+    }
+
+    .ant-input-number-handler {
+      background: transparent;
+      border-color: #333333;
+
+      &:hover {
+        color: #ffffff;
+      }
+    }
+  }
+
+  :global(.ant-switch) {
+    background: #333333;
+
+    &.ant-switch-checked {
+      background: rgba(255, 255, 255, 0.15);
+    }
+  }
+
+  :global(.ant-input-textarea textarea) {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #3a3a3a;
+    border-radius: 0;
+    color: #ffffff;
+
+    &::placeholder {
+      color: #666666;
+    }
+
+    &:hover,
+    &:focus {
+      border-bottom-color: #ffffff;
+      box-shadow: none;
+    }
+  }
+}
+
+/* ─── 提交按钮 (胶囊形) ─── */
+.submit-btn {
+  background: transparent !important;
+  border: 1px solid #ffffff !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  height: 42px !important;
+  font-size: 15px !important;
+  font-weight: 400 !important;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 16px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    border-color: #555555 !important;
+    color: #666666 !important;
+  }
+}
+
+/* ─── 响应式 ─── */
+@media (max-width: 768px) {
+  .tab-panel {
+    padding: 16px 12px 24px;
+  }
+
+  .form-wrap {
+    padding: 8px 0;
+  }
+}

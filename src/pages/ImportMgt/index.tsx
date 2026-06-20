@@ -20,15 +20,18 @@ import {
   InboxOutlined,
   FileZipOutlined,
   CloseOutlined,
+  DownloadOutlined,
 } from '@ant-design/icons';
 import { getArtistList } from '@/services/artist';
 import {
   getImportTaskList,
+  getImportTaskDetail,
   deleteImportTask,
   batchDeleteImportTasks,
   updateImportTask,
   createImportTask,
   reprocessImportTask,
+  downloadImportTask,
 } from '@/services/importTask';
 import { formatDateTime } from '@/utils/utils';
 import styles from './index.less';
@@ -75,6 +78,7 @@ const ImportTasksPage: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
   const [dataType, setDataType] = useState<string>('');
+  const [selectedArtistId, setSelectedArtistId] = useState<string>('');
   const abortRef = useRef<(() => void) | null>(null);
 
   // 重新处理
@@ -148,7 +152,7 @@ const ImportTasksPage: React.FC = () => {
       .catch(() => {});
   }, []);
 
-  // 定时刷新：有进行中的任务时每5秒刷新一次
+  // 定时刷新：有进行中的任务时每10秒刷新一次
   useEffect(() => {
     const hasActiveTasks = list.some(
       (t) => t.status === 'PENDING' || t.status === 'PROCESSING',
@@ -157,7 +161,7 @@ const ImportTasksPage: React.FC = () => {
 
     const timer = setInterval(() => {
       fetchList();
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(timer);
   }, [list]);
@@ -170,6 +174,7 @@ const ImportTasksPage: React.FC = () => {
     setUploading(false);
     setUploadDone(false);
     setDataType('');
+    setSelectedArtistId('');
   };
 
   const handleCloseUploadModal = () => {
@@ -194,10 +199,13 @@ const ImportTasksPage: React.FC = () => {
     setUploadProgress(0);
 
     const datasetName = uploadFile.name.replace(/\.zip$/i, '');
+    const selectedArtist = artists.find((a) => a.artistId === selectedArtistId);
     const { promise, abort } = createImportTask({
       name: datasetName,
       file: uploadFile,
       type: dataType || undefined,
+      artistId: selectedArtistId || undefined,
+      artistName: selectedArtist?.name || undefined,
       onProgress: (percent) => {
         setUploadProgress(percent);
         // 上传完成(100%)立即关闭弹窗并刷新列表
@@ -275,15 +283,57 @@ const ImportTasksPage: React.FC = () => {
     });
   };
 
-  const handleEdit = (record: ImportTask) => {
-    setEditingTask(record);
-    setEditModalVisible(true);
-    setTimeout(() => {
-      editForm.setFieldsValue({
-        name: record.name,
-        type: record.type || undefined,
-      });
-    }, 0);
+  const handleEdit = async (record: ImportTask) => {
+    // 从详情接口获取最新数据（避免列表数据过期或不一致）
+    try {
+      const detail = await getImportTaskDetail(record.id);
+      if (detail) {
+        setEditingTask(detail);
+        setEditModalVisible(true);
+        setTimeout(() => {
+          editForm.setFieldsValue({
+            name: detail.name,
+            type: detail.type || undefined,
+            artistId: detail.artistId || undefined,
+          });
+        }, 0);
+      }
+    } catch (err) {
+      // 详情接口失败时回退到使用列表数据
+      console.warn('[handleEdit] 获取详情失败，使用列表数据:', err);
+      setEditingTask(record);
+      setEditModalVisible(true);
+      setTimeout(() => {
+        editForm.setFieldsValue({
+          name: record.name,
+          type: record.type || undefined,
+          artistId: record.artistId || undefined,
+        });
+      }, 0);
+    }
+  };
+
+  const handleDownload = (record: ImportTask) => {
+    if (!record.fileUrl) {
+      message.warning('该任务暂无文件可下载');
+      return;
+    }
+    const fileName = `${record.name}.zip`;
+    // 主路径：CDN 直连下载
+    try {
+      const cdnUrl = `https://cdn.tauol.online${record.fileUrl}`;
+      const link = document.createElement('a');
+      link.href = cdnUrl;
+      link.download = fileName;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch {
+      // CDN 失败，降级到后端代理下载
+      message.info('CDN 下载失败，正在通过服务器下载...');
+      downloadImportTask(record.id, fileName);
+    }
   };
 
   const handleEditSubmit = async () => {
@@ -291,9 +341,12 @@ const ImportTasksPage: React.FC = () => {
       if (!editingTask) return;
       const values = await editForm.validateFields();
       setEditLoading(true);
+      const editArtist = artists.find((a) => a.artistId === values.artistId);
       await updateImportTask(editingTask.id, {
         name: values.name,
         type: values.type || null,
+        artistId: values.artistId || null,
+        artistName: editArtist?.name || null,
       });
       message.success('修改成功');
       setEditModalVisible(false);
@@ -403,9 +456,19 @@ const ImportTasksPage: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 240,
+      width: 300,
       render: (_: any, record: ImportTask) => (
         <Space size="small">
+          {record.fileUrl && (
+            <Button
+              className={`${styles['action-btn']}`}
+              size="small"
+              icon={<DownloadOutlined />}
+              onClick={() => handleDownload(record)}
+            >
+              下载
+            </Button>
+          )}
           {record.status === 'COMPLETED' && (
             <Button
               className={`${styles['action-btn']}`}
@@ -572,6 +635,32 @@ const ImportTasksPage: React.FC = () => {
             </div>
           )}
 
+          {/* 绑定艺人选择 */}
+          {uploadFile && !uploading && !uploadDone && (
+            <div className={styles['dataset-type-selector']}>
+              <div className={styles['type-label']}>绑定艺人</div>
+              <Select
+                value={selectedArtistId}
+                onChange={setSelectedArtistId}
+                placeholder="选择艺人（可选，优先使用选中的艺人）"
+                className={styles['type-select']}
+                allowClear
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.children as string)
+                    ?.toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+              >
+                {artists.map((a) => (
+                  <Option key={a.artistId} value={a.artistId}>
+                    {a.name}
+                  </Option>
+                ))}
+              </Select>
+            </div>
+          )}
+
           {/* 进度条 */}
           {(uploading || uploadDone) && (
             <div className={styles['progress-wrap']}>
@@ -651,6 +740,25 @@ const ImportTasksPage: React.FC = () => {
               <Option value="xiaohongshu">小红书</Option>
               <Option value="weibo">微博</Option>
               <Option value="douyin">抖音</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item name="artistId" label="绑定艺人">
+            <Select
+              placeholder="选择艺人（可选，重新处理时生效）"
+              allowClear
+              showSearch
+              filterOption={(input, option) =>
+                (option?.children as string)
+                  ?.toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+            >
+              {artists.map((a) => (
+                <Option key={a.artistId} value={a.artistId}>
+                  {a.name}
+                </Option>
+              ))}
             </Select>
           </Form.Item>
         </Form>

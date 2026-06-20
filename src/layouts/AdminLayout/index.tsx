@@ -48,7 +48,10 @@ const menuItems: MenuItem[] = [
   { key: '/admin/swiper', icon: <PlayCircleOutlined />, label: 'Banner管理' },
   { key: '/admin/itinerary', icon: <EnvironmentOutlined />, label: '行程管理' },
   { key: '/admin/photo_info', icon: <TagsOutlined />, label: '标签管理' },
+  { key: '/admin/app_settings', icon: <UserOutlined />, label: 'App管理' },
   { key: '/admin/artist', icon: <UserOutlined />, label: '艺人管理' },
+  { key: '/admin/feedback', icon: <UserOutlined />, label: '问题反馈' },
+  { key: '/admin/comments', icon: <UserOutlined />, label: '留言管理' },
   { key: '/admin/data', icon: <DashboardOutlined />, label: '数据面板' },
 
   {

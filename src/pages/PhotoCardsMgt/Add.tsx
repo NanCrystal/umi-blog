@@ -33,6 +33,11 @@ import {
 } from '@/services/photoCard';
 import { uploadZip } from '@/services/upload';
 import type { PhotoCardCategory } from '@/services/photoCard';
+
+/** 树形分类节点（后端直接返回嵌套结构） */
+interface TreeCategory extends PhotoCardCategory {
+  children?: TreeCategory[];
+}
 import styles from './index.less';
 import { getImageUrl } from '@/utils/utils';
 
@@ -50,7 +55,7 @@ const AddPhotoCardPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'single' | 'batch'>('single');
 
   // ─── 共用数据 ───
-  const [categories, setCategories] = useState<PhotoCardCategory[]>([]);
+  const [categories, setCategories] = useState<TreeCategory[]>([]);
   const [artists, setArtists] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -104,30 +109,17 @@ const AddPhotoCardPage: React.FC = () => {
     }
   }, [defaultCategoryId, form]);
 
-  // ─── 构建 TreeSelect 树形数据 ───
+  // ─── 构建 TreeSelect 树形数据（后端已返回嵌套树，只需映射为 TreeSelect 格式） ───
   const categoryTreeData = useMemo(() => {
-    const map = new Map<number, any>();
-    const roots: any[] = [];
-
-    categories.forEach((item) => {
-      map.set(item.id, {
-        title: item.name,
-        value: item.id,
-        key: item.id,
-        children: [],
-      });
-    });
-
-    categories.forEach((item) => {
-      const node = map.get(item.id)!;
-      if (item.parentId != null && map.has(item.parentId)) {
-        map.get(item.parentId)!.children!.push(node);
-      } else {
-        roots.push(node);
-      }
-    });
-
-    return roots;
+    const toTreeSelectNode = (nodes: TreeCategory[]): any[] => {
+      return nodes.map((node) => ({
+        title: node.name,
+        value: node.id,
+        key: node.id,
+        children: node.children ? toTreeSelectNode(node.children) : undefined,
+      }));
+    };
+    return toTreeSelectNode(categories);
   }, [categories]);
 
   // ─── 单个新增：上传正面图 ───

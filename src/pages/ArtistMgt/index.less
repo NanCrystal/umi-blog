@@ -1,5 +1,5 @@
 /* ============================================================
-   ArtistMgt - 艺人管理 (Card 卡片风格)
+   ArtistMgt - 艺人管理 (Table 表格风格)
    ============================================================ */
 
 .artist-mgt {
@@ -36,147 +36,95 @@
     }
   }
 
-  /* ─── 卡片网格 ─── */
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 16px;
-  }
-
-  /* ─── 卡片 ─── */
-  .artist-card {
-    border: 1px solid var(--color-hairline, #262626);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.02);
-    padding: 24px;
-    transition: border-color 0.2s, background 0.2s;
-
-    position: relative;
+  .add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 8px 20px;
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 1px solid var(--color-primary, #ffffff);
+    background: transparent;
+    color: var(--color-primary, #ffffff);
+    border-radius: 0;
+    transition: all 0.25s ease;
 
     &:hover {
-      border-color: var(--color-hairline-strong, #3a3a3a);
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: var(--color-primary, #ffffff) !important;
+      color: var(--color-primary, #ffffff) !important;
+    }
+  }
 
-      .card-actions {
-        opacity: 1;
+  /* ─── Table 暗黑风格 ─── */
+  .artist-table {
+    :global(.ant-table) {
+      background: transparent;
+      color: var(--color-body, #cccccc);
+    }
+
+    :global(.ant-table-container) {
+      border: 1px solid var(--color-hairline, #262626);
+      border-radius: 0;
+    }
+
+    :global(.ant-table-thead > tr > th) {
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--color-hairline, #262626);
+      color: var(--color-muted, #999999);
+      font-family: var(--font-mono, monospace);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 14px 16px;
+
+      &::before {
+        display: none !important;
       }
     }
 
-    /* ── 卡片头部 ── */
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
+    :global(.ant-table-thead > tr > th.ant-table-column-sort) {
+      background: rgba(255, 255, 255, 0.05);
     }
 
-    .card-avatar {
-      flex-shrink: 0;
-      border: 1px solid var(--color-hairline, #262626);
-      border-radius: 4px;
-    }
-
-    .card-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .card-name {
-      color: var(--color-primary, #ffffff);
-      font-size: 16px;
-      font-weight: 500;
-      font-family: var(--font-body, serif);
-      margin-bottom: 4px;
-    }
-
-    .card-id {
-      line-height: 1;
-    }
-
-    .card-actions {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      display: flex;
-      gap: 6px;
-      opacity: 0;
-      transition: opacity 0.2s;
-      z-index: 1;
-    }
-
-    /* ── 平台图标行 ── */
-    .card-platforms {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--color-hairline, #262626);
-    }
-
-    .platform-icon {
-      width: 20px;
-      height: 20px;
-      object-fit: contain;
-      border-radius: 3px;
-    }
-
-    .no-platform {
-      color: var(--color-muted, #666666);
-      font-size: 13px;
-      font-family: var(--font-mono, monospace);
-    }
-
-    /* ── 卡片底部 ── */
-    .card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 24px;
-      padding-top: 24px;
-      border-top: 1px solid var(--color-hairline, #262626);
-    }
-  }
-
-  /* ─── 新增艺人卡片 ─── */
-  .add-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border: 1px dashed var(--color-hairline, #262626);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.02);
-    padding: 24px;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    min-height: 130px;
-
-    &:hover {
-      border-color: var(--color-primary, #ffffff);
-      background: rgba(255, 255, 255, 0.06);
-    }
-
-    .add-card-icon {
-      font-size: 36px;
-      line-height: 1;
-      color: var(--color-muted, #666666);
-      font-weight: 300;
-      transition: color 0.2s;
-    }
-
-    .add-card-text {
+    :global(.ant-table-tbody > tr > td) {
+      border-bottom: 1px solid var(--color-hairline, #262626);
+      background: transparent;
+      padding: 14px 16px;
+      color: var(--color-body, #cccccc);
       font-size: 14px;
-      color: var(--color-muted, #999999);
-      font-family: var(--font-mono, monospace);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: color 0.2s;
+      transition: background 0.2s;
     }
 
-    &:hover .add-card-icon,
-    &:hover .add-card-text {
-      color: var(--color-primary, #ffffff);
+    :global(.ant-table-tbody > tr:hover > td) {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    :global(.ant-table-tbody > tr.ant-table-row-selected > td) {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    /* 排序指示器 */
+    :global(.ant-table-column-sorter) {
+      color: var(--color-stone, #555555);
+
+      .ant-table-column-sorter-up.active,
+      .ant-table-column-sorter-down.active {
+        color: var(--color-primary, #ffffff);
+      }
+    }
+
+    /* 空状态 */
+    :global(.ant-empty-description) {
+      color: var(--color-muted, #999999);
+    }
+
+    /* 表格底部分页（如有） */
+    :global(.ant-table-pagination) {
+      margin: 16px 0;
     }
   }
 
@@ -185,11 +133,26 @@
     align-items: center !important;
     gap: 4px !important;
     justify-content: center;
+    border-color: var(--color-hairline, #262626);
+    color: var(--color-body, #cccccc);
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    border-radius: 0;
+    height: 28px;
+    padding: 4px 10px;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-primary, #ffffff) !important;
+      color: var(--color-primary, #ffffff) !important;
+    }
 
     &[disabled],
     &:disabled {
       align-items: center !important;
       gap: 4px !important;
+      opacity: 0.4;
 
       :global(.ant-btn-icon) {
         display: inline-flex !important;
@@ -197,17 +160,6 @@
         line-height: 1;
       }
     }
-  }
-
-  .sync-svg-icon {
-    width: 14px;
-    height: 14px;
-    display: block;
-  }
-
-  .sync-btn:disabled .sync-svg-icon,
-  .sync-btn[disabled] .sync-svg-icon {
-    opacity: 1;
   }
 
   /* ─── 操作按钮 ─── */
@@ -342,6 +294,18 @@
     color: #888888;
     font-family: var(--font-mono, monospace);
     word-wrap: break-word;
+  }
+
+  .detail-platform-sync {
+    margin-top: 6px;
+
+    :global(.ant-tag) {
+      font-family: var(--font-mono, monospace);
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      border-radius: 2px;
+      margin-right: 0;
+    }
   }
 
   .detail-platform-sec-uid {
@@ -495,7 +459,14 @@
 /* ────────────── Add Page ────────────── */
 .artist-add-page {
   padding: 24px;
-
+  .form-label {
+    color: var(--color-body, #cccccc);
+    font-weight: 400;
+    font-family: var(--font-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 13px;
+  }
   .add-page-header {
     display: flex;
     align-items: center;

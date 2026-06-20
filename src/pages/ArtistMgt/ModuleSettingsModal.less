@@ -1,0 +1,215 @@
+/* ============================================================
+   ModuleSettingsModal - 艺人 APP 模块设置弹窗
+   ============================================================ */
+
+:global {
+  .module-settings-modal {
+    .ant-modal-content {
+      background: var(--color-bg, #1a1a1a);
+      border: 1px solid var(--color-hairline, #262626);
+      border-radius: 12px;
+    }
+
+    .ant-modal-header {
+      border-bottom: 1px solid var(--color-hairline, #262626);
+      background: transparent;
+
+      .ant-modal-title {
+        color: var(--color-primary, #ffffff);
+        font-family: var(--font-mono, monospace);
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+    }
+
+    .ant-modal-body {
+      padding: 20px 24px;
+    }
+
+    .ant-modal-footer {
+      border-top: 1px solid var(--color-hairline, #262626);
+
+      .ant-btn-default {
+        background: transparent;
+        border-color: var(--color-hairline-strong, #3a3a3a);
+        color: var(--color-muted, #999999);
+        border-radius: 0;
+        height: 36px;
+        font-family: var(--font-mono, monospace);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 13px;
+
+        &:hover {
+          border-color: var(--color-body, #cccccc);
+          color: var(--color-body, #cccccc);
+        }
+      }
+
+      .ant-btn-primary {
+        background: var(--color-primary, #ffffff);
+        border-color: var(--color-primary, #ffffff);
+        color: #000000;
+        border-radius: 0;
+        height: 36px;
+        font-family: var(--font-mono, monospace);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 13px;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.85);
+          border-color: rgba(255, 255, 255, 0.85) !important;
+          color: #000000 !important;
+        }
+      }
+    }
+  }
+}
+
+/* ─── 模块卡片网格 ─── */
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-height: 480px;
+  overflow-y: auto;
+
+  /* 滚动条暗色风格 */
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-hairline, #262626);
+    border-radius: 2px;
+  }
+}
+
+/* ─── 单个模块卡片 ─── */
+.module-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-hairline, #262626);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  &-disabled {
+    opacity: 0.5;
+
+    .module-cover,
+    .module-name {
+      filter: grayscale(0.8);
+    }
+  }
+}
+
+/* ─── 模块封面 ─── */
+.module-cover {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.module-cover-placeholder {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+/* ─── 模块信息 ─── */
+.module-info {
+  margin-bottom: 10px;
+}
+
+.module-name {
+  color: var(--color-primary, #ffffff);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.module-key {
+  color: var(--color-muted, #666666);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ─── 操作区（Switch + 排序按钮 + 序号） ─── */
+.module-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+  :global(.ant-switch) {
+    &.ant-switch-checked {
+      background: var(--color-primary, #ffffff);
+    }
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+.sort-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  padding: 0 !important;
+  border-radius: 3px !important;
+  color: var(--color-muted, #888888) !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  font-size: 11px !important;
+
+  &:hover:not(:disabled) {
+    color: var(--color-primary, #ffffff) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--color-hairline, #333333) !important;
+  }
+
+  &:disabled {
+    opacity: 0.25 !important;
+  }
+}
+
+.sort-index {
+  color: var(--color-stone, #555555);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  min-width: 28px;
+  text-align: right;
+}

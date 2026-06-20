@@ -12,6 +12,7 @@ import {
   Empty,
   Spin,
   Radio,
+  Pagination,
 } from 'antd';
 import {
   PlusOutlined,
@@ -72,27 +73,7 @@ interface TreeHandlers {
    Helpers
    ============================================================ */
 
-/** 扁平列表 -> 树形结构 */
-function buildTree(flat: PhotoCardCategory[]): TreeCategory[] {
-  const map = new Map<number, TreeCategory>();
-  const roots: TreeCategory[] = [];
-
-  flat.forEach((item) => {
-    map.set(item.id, { ...item, children: [] });
-  });
-
-  flat.forEach((item) => {
-    const node = map.get(item.id)!;
-    if (item.parentId != null && map.has(item.parentId)) {
-      map.get(item.parentId)!.children!.push(node);
-    } else {
-      roots.push(node);
-    }
-  });
-  return roots;
-}
-
-/** 获取指定节点及其所有子孙节点 ID */
+/** 获取指定节点及其所有子孙节点 ID（用于删除操作） */
 function getDescendantIds(tree: TreeCategory[], nodeId: number): number[] {
   const ids: number[] = [];
   const collect = (nodes: TreeCategory[]) => {
@@ -125,6 +106,24 @@ function findNode(tree: TreeCategory[], id: number): TreeCategory | undefined {
     }
   }
   return undefined;
+}
+
+/** 从树中展平所有节点（用于拖拽排序） */
+function flattenTree(tree: TreeCategory[]): PhotoCardCategory[] {
+  const result: PhotoCardCategory[] = [];
+  const walk = (nodes: TreeCategory[]) => {
+    for (const n of nodes) {
+      result.push({
+        id: n.id,
+        name: n.name,
+        parentId: n.parentId,
+        sortOrder: n.sortOrder,
+      });
+      if (n.children) walk(n.children);
+    }
+  };
+  walk(tree);
+  return result;
 }
 
 /* ============================================================
@@ -278,7 +277,7 @@ const CardItem: React.FC<CardItemProps> = ({
 const PhotoCardsMgtPage: React.FC = () => {
   const history = useHistory();
   // ─── Data State ───
-  const [flatCategories, setFlatCategories] = useState<PhotoCardCategory[]>([]);
+  const [categoryTreeData, setCategoryTreeData] = useState<TreeCategory[]>([]);
   const [cards, setCards] = useState<PhotoCardItem[]>([]);
   const [artists, setArtists] = useState<{ id: number; name: string }[]>([]);
   const [cardTypes, setCardTypes] = useState<{ id: number; name: string }[]>(
@@ -286,6 +285,13 @@ const PhotoCardsMgtPage: React.FC = () => {
   );
   const [loading, setLoading] = useState(false);
   const [cardLoading, setCardLoading] = useState(false);
+
+  // ─── Pagination State ───
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 24,
+    total: 0,
+  });
 
   // ─── Tree State ───
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
@@ -306,6 +312,8 @@ const PhotoCardsMgtPage: React.FC = () => {
   );
   const [editingNode, setEditingNode] = useState<TreeCategory | null>(null);
   const [nodeForm] = Form.useForm();
+  const [nodeCoverUrl, setNodeCoverUrl] = useState('');
+  const [uploadingNodeCover, setUploadingNodeCover] = useState(false);
 
   // ─── Card Add/Edit Modal ───
   const [cardModalVisible, setCardModalVisible] = useState(false);
@@ -324,8 +332,8 @@ const PhotoCardsMgtPage: React.FC = () => {
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewCard, setPreviewCard] = useState<PhotoCardItem | null>(null);
 
-  // ─── 计算树形数据 ───
-  const treeData = useMemo(() => buildTree(flatCategories), [flatCategories]);
+  // ─── 计算树形数据（后端已直接返回树形结构，无需前端构建） ───
+  const treeData = categoryTreeData;
   const selectedNodeId = selectedKeys[0] as number | undefined;
 
   const selectedNodeData = useMemo(
@@ -333,11 +341,8 @@ const PhotoCardsMgtPage: React.FC = () => {
     [selectedNodeId, treeData],
   );
 
-  // 根据树节点筛选 -> 获取该节点及其所有子节点的 ID
-  const filterCategoryIds = useMemo(() => {
-    if (!selectedNodeId) return [];
-    return getDescendantIds(treeData, selectedNodeId);
-  }, [selectedNodeId, treeData]);
+  // 根据树节点筛选 -> 直接传当前选中节点 ID（后端自动展开子孙分类）
+  const filterCategoryId = selectedNodeId;
 
   // 计算当前选中的 artistIds 参数（逗号分隔）
   const artistIdsParam = useMemo(() => {
@@ -348,16 +353,37 @@ const PhotoCardsMgtPage: React.FC = () => {
 
   // ─── 加载小卡列表（支持分类 + 艺人联合筛选） ───
   const loadCards = useCallback(
-    async (categoryIds?: string, artistIds?: string) => {
+    async (
+      categoryId?: number,
+      artistIds?: string,
+      page = 1,
+      pageSize = 24,
+    ) => {
       setCardLoading(true);
       try {
-        const params: { categoryIds?: string; artistIds?: string } = {};
-        if (categoryIds) params.categoryIds = categoryIds;
+        const params: {
+          categoryId?: number;
+          artistIds?: string;
+          page?: number;
+          pageSize?: number;
+        } = { page, pageSize };
+        if (categoryId) params.categoryId = categoryId;
         if (artistIds) params.artistIds = artistIds;
         const res = await getPhotoCards(params);
-        setCards(res || []);
+        if (res) {
+          setCards(res.list || []);
+          setPagination({
+            page: res.page,
+            pageSize: res.pageSize,
+            total: res.total,
+          });
+        } else {
+          setCards([]);
+          setPagination({ page: 1, pageSize: 24, total: 0 });
+        }
       } catch {
         setCards([]);
+        setPagination({ page: 1, pageSize: 24, total: 0 });
       } finally {
         setCardLoading(false);
       }
@@ -375,13 +401,20 @@ const PhotoCardsMgtPage: React.FC = () => {
       const [categoryRes, cardsRes, artistRes, cardTypeRes] = await Promise.all(
         [
           getPhotoCardCategories(),
-          getPhotoCards(),
+          getPhotoCards({ page: 1, pageSize: 24 }),
           getArtistList(),
           getPhotoCardTypes(),
         ],
       );
-      setFlatCategories(categoryRes || []);
-      setCards(cardsRes || []);
+      setCategoryTreeData(categoryRes || []);
+      if (cardsRes) {
+        setCards(cardsRes.list || []);
+        setPagination({
+          page: cardsRes.page,
+          pageSize: cardsRes.pageSize,
+          total: cardsRes.total,
+        });
+      }
       setArtists(artistRes || []);
       setCardTypes(cardTypeRes || []);
     } catch {
@@ -397,18 +430,18 @@ const PhotoCardsMgtPage: React.FC = () => {
 
   // 默认展开所有节点，并选中第一个根节点
   useEffect(() => {
-    if (flatCategories.length > 0) {
-      setExpandedKeys(flatCategories.map((c) => c.id));
+    if (categoryTreeData.length > 0) {
+      const allIds = flattenTree(categoryTreeData).map((c) => c.id);
+      setExpandedKeys(allIds);
       if (selectedKeys.length === 0) {
-        const firstRoot = flatCategories.find((c) => !c.parentId);
+        const firstRoot = categoryTreeData[0];
         if (firstRoot) {
           setSelectedKeys([firstRoot.id]);
-          const descendantIds = getDescendantIds(treeData, firstRoot.id);
-          loadCards(descendantIds.join(','), artistIdsParam);
+          loadCards(firstRoot.id, artistIdsParam);
         }
       }
     }
-  }, [flatCategories, treeData, artistIdsParam, loadCards]);
+  }, [categoryTreeData, artistIdsParam, loadCards]);
 
   // ─── 树节点 CRUD ───
 
@@ -417,6 +450,7 @@ const PhotoCardsMgtPage: React.FC = () => {
       setNodeModalMode('add');
       setNodeModalParentId(parentId ?? null);
       setEditingNode(null);
+      setNodeCoverUrl('');
       nodeForm.resetFields();
       setNodeModalVisible(true);
     },
@@ -427,7 +461,11 @@ const PhotoCardsMgtPage: React.FC = () => {
     (node: TreeCategory) => {
       setNodeModalMode('rename');
       setEditingNode(node);
-      nodeForm.setFieldsValue({ name: node.name });
+      setNodeCoverUrl(node.coverImage || '');
+      nodeForm.setFieldsValue({
+        name: node.name,
+        coverImage: node.coverImage || undefined,
+      });
       setNodeModalVisible(true);
     },
     [nodeForm],
@@ -472,11 +510,16 @@ const PhotoCardsMgtPage: React.FC = () => {
   const submitNodeForm = async () => {
     try {
       const values = await nodeForm.validateFields();
+      const coverImage = nodeCoverUrl || undefined;
       if (nodeModalMode === 'add') {
-        await createPhotoCardCategory(values.name, nodeModalParentId);
+        await createPhotoCardCategory(
+          values.name,
+          nodeModalParentId,
+          coverImage,
+        );
         message.success('创建成功');
       } else if (editingNode) {
-        await updatePhotoCardCategory(editingNode.id, values.name);
+        await updatePhotoCardCategory(editingNode.id, values.name, coverImage);
         message.success('重命名成功');
       }
       setNodeModalVisible(false);
@@ -518,8 +561,8 @@ const PhotoCardsMgtPage: React.FC = () => {
         }
       }
 
-      // 拷贝并更新 flatCategories
-      const updated = flatCategories.map((c) => ({ ...c }));
+      // 拷贝并更新展平的 categories
+      const updated = flattenTree(categoryTreeData).map((c) => ({ ...c }));
       const dragItem = updated.find((c) => c.id === dragKey);
       if (!dragItem) return;
       dragItem.parentId = newParentId;
@@ -551,7 +594,26 @@ const PhotoCardsMgtPage: React.FC = () => {
       });
 
       // 乐观更新 UI
-      setFlatCategories(updated);
+      // 从 updated 扁平数据重建树（乐观更新）
+      const map = new Map<number, any>();
+      const roots: any[] = [];
+      updated.forEach((item) => map.set(item.id, { ...item, children: [] }));
+      updated.forEach((item) => {
+        const node = map.get(item.id)!;
+        if (item.parentId != null && map.has(item.parentId)) {
+          map.get(item.parentId)!.children!.push(node);
+        } else {
+          roots.push(node);
+        }
+      });
+      roots.forEach((n: any) => {
+        if (n.children?.length === 0) delete n.children;
+        else if (n.children)
+          n.children.forEach((c: any) => {
+            if (c.children?.length === 0) delete c.children;
+          });
+      });
+      setCategoryTreeData(roots);
 
       // 调用后端持久化
       try {
@@ -567,7 +629,7 @@ const PhotoCardsMgtPage: React.FC = () => {
         loadData();
       }
     },
-    [flatCategories, treeData, loadData],
+    [categoryTreeData, treeData, loadData],
   );
 
   // ─── 树选择 ───
@@ -576,13 +638,12 @@ const PhotoCardsMgtPage: React.FC = () => {
       setSelectedKeys(keys);
       if (keys.length > 0) {
         const nodeId = keys[0] as number;
-        const descendantIds = getDescendantIds(treeData, nodeId);
-        loadCards(descendantIds.join(','), artistIdsParam);
+        loadCards(nodeId, artistIdsParam);
       } else {
         setCards([]);
       }
     },
-    [treeData, artistIdsParam, loadCards],
+    [artistIdsParam, loadCards],
   );
 
   // ─── 树搜索 ───
@@ -590,6 +651,7 @@ const PhotoCardsMgtPage: React.FC = () => {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       setSearchValue(value);
+      const allFlat = flattenTree(categoryTreeData);
       if (value) {
         const matchedKeys: React.Key[] = [];
         const searchNodes = (nodes: TreeCategory[]) => {
@@ -604,11 +666,11 @@ const PhotoCardsMgtPage: React.FC = () => {
         setExpandedKeys(matchedKeys);
         setAutoExpandParent(true);
       } else {
-        setExpandedKeys(flatCategories.map((c) => c.id));
+        setExpandedKeys(allFlat.map((c) => c.id));
         setAutoExpandParent(false);
       }
     },
-    [treeData, flatCategories],
+    [treeData, categoryTreeData],
   );
 
   // ─── 艺人筛选切换（联动接口请求） ───
@@ -636,10 +698,10 @@ const PhotoCardsMgtPage: React.FC = () => {
   // 艺人筛选变化时，重新请求列表
   useEffect(() => {
     // 只有在已选中树节点时才触发
-    if (selectedNodeId && filterCategoryIds.length > 0) {
-      loadCards(filterCategoryIds.join(','), artistIdsParam);
+    if (selectedNodeId) {
+      loadCards(selectedNodeId, artistIdsParam);
     }
-  }, [artistIdsParam, selectedNodeId, filterCategoryIds, loadCards]);
+  }, [artistIdsParam, selectedNodeId, loadCards]);
 
   // ─── 新增小卡（跳转到新增页面） ───
 
@@ -711,6 +773,14 @@ const PhotoCardsMgtPage: React.FC = () => {
     [loadData],
   );
 
+  // ─── 翻页 ───
+  const handlePageChange = useCallback(
+    (page: number, pageSize: number) => {
+      loadCards(filterCategoryId, artistIdsParam, page, pageSize);
+    },
+    [filterCategoryId, artistIdsParam, loadCards],
+  );
+
   const handleUploadFront = useCallback(
     async (file: RcFile): Promise<false> => {
       setUploadingFront(true);
@@ -745,6 +815,24 @@ const PhotoCardsMgtPage: React.FC = () => {
       return false;
     },
     [cardForm],
+  );
+
+  const handleUploadNodeCover = useCallback(
+    async (file: RcFile): Promise<false> => {
+      setUploadingNodeCover(true);
+      try {
+        const res = await uploadCardImage(file);
+        setNodeCoverUrl(res.url);
+        nodeForm.setFieldsValue({ coverImage: res.url });
+        message.success('封面上传成功');
+      } catch {
+        message.error('封面上传失败');
+      } finally {
+        setUploadingNodeCover(false);
+      }
+      return false;
+    },
+    [nodeForm],
   );
 
   const submitCardForm = async () => {
@@ -815,15 +903,16 @@ const PhotoCardsMgtPage: React.FC = () => {
             className={styles['tree-search']}
             allowClear
           />
-          {/* <Button
-            type="default"
-
-            icon={<PlusOutlined />}
-            onClick={() => handleNodeAdd()}
-            className={styles['add-root-btn']}
-          >
-            新建分类
-          </Button> */}
+          {!treeDataNodes.length && (
+            <Button
+              type="default"
+              icon={<PlusOutlined />}
+              onClick={() => handleNodeAdd()}
+              className={styles['add-root-btn']}
+            >
+              新建分类
+            </Button>
+          )}
         </div>
 
         {/* 树 */}
@@ -865,7 +954,7 @@ const PhotoCardsMgtPage: React.FC = () => {
               {selectedNodeData ? selectedNodeData.name : '全部小卡'}
             </span>
             <span className={styles['header-count']}>
-              {filteredCards.length} 张
+              {pagination.total} 张
             </span>
           </div>
           <div className={styles['header-right']}>
@@ -931,6 +1020,22 @@ const PhotoCardsMgtPage: React.FC = () => {
                 ))
               : null}
           </div>
+          {/* 分页 */}
+          {pagination.total > 0 && (
+            <div className={styles['pagination-wrap']}>
+              <Pagination
+                current={pagination.page}
+                pageSize={pagination.pageSize}
+                total={pagination.total}
+                showSizeChanger
+                showQuickJumper
+                showTotal={(total) => `共 ${total} 张`}
+                pageSizeOptions={['10', '20', '50', '100']}
+                onChange={handlePageChange}
+                onShowSizeChange={handlePageChange}
+              />
+            </div>
+          )}
         </Spin>
       </div>
 
@@ -966,7 +1071,46 @@ const PhotoCardsMgtPage: React.FC = () => {
               { min: 1, max: 20, message: '长度在1-20个字符' },
             ]}
           >
-            <Input placeholder="请输入分类名称" maxLength={20} showCount />
+            <Input
+              placeholder="请输入分类名称"
+              maxLength={20}
+              showCount
+              onPressEnter={submitNodeForm}
+            />
+          </Form.Item>
+
+          {/* 分类封面图 - 选填 */}
+          <Form.Item label="分类封面（选填）" name="coverImage">
+            <Upload
+              listType="picture-card"
+              showUploadList={false}
+              beforeUpload={
+                handleUploadNodeCover as unknown as (
+                  file: RcFile,
+                  fileList: RcFile[],
+                ) => false
+              }
+              accept="image/*"
+            >
+              {nodeCoverUrl ? (
+                <img
+                  src={getImageUrl(nodeCoverUrl)}
+                  alt="封面"
+                  className={styles['upload-preview']}
+                />
+              ) : (
+                <div className={styles['upload-placeholder']}>
+                  {uploadingNodeCover ? (
+                    <LoadingOutlined />
+                  ) : (
+                    <>
+                      <UploadOutlined />
+                      <span>上传封面</span>
+                    </>
+                  )}
+                </div>
+              )}
+            </Upload>
           </Form.Item>
         </Form>
       </Modal>
@@ -1122,7 +1266,7 @@ const PhotoCardsMgtPage: React.FC = () => {
           {/* 所属分类 - 预选当前树节点，禁用编辑 */}
           <Form.Item label="所属分类" name="categoryId">
             <Select placeholder="请选择分类" allowClear disabled>
-              {flatCategories.map((c) => (
+              {flattenTree(treeData).map((c) => (
                 <Select.Option key={c.id} value={c.id}>
                   {c.name}
                 </Select.Option>

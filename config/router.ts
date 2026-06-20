@@ -5,6 +5,7 @@ const EssayPage = '@/pages/Essay/index';
 const EssayDetailPage = '@/pages/Essay/detail';
 const AddPage = '@/pages/AddPage/index';
 const CommentPage = '@/pages/Comment/index';
+const CommentListPage = '@/pages/Comment/List';
 const WallPaperPage = '@/pages/WallPaper/index';
 const WallPaperSchedulesPage = '@/pages/WallPaper/schedules';
 const WallPaperEditPage = '@/pages/WallPaper/edit';
@@ -14,6 +15,9 @@ const WallPaperMgtPage = '@/pages/WallPaperMgt/index';
 const ReleaseMgtPage = '@/pages/ReleaseMgt/index';
 const ArtistMgtPage = '@/pages/ArtistMgt/index';
 const ArtistMgtAddPage = '@/pages/ArtistMgt/Add';
+const ArtistMgtAppSet = '@/pages/ArtistMgt/AppSet';
+const AppSetMgt = '@/pages/AppSetMgt/index';
+const AppSetMgtAddPage = '@/pages/AppSetMgt/Add';
 const SyncMgtPage = '@/pages/SyncMgt/index';
 
 const DataMgtPage = '@/pages/DataMgt/index';
@@ -30,6 +34,8 @@ const ProfileMgtPage = '@/pages/ProfileMgt/index';
 const PhotoCardsMgtPage = '@/pages/PhotoCardsMgt/index';
 const PhotoCardsMgtAddPage = '@/pages/PhotoCardsMgt/Add';
 const ImportTasksPage = '@/pages/ImportMgt/index';
+
+const FeedbackPage = '@/pages/Feedback/index';
 
 export default [
   // 根路径精确匹配，跳转到登录页
@@ -63,10 +69,25 @@ export default [
       { exact: true, path: '/admin/swiper', component: SwiperMgtPage },
       { exact: true, path: '/admin/wallpaper', component: WallPaperMgtPage },
       { exact: true, path: '/admin/release', component: ReleaseMgtPage },
-      { exact: true, path: '/admin/artist', component: ArtistMgtPage },
+      {
+        exact: true,
+        path: '/admin/artist/settings',
+        component: ArtistMgtAppSet,
+      },
       { exact: true, path: '/admin/artist/add', component: ArtistMgtAddPage },
+      { exact: true, path: '/admin/artist', component: ArtistMgtPage },
+      { exact: true, path: '/admin/app_settings', component: AppSetMgt },
+      {
+        exact: true,
+        path: '/admin/app_settings/add',
+        component: AppSetMgtAddPage,
+      },
       { exact: true, path: '/admin/sync', component: SyncMgtPage },
       { exact: true, path: '/admin/photo_info', component: PhotoInfoPage },
+      { exact: true, path: '/admin/photo_info', component: PhotoInfoPage },
+      { exact: true, path: '/admin/comments', component: CommentListPage },
+      { exact: true, path: '/admin/feedback', component: FeedbackPage },
+
       { redirect: '/admin/photo' },
     ],
   },

@@ -1,13 +1,20 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { message } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
-import { getComments, createComment, deleteComment } from '@/services/comment';
+import {
+  getCommentList,
+  createComment,
+  deleteComment,
+} from '@/services/comment';
 import { checkAdmin } from '@/utils/utils';
 import styles from './index.less';
 
 interface CommentItem {
   id: number;
   content: string;
+  userId?: number;
+  nickName?: string;
+  avatarUrl?: string;
   createdAt: string;
 }
 
@@ -48,7 +55,7 @@ const CommentPage: React.FC = () => {
 
   const fetchList = useCallback(async () => {
     try {
-      const data = await getComments();
+      const data = await getCommentList();
       const list: CommentItem[] = Array.isArray(data) ? data : data?.data || [];
       setBubbles(buildConfigs(list));
     } catch {
@@ -65,7 +72,12 @@ const CommentPage: React.FC = () => {
     if (!content) return;
     setSubmitting(true);
     try {
-      await createComment({ content });
+      const currentUser = localStorage.getItem('user') || 'admin';
+      await createComment({
+        content,
+        userId: 0,
+        nickName: currentUser,
+      });
       setInput('');
       message.success('留下了一句话 ✨');
       fetchList();
