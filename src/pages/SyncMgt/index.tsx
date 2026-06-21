@@ -12,6 +12,7 @@ import {
   Input,
   Select,
   Switch,
+  InputNumber,
 } from 'antd';
 import {
   SyncOutlined,
@@ -26,6 +27,7 @@ import {
   InstagramOutlined,
   TikTokOutlined,
   BookOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons';
 import {
   getArtistList,
@@ -39,9 +41,12 @@ import {
   importInstagramScript,
   clearAllSyncPosts,
   getSyncPostsStats,
+  getSyncScheduleConfig,
+  updateSyncScheduleConfig,
+  runSyncForArtistPlatform,
 } from '@/services/artist';
 import { batchLinkMedia, unlinkMedia } from '@/services/socialLink';
-import { getImageUrl } from '@/utils/utils';
+import { getImageUrl, formatDateTime } from '@/utils/utils';
 import styles from './index.less';
 
 const platformIcons: Record<string, React.ReactNode> = {
@@ -72,6 +77,7 @@ const SyncMgtPage = () => {
   const [syncing, setSyncing] = useState(false);
   const [fullSyncing, setFullSyncing] = useState(false);
   const [fullSyncDone, setFullSyncDone] = useState(false);
+  const [quickSyncing, setQuickSyncing] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [artists, setArtists] = useState<any[]>([]);
@@ -114,6 +120,62 @@ const SyncMgtPage = () => {
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [linkingPostId, setLinkingPostId] = useState<number | null>(null);
   const [linkMediaIds, setLinkMediaIds] = useState<number[]>([]);
+
+  // ── 定时同步任务 ──
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [scheduleSaving, setScheduleSaving] = useState(false);
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduleIntervalType, setScheduleIntervalType] =
+    useState<string>('day');
+  const [scheduleIntervalValue, setScheduleIntervalValue] = useState<number>(1);
+  const [scheduleLastRunAt, setScheduleLastRunAt] = useState<string | null>(
+    null,
+  );
+  const [scheduleLastRunStatus, setScheduleLastRunStatus] = useState<
+    string | null
+  >(null);
+
+  const handleOpenScheduleModal = async () => {
+    setScheduleModalOpen(true);
+    setScheduleLoading(true);
+    try {
+      const cfg: any = await getSyncScheduleConfig();
+      setScheduleEnabled(!!cfg?.enabled);
+      setScheduleIntervalType(cfg?.intervalType || 'day');
+      setScheduleIntervalValue(cfg?.intervalValue || 1);
+      setScheduleLastRunAt(cfg?.lastRunAt || null);
+      setScheduleLastRunStatus(cfg?.lastRunStatus || null);
+    } catch {
+      message.error('获取定时任务配置失败');
+    } finally {
+      setScheduleLoading(false);
+    }
+  };
+
+  const handleSaveSchedule = async () => {
+    if (
+      scheduleEnabled &&
+      (!scheduleIntervalValue || scheduleIntervalValue < 1)
+    ) {
+      message.warning('请输入有效的间隔数值（≥1）');
+      return;
+    }
+    setScheduleSaving(true);
+    try {
+      await updateSyncScheduleConfig({
+        enabled: scheduleEnabled,
+        intervalType: scheduleIntervalType,
+        intervalValue: scheduleIntervalValue,
+      });
+      message.success(scheduleEnabled ? '定时任务已开启' : '定时任务已关闭');
+      setScheduleModalOpen(false);
+    } catch {
+      message.error('保存定时任务配置失败');
+    } finally {
+      setScheduleSaving(false);
+    }
+  };
 
   const fetchPosts = async (tab?: string) => {
     setLoading(true);
@@ -206,6 +268,45 @@ const SyncMgtPage = () => {
       message.error('全量同步失败');
     } finally {
       setFullSyncing(false);
+    }
+  };
+
+  /**
+   * 一键同步：
+   * - tab 为全部（activeTab === ''）→ 等同全量同步（所有艺人所有平台）
+   * - tab 为具体平台 → 遍历所有艺人，同步该平台数据
+   */
+  const handleQuickSync = async () => {
+    // 全部 tab：直接走全量同步
+    if (!activeTab) {
+      return handleFullSync();
+    }
+
+    // 具体平台 tab：遍历所有艺人同步该平台
+    const platformLabel = platformLabels[activeTab] || activeTab;
+    setQuickSyncing(true);
+    try {
+      let succeed = 0;
+      let failed = 0;
+      for (const artist of artists) {
+        try {
+          await runSyncForArtistPlatform(artist.id, activeTab, 'incremental');
+          succeed++;
+        } catch {
+          failed++;
+        }
+      }
+      message.success(
+        `${platformLabel}同步完成：${succeed} 个成功${
+          failed > 0 ? `，${failed} 个失败` : ''
+        }`,
+      );
+      fetchPosts();
+      fetchStats();
+    } catch {
+      message.error(`${platformLabel}同步失败`);
+    } finally {
+      setQuickSyncing(false);
     }
   };
 
@@ -554,10 +655,16 @@ const SyncMgtPage = () => {
                 danger={!fullSyncDone}
                 icon={<ThunderboltOutlined spin={fullSyncing} />}
                 loading={fullSyncing}
-                disabled={fullSyncDone}
+                // disabled={fullSyncDone}
                 onClick={handleFullSync}
               >
                 {fullSyncDone ? '全量同步 ✓' : '全量同步'}
+              </Button>
+              <Button
+                icon={<ClockCircleOutlined />}
+                onClick={handleOpenScheduleModal}
+              >
+                定时同步
               </Button>
               <Button
                 icon={<UploadOutlined />}
@@ -643,6 +750,15 @@ const SyncMgtPage = () => {
               onClick={handleBatchDelete}
             >
               批量删除
+            </Button>
+            <Button
+              type="primary"
+              icon={<ThunderboltOutlined spin={quickSyncing || fullSyncing} />}
+              loading={quickSyncing || fullSyncing}
+              onClick={handleQuickSync}
+            >
+              一键同步
+              {activeTab ? `(${platformLabels[activeTab] || activeTab})` : ''}
             </Button>
             <Button danger icon={<DeleteOutlined />} onClick={handleClearAll}>
               一键清空
@@ -1238,6 +1354,118 @@ const SyncMgtPage = () => {
             </div>
           )}
         </div>
+      </Modal>
+
+      {/* ─── 定时同步弹窗 ─── */}
+      <Modal
+        title={
+          <Space>
+            <ClockCircleOutlined />
+            定时同步设置
+          </Space>
+        }
+        open={scheduleModalOpen}
+        onCancel={() => setScheduleModalOpen(false)}
+        onOk={handleSaveSchedule}
+        confirmLoading={scheduleSaving}
+        okText="保存"
+        cancelText="取消"
+        width={480}
+        destroyOnClose
+      >
+        {scheduleLoading ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            加载中...
+          </div>
+        ) : (
+          <div style={{ paddingTop: 16 }}>
+            {/* 开关 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 20,
+                padding: '12px 16px',
+                background: 'rgba(255,255,255,0.04)',
+                borderRadius: 8,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 14, color: '#fff' }}>
+                  启用定时增量同步
+                </div>
+                <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
+                  开启后将按设定频率自动调用 /sync/run
+                </div>
+              </div>
+              <Switch checked={scheduleEnabled} onChange={setScheduleEnabled} />
+            </div>
+
+            {/* 频率设置 */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 13, color: '#bbb', marginBottom: 8 }}>
+                执行频率
+              </div>
+              <Space.Compact style={{ width: '100%' }}>
+                <InputNumber
+                  min={1}
+                  max={365}
+                  value={scheduleIntervalValue}
+                  onChange={(v) => setScheduleIntervalValue(v || 1)}
+                  style={{ width: '40%' }}
+                  disabled={!scheduleEnabled}
+                />
+                <Select
+                  value={scheduleIntervalType}
+                  onChange={setScheduleIntervalType}
+                  style={{ width: '60%' }}
+                  disabled={!scheduleEnabled}
+                >
+                  <Select.Option value="hour">小时</Select.Option>
+                  <Select.Option value="day">天</Select.Option>
+                  <Select.Option value="week">周</Select.Option>
+                  <Select.Option value="month">月</Select.Option>
+                  <Select.Option value="year">年</Select.Option>
+                </Select>
+              </Space.Compact>
+              <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
+                示例：选「1」+「天」= 每 1 天执行一次；选「3」+「小时」= 每 3
+                小时执行一次
+              </div>
+            </div>
+
+            {/* 上次执行信息 */}
+            {scheduleLastRunAt && (
+              <div
+                style={{
+                  fontSize: 12,
+                  color: '#666',
+                  padding: '8px 12px',
+                  background: 'rgba(255,255,255,0.02)',
+                  borderRadius: 6,
+                }}
+              >
+                上次执行：{formatDateTime(scheduleLastRunAt)}
+                {scheduleLastRunStatus && (
+                  <span
+                    style={{
+                      marginLeft: 8,
+                      color:
+                        scheduleLastRunStatus === 'success'
+                          ? '#5fa657'
+                          : '#e85d5d',
+                    }}
+                  >
+                    {scheduleLastRunStatus === 'success'
+                      ? '成功'
+                      : scheduleLastRunStatus}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   );
