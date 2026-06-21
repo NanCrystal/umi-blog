@@ -39,6 +39,7 @@ import {
   batchDeleteVideos,
   updateVideo,
   batchUpdateVideos,
+  clearAllVideos,
 } from '@/services/video';
 import { getSyncPosts } from '@/services/artist';
 import {
@@ -1105,6 +1106,29 @@ const VideoPage: React.FC<Props> = () => {
     });
   };
 
+  // 一键清空所有视频
+  const handleClearAll = () => {
+    Modal.confirm({
+      title: '确认清空',
+      content: '此操作将清空所有视频数据，且不可恢复，确定继续吗？',
+      okText: '清空',
+      cancelText: '取消',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          const res: any = await clearAllVideos();
+          message.success(`已清空 ${res?.count ?? '全部'} 条视频`);
+          setSelectedIds(new Set());
+          setSelectedRowKeys([]);
+          setTimelineIndex([]);
+          setGroups({});
+        } catch {
+          message.error('清空失败');
+        }
+      },
+    });
+  };
+
   // 批量设置
   const handleBatchEdit = () => {
     if (selectedIds.size === 0) return;
@@ -1214,6 +1238,14 @@ const VideoPage: React.FC<Props> = () => {
                     onClick={handleBatchDelete}
                   >
                     删除
+                  </Button>
+                  <Button
+                    icon={<DeleteOutlined />}
+                    danger
+                    ghost
+                    onClick={handleClearAll}
+                  >
+                    一键清空
                   </Button>
                   <Button
                     icon={<DownloadOutlined />}

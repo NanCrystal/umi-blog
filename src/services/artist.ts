@@ -105,6 +105,12 @@ export async function getFullSyncStatus() {
   return request('/sync/full-status');
 }
 
+/**
+ * 艺人平台单次同步
+ * @param artistId 艺人 ID
+ * @param platform 平台名称
+ * @param mode 同步模式（默认增量）mode='incremental'（默认最新10条）| 'full'（全部历史）
+ */
 export async function runSyncForArtistPlatform(
   artistId: number,
   platform: string,
@@ -152,6 +158,27 @@ export async function clearAllSyncPosts() {
 /** 获取同步记录统计 */
 export async function getSyncPostsStats() {
   return request('/sync/posts/stats');
+}
+
+// ─── 定时同步任务配置 ───
+export interface SyncScheduleConfig {
+  enabled: boolean;
+  intervalType: 'hour' | 'day' | 'week' | 'month' | 'year';
+  intervalValue: number;
+  lastRunAt?: string | null;
+  lastRunStatus?: string | null;
+}
+
+export async function getSyncScheduleConfig() {
+  return request('/sync/schedule');
+}
+
+export async function updateSyncScheduleConfig(data: {
+  enabled?: boolean;
+  intervalType?: string;
+  intervalValue?: number;
+}) {
+  return request('/sync/schedule', { method: 'PUT', data });
 }
 
 export async function importSyncData(file: File, platform: string) {

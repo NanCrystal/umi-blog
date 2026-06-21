@@ -149,7 +149,12 @@ const ArtistMgtPage = () => {
       setDetailLoading(false);
     }
   };
-
+  /**
+   *
+   * @param item
+   * @param platform
+   * 同步模式（默认增量）mode='incremental'（默认最新10条）| 'full'（全部历史）
+   */
   const handleSyncPlatform = async (
     item: ArtistItem,
     platform: PlatformConfig,
@@ -160,7 +165,7 @@ const ArtistMgtPage = () => {
       const res = await runSyncForArtistPlatform(
         item.id,
         platform.slug,
-        'incremental',
+        'full',
       );
       if (res.success) {
         message.success(`${platform.label}同步完成，共 ${res.count} 条`);

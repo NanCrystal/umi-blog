@@ -41,6 +41,7 @@ import {
   updatePhoto,
   batchDeletePhotos,
   batchUpdatePhotos,
+  clearAllPhotos,
 } from '@/services/photo';
 import { getImageUrl, getThumbUrl, formatFileSize } from '@/utils/utils';
 import { getArtistList, getSyncPosts } from '@/services/artist';
@@ -1117,13 +1118,35 @@ const PhotoPage: React.FC<Props> = () => {
     });
   };
 
+  // 一键清空所有照片
+  const handleClearAll = () => {
+    Modal.confirm({
+      title: '确认清空',
+      content: '此操作将清空所有照片数据，且不可恢复，确定继续吗？',
+      okText: '清空',
+      cancelText: '取消',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          const res: any = await clearAllPhotos();
+          message.success(`已清空 ${res?.count ?? '全部'} 张照片`);
+          setSelectedIds(new Set());
+          setSelectedRowKeys([]);
+          setTimelineIndex([]);
+          setGroups({});
+        } catch {
+          message.error('清空失败');
+        }
+      },
+    });
+  };
+
   // 批量设置 - 打开弹窗
   const handleBatchEdit = () => {
     if (selectedIds.size === 0) return;
     batchForm.resetFields();
     setBatchEditModalVisible(true);
   };
-
   // 批量设置 - 提交
   const handleBatchEditSubmit = async () => {
     try {
@@ -1234,6 +1257,14 @@ const PhotoPage: React.FC<Props> = () => {
                     onClick={handleBatchDelete}
                   >
                     删除
+                  </Button>
+                  <Button
+                    icon={<DeleteOutlined />}
+                    danger
+                    ghost
+                    onClick={handleClearAll}
+                  >
+                    一键清空
                   </Button>
                   <Button
                     icon={<DownloadOutlined />}

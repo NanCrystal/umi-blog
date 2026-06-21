@@ -118,6 +118,11 @@ export async function batchDeletePhotos(ids: number[]) {
   return request('/photos/batch-delete', { method: 'POST', data: { ids } });
 }
 
+/** 一键清空所有照片 */
+export async function clearAllPhotos() {
+  return request('/photos/clear-all', { method: 'DELETE' });
+}
+
 /** 批量更新照片 */
 export async function batchUpdatePhotos(
   ids: number[],

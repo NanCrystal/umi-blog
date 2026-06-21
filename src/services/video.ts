@@ -136,3 +136,8 @@ export async function deleteVideo(id: number) {
 export async function batchDeleteVideos(ids: number[]) {
   return request('/videos/batch-delete', { method: 'POST', data: { ids } });
 }
+
+/** 一键清空所有视频 */
+export async function clearAllVideos() {
+  return request('/videos/clear-all', { method: 'DELETE' });
+}
