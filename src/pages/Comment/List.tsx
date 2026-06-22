@@ -181,7 +181,7 @@ const CommentsList: React.FC = () => {
       {
         title: '操作',
         key: 'action',
-        width: 200,
+        width: 300,
         render: (_: unknown, item) => (
           <div className={styles['table-actions']}>
             <Button

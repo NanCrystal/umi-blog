@@ -18,9 +18,9 @@ const { Header, Footer, Content } = Layout;
 
 const headerList: any = [
   { label: '主页', path: '/home', value: 0 },
-  { label: '随笔', path: '/document', value: 1 },
-  { label: '文章', path: '/essay', value: 2 },
-  { label: '贴图', path: '/wallpaper', value: 3 },
+  // { label: '随笔', path: '/document', value: 1 },
+  // { label: '文章', path: '/essay', value: 2 },
+  // { label: '贴图', path: '/wallpaper', value: 3 },
 ];
 
 const HomeLayout = (props: IRouteComponentProps) => {

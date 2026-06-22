@@ -179,6 +179,7 @@ const ArtistAddPage: React.FC = () => {
         igPlatformId: item.igPlatformId ?? undefined,
         syncEnabled: item.syncEnabled ?? true,
         enabled: !!item.enabled,
+        accentColor: item.accentColor || '#1677ff',
         syncWeibo: item.syncWeibo ?? false,
         syncDouyin: item.syncDouyin ?? false,
         syncXiaohongshu: item.syncXiaohongshu ?? false,
@@ -270,6 +271,7 @@ const ArtistAddPage: React.FC = () => {
         igPlatformId: values.igPlatformId ? Number(values.igPlatformId) : null,
         syncEnabled: values.syncEnabled ?? true,
         enabled: values.enabled ?? true,
+        accentColor: values.accentColor || '#1677ff',
         syncWeibo: values.syncWeibo ?? true,
         syncDouyin: values.syncDouyin ?? true,
         syncXiaohongshu: values.syncXiaohongshu ?? true,
@@ -427,6 +429,23 @@ const ArtistAddPage: React.FC = () => {
                         />
                       </Space>
                     )}
+                  </Form.Item>
+                  <Form.Item
+                    name="accentColor"
+                    style={{ marginTop: 8 }}
+                    getValueProps={(value) => ({ value: value || '#1677ff' })}
+                  >
+                    <input
+                      type="color"
+                      style={{
+                        width: 32,
+                        height: 32,
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        borderRadius: 4,
+                      }}
+                    />
                   </Form.Item>
                 </div>
               </div>

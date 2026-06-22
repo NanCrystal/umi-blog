@@ -52,6 +52,7 @@ interface TagItem {
   id: number;
   name: string;
   uuid?: string;
+  type?: string;
 }
 
 interface Props {}
@@ -88,10 +89,12 @@ const SortableCard: React.FC<{
           className={styles.editIcon}
           onClick={() => onEdit(item)}
         />
-        <CloseOutlined
-          className={styles.deleteIcon}
-          onClick={() => onDelete(item.id)}
-        />
+        {item.type !== 'default' && (
+          <CloseOutlined
+            className={styles.deleteIcon}
+            onClick={() => onDelete(item.id)}
+          />
+        )}
       </div>
       <div className={styles.itemContent}>
         <span className={styles.itemName}>{item.name}</span>
@@ -333,6 +336,12 @@ const PhotoTagPage: React.FC<Props> = () => {
 
   // 删除发布平台
   const deletePlatform = (id: number) => {
+    // 检查是否为默认平台
+    const platform = platforms.find((p) => p.id === id);
+    if (platform?.type === 'default') {
+      message.warning('默认平台不允许删除');
+      return;
+    }
     Modal.confirm({
       title: '提示',
       content: '确定要删除该发布平台吗？',
@@ -371,6 +380,12 @@ const PhotoTagPage: React.FC<Props> = () => {
 
   // 删除问题反馈
   const deleteFeedback = (id: number) => {
+    // 检查是否为默认反馈类型
+    const feedback = feedbacks.find((f) => f.id === id);
+    if (feedback?.type === 'default') {
+      message.warning('默认反馈类型不允许删除');
+      return;
+    }
     Modal.confirm({
       title: '提示',
       content: '确定要删除该问题类型吗？',
@@ -380,7 +395,7 @@ const PhotoTagPage: React.FC<Props> = () => {
         try {
           await deletePhotoFeedback(id);
           message.success('删除成功');
-          loadLocations();
+          loadFeedbacks();
         } catch {
           // 错误由拦截器统一处理
         }

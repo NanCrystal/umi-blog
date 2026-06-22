@@ -36,7 +36,7 @@ const menuItems: MenuItem[] = [
       { key: '/admin/video', icon: <VideoCameraOutlined />, label: '视频管理' },
       { key: '/admin/voice', icon: <SoundOutlined />, label: '音频管理' },
       { key: '/admin/photocards', icon: <IdcardOutlined />, label: '小卡管理' },
-      { key: '/admin/profile', icon: <FileTextOutlined />, label: '档案管理' },
+      // { key: '/admin/profile', icon: <FileTextOutlined />, label: '档案管理' },
     ],
   },
   { key: '/admin/sync', icon: <SyncOutlined />, label: '社交同步' },
@@ -52,17 +52,17 @@ const menuItems: MenuItem[] = [
   { key: '/admin/artist', icon: <UserOutlined />, label: '艺人管理' },
   { key: '/admin/feedback', icon: <UserOutlined />, label: '问题反馈' },
   { key: '/admin/comments', icon: <UserOutlined />, label: '留言管理' },
-  { key: '/admin/data', icon: <DashboardOutlined />, label: '数据面板' },
+  // { key: '/admin/data', icon: <DashboardOutlined />, label: '数据面板' },
 
-  {
-    key: 'wallpaper-center',
-    icon: <PictureOutlined />,
-    label: '壁纸中心',
-    children: [
-      { key: '/admin/wallpaper', icon: <PictureOutlined />, label: '壁纸管理' },
-      { key: '/admin/release', icon: <SendOutlined />, label: '发布管理' },
-    ],
-  },
+  // {
+  //   key: 'wallpaper-center',
+  //   icon: <PictureOutlined />,
+  //   label: '壁纸中心',
+  //   children: [
+  //     { key: '/admin/wallpaper', icon: <PictureOutlined />, label: '壁纸管理' },
+  //     { key: '/admin/release', icon: <SendOutlined />, label: '发布管理' },
+  //   ],
+  // },
 ];
 
 // 父子菜单映射：子路径 -> 父菜单key
