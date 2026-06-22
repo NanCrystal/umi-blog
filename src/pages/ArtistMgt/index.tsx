@@ -52,10 +52,15 @@ interface ArtistItem {
   instagramId?: string;
   igToken?: string;
   syncEnabled?: boolean;
+  syncWeibo?: boolean;
+  syncDouyin?: boolean;
+  syncXiaohongshu?: boolean;
+  syncInstagram?: boolean;
   enabled?: boolean;
   createdAt?: string;
   updatedAt?: string;
   sortOrder?: number;
+  type?: string;
 }
 
 // 平台配置
@@ -69,7 +74,7 @@ const platforms: PlatformConfig[] = [
   { key: 'weiboId', label: '微博', color: '#E6162D', slug: 'weibo' },
   { key: 'douyinSecUid', label: '抖音', color: '#000000', slug: 'douyin' },
   { key: 'xhsId', label: '小红书', color: '#FF2442', slug: 'xiaohongshu' },
-  // { key: 'instagramId', label: 'Ins', color: '#FF2442', slug: 'instagram' },
+  { key: 'instagramId', label: 'Ins', color: '#FF2442', slug: 'instagram' },
 ];
 
 const ArtistMgtPage = () => {
@@ -127,6 +132,12 @@ const ArtistMgtPage = () => {
   };
 
   const handleDelete = async (id: number) => {
+    // 检查是否为默认艺人
+    const artist = list.find((a) => a.id === id);
+    if (artist?.type === 'default') {
+      message.warning('默认艺人不允许删除');
+      return;
+    }
     try {
       await deleteArtist(id);
       message.success('删除成功');
@@ -247,31 +258,31 @@ const ArtistMgtPage = () => {
         </Space>
       ),
     },
-    {
-      title: '平台',
-      key: 'platforms',
-      render: (_, record) => (
-        <Space size={4}>
-          {platforms.map((p) => {
-            if (!record[p.key]) return null;
-            return (
-              <Tooltip key={p.key} title={p.label}>
-                <img
-                  src={svgMap[p.slug]}
-                  alt={p.label}
-                  style={{ width: 18, height: 18, display: 'block' }}
-                />
-              </Tooltip>
-            );
-          })}
-          {platforms.every((p) => !record[p.key]) && (
-            <span style={{ color: 'var(--color-muted, #666)', fontSize: 13 }}>
-              未配置
-            </span>
-          )}
-        </Space>
-      ),
-    },
+    // {
+    //   title: '平台',
+    //   key: 'platforms',
+    //   render: (_, record) => (
+    //     <Space size={4}>
+    //       {platforms.map((p) => {
+    //         if (!record[p.key]) return null;
+    //         return (
+    //           <Tooltip key={p.key} title={p.label}>
+    //             <img
+    //               src={svgMap[p.slug]}
+    //               alt={p.label}
+    //               style={{ width: 18, height: 18, display: 'block' }}
+    //             />
+    //           </Tooltip>
+    //         );
+    //       })}
+    //       {platforms.every((p) => !record[p.key]) && (
+    //         <span style={{ color: 'var(--color-muted, #666)', fontSize: 13 }}>
+    //           未配置
+    //         </span>
+    //       )}
+    //     </Space>
+    //   ),
+    // },
     {
       title: '账号状态',
       key: 'enabledStatus',
@@ -308,9 +319,7 @@ const ArtistMgtPage = () => {
       title: '同步操作',
       key: 'syncOps',
       render: (_, record) => {
-        const enabledPlatforms = platforms.filter(
-          (p) => record[p.key] && record.syncEnabled !== false,
-        );
+        const enabledPlatforms = platforms.filter((p) => record[p.key]);
         if (enabledPlatforms.length === 0) {
           return (
             <span style={{ color: 'var(--color-muted, #666)', fontSize: 13 }}>
@@ -323,16 +332,31 @@ const ArtistMgtPage = () => {
             {enabledPlatforms.map((p) => {
               const syncKey = `${record.id}_${p.slug}`;
               const isSyncing = syncingMap[syncKey];
+              const syncFieldName = `sync${
+                p.slug.charAt(0).toUpperCase() + p.slug.slice(1)
+              }` as keyof ArtistItem;
+              const isSyncDisabled = record[syncFieldName] === false;
               return (
-                <Tooltip key={p.slug} title={`同步${p.label}数据`}>
+                <Tooltip
+                  key={p.slug}
+                  title={
+                    isSyncDisabled
+                      ? `${p.label}同步已禁用`
+                      : `同步${p.label}数据`
+                  }
+                >
                   <Button
                     size="small"
-                    disabled={isSyncing}
+                    disabled={isSyncing || isSyncDisabled}
                     loading={isSyncing}
                     icon={
                       <img
                         src={svgMap[p.slug]}
-                        style={{ width: 14, height: 14, display: 'block' }}
+                        style={{
+                          width: 14,
+                          height: 14,
+                          verticalAlign: 'middle',
+                        }}
                       />
                     }
                     onClick={() => handleSyncPlatform(record, p)}
@@ -418,20 +442,22 @@ const ArtistMgtPage = () => {
               setModuleSettingsVisible(true);
             }}
           />
-          <Popconfirm
-            title="删除后不可恢复，是否继续？"
-            onConfirm={() => handleDelete(record.id)}
-            okText="删除"
-            cancelText="取消"
-          >
-            <Button
-              type="default"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              className={styles['action-btn-danger']}
-            />
-          </Popconfirm>
+          {record.type !== 'default' && (
+            <Popconfirm
+              title="删除后不可恢复，是否继续？"
+              onConfirm={() => handleDelete(record.id)}
+              okText="删除"
+              cancelText="取消"
+            >
+              <Button
+                type="default"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                className={styles['action-btn-danger']}
+              />
+            </Popconfirm>
+          )}
         </Space>
       ),
     },
@@ -493,6 +519,27 @@ const ArtistMgtPage = () => {
                     <Tag color={detailItem.enabled !== false ? 'green' : 'red'}>
                       {detailItem.enabled !== false ? '已启用' : '已禁用'}
                     </Tag>
+                    {detailItem.accentColor && (
+                      <Space size={4}>
+                        <span style={{ fontSize: 12, color: '#999' }}>
+                          主题色:
+                        </span>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            width: 16,
+                            height: 16,
+                            borderRadius: 4,
+                            backgroundColor: detailItem.accentColor,
+                            border: '1px solid var(--color-hairline, #262626)',
+                            verticalAlign: 'middle',
+                          }}
+                        />
+                        <span style={{ fontSize: 12, color: '#666' }}>
+                          {detailItem.accentColor}
+                        </span>
+                      </Space>
+                    )}
                     {/* <Tag
                       color={
                         detailItem.syncEnabled !== false ? 'success' : 'default'

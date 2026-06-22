@@ -200,6 +200,86 @@
       border-color: rgba(220, 60, 60, 0.7) !important;
     }
   }
+
+  /* ─── Popconfirm 暗色系样式 ─── */
+  :global(.ant-popconfirm) {
+    max-width: 320px;
+    padding: 16px 20px;
+    background: #1a1a1a;
+    border: 1px solid var(--color-hairline, #262626);
+    border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+
+    &::before {
+      display: none !important;
+    }
+  }
+
+  :global(.ant-popconfirm-inner) {
+    background: transparent;
+    color: var(--color-body, #cccccc);
+    padding: 4px 0;
+  }
+
+  :global(.ant-popconfirm-message) {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: var(--color-body, #cccccc);
+    font-size: 14px;
+    line-height: 1.6;
+
+    .anticon {
+      color: #faad14;
+      margin-top: 2px;
+    }
+  }
+
+  :global(.ant-popconfirm-buttons) {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+
+    .ant-btn {
+      height: 30px;
+      padding: 0 14px;
+      font-size: 12px;
+      font-family: var(--font-mono, monospace);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .ant-btn-default {
+      background: transparent;
+      border: 1px solid var(--color-hairline-strong, #3a3a3a);
+      color: var(--color-muted, #999999);
+
+      &:hover {
+        border-color: var(--color-body, #cccccc);
+        color: var(--color-body, #cccccc);
+      }
+    }
+
+    .ant-btn-primary {
+      background: rgba(220, 60, 60, 0.85);
+      border-color: rgba(220, 60, 60, 0.85);
+      color: #ffffff;
+
+      &:hover {
+        background: rgba(220, 60, 60, 1);
+        border-color: rgba(220, 60, 60, 1);
+      }
+    }
+  }
+
+  /* Popconfirm 箭头 */
+  :global(.ant-popover-arrow::before) {
+    background: #1a1a1a;
+    border: 1px solid var(--color-hairline, #262626);
+  }
 }
 
 /* ─── 详情 Modal ─── */

@@ -97,10 +97,14 @@ const AppSetMgtPage: React.FC = () => {
       ),
     },
     {
-      title: '描述',
-      dataIndex: 'description',
-      key: 'description',
+      title: '关联艺人',
+      dataIndex: 'artistIds',
+      key: 'artistIds',
       ellipsis: true,
+      render: (artistIds: any[]) =>
+        artistIds && artistIds.length > 0
+          ? artistIds.map((a: any) => a.name).join('、')
+          : '-',
     },
     {
       title: '状态',
