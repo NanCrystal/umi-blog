@@ -32,6 +32,9 @@ import {
   createImportTask,
   reprocessImportTask,
   downloadImportTask,
+  getQiniuUploadToken,
+  uploadToQiniuDirect,
+  notifyQiniuUploadComplete,
 } from '@/services/importTask';
 import { formatDateTime } from '@/utils/utils';
 import styles from './index.less';
@@ -193,47 +196,63 @@ const ImportTasksPage: React.FC = () => {
     return false; // 阻止自动上传
   };
 
-  const handleStartUpload = () => {
+  const handleStartUpload = async () => {
     if (!uploadFile) return;
     setUploading(true);
     setUploadProgress(0);
 
     const datasetName = uploadFile.name.replace(/\.zip$/i, '');
     const selectedArtist = artists.find((a) => a.artistId === selectedArtistId);
-    const { promise, abort } = createImportTask({
-      name: datasetName,
-      file: uploadFile,
-      type: dataType || undefined,
-      artistId: selectedArtistId || undefined,
-      artistName: selectedArtist?.name || undefined,
-      onProgress: (percent) => {
-        setUploadProgress(percent);
-        // 上传完成(100%)立即关闭弹窗并刷新列表
-        if (percent === 100) {
-          setUploadDone(true);
-          setUploading(false);
-          handleCloseUploadModal();
-          fetchList();
-        }
-      },
-    });
 
-    abortRef.current = abort;
+    try {
+      // ── Step 1: 获取七牛上传凭证 ──
+      setUploadProgress(1); // 标记"准备中"
+      const tokenRes: any = await getQiniuUploadToken();
+      if (!tokenRes?.token || !tokenRes?.uploadUrl) {
+        throw new Error('获取七牛上传凭证失败');
+      }
 
-    promise
-      .then(() => {
-        // 进度100%时已关闭弹窗，这里仅记录成功
-        message.success('上传成功，后台正在处理');
-      })
-      .catch((err: any) => {
-        if (err?.message === '上传已取消') {
-          message.info('上传已取消');
-        } else {
-          message.error(err?.message || '上传失败');
-        }
-        setUploading(false);
-        setUploadProgress(0);
+      // ── Step 2: 前端直传七牛（走国内节点，快！） ──
+      const { promise, abort } = uploadToQiniuDirect(
+        uploadFile,
+        tokenRes.token,
+        tokenRes.uploadUrl,
+        (percent) => {
+          // 映射到 1-99%（100% 留给后端创建任务）
+          setUploadProgress(Math.min(percent, 98));
+        },
+      );
+      abortRef.current = abort;
+
+      const qiniuResult = await promise;
+
+      // ── Step 3: 通知后端创建任务（轻量请求，只传 key 和元数据） ──
+      setUploadProgress(99);
+      await notifyQiniuUploadComplete({
+        name: datasetName,
+        qiniuKey: qiniuResult.key,
+        fileSize: uploadFile.size,
+        artistId: selectedArtistId || undefined,
+        artistName: selectedArtist?.name || undefined,
+        type: dataType || undefined,
       });
+
+      // ✅ 全部完成
+      setUploadProgress(100);
+      setUploadDone(true);
+      setUploading(false);
+      handleCloseUploadModal();
+      fetchList();
+      message.success('上传成功，后台正在处理');
+    } catch (err: any) {
+      if (err?.message === '上传已取消') {
+        message.info('上传已取消');
+      } else {
+        message.error(err?.message || '上传失败');
+      }
+      setUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   const handleCancelUpload = () => {
