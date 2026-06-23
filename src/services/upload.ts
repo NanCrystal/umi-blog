@@ -28,6 +28,7 @@ export async function uploadImageFull(
     method: 'POST',
     data: formData,
     requestType: 'form',
+    timeout: 120000, // 图片上传设置 2 分钟超时
   });
 }
 
