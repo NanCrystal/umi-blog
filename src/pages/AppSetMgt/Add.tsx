@@ -11,7 +11,13 @@ import {
   Upload,
   message,
 } from 'antd';
-import { HomeOutlined } from '@ant-design/icons';
+import {
+  HomeOutlined,
+  InboxOutlined,
+  CloseOutlined,
+  PlayCircleOutlined,
+} from '@ant-design/icons';
+import type { UploadFile } from 'antd/es/upload/interface';
 import { getArtistList } from '@/services/artist';
 import {
   createAppModule,
@@ -19,9 +25,11 @@ import {
   getAppModuleDetail,
 } from '@/services/appModule';
 import { uploadImageFull } from '@/services/upload';
-import { getImageUrl } from '@/utils/utils';
+import { uploadVideoFile } from '@/services/video';
+import { getImageUrl, formatFileSize } from '@/utils/utils';
 import styles from './Add.less';
 
+const { Dragger } = Upload;
 const { TextArea } = Input;
 
 interface ArtistItem {
@@ -37,7 +45,14 @@ const AddModulePage: React.FC = () => {
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [showArtistSelect, setShowArtistSelect] = useState(true);
   const [editId, setEditId] = useState<number | null>(null);
+  const [resourceType, setResourceType] = useState<'image' | 'video'>('image');
   const location = useLocation();
+
+  // 视频上传状态
+  const [videoFileList, setVideoFileList] = useState<UploadFile[]>([]);
+  const [videoUploaded, setVideoUploaded] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
+  const [videoFileSize, setVideoFileSize] = useState(0);
 
   useEffect(() => {
     fetchArtists();
@@ -82,6 +97,33 @@ const AddModulePage: React.FC = () => {
             })),
           );
         }
+        if (data.video) {
+          setShowImageUpload(true);
+          setResourceType('video');
+          let videoList: string[] = [];
+          try {
+            const parsed =
+              typeof data.video === 'string'
+                ? JSON.parse(data.video)
+                : data.video;
+            videoList = Array.isArray(parsed) ? parsed : [parsed];
+          } catch {
+            videoList = [data.video];
+          }
+          if (videoList.length > 0) {
+            setVideoUploaded(true);
+            setVideoUrl(videoList[0]);
+            form.setFieldValue(
+              'video',
+              videoList.map((url: string, index: number) => ({
+                uid: `-${index}`,
+                name: url.split('/').pop() || 'video',
+                status: 'done',
+                url,
+              })),
+            );
+          }
+        }
         const hasArtists = data.artistIds && data.artistIds.length > 0;
         setShowArtistSelect(hasArtists);
       } catch {
@@ -97,6 +139,74 @@ const AddModulePage: React.FC = () => {
     } catch (error) {
       console.error('获取艺人列表失败', error);
     }
+  };
+
+  // ─── 视频上传处理 ───
+  const handleVideoCustomRequest = async (options: any) => {
+    const { file, onSuccess, onError } = options;
+    try {
+      const res = await uploadVideoFile(file as File);
+      if (!res?.url) {
+        onError(new Error('上传失败'));
+        return;
+      }
+      setVideoUploaded(true);
+      setVideoUrl(res.url);
+      setVideoFileSize((file as File).size);
+      form.setFieldValue('video', [{ url: res.url }]);
+      onSuccess({ url: res.url }, file);
+    } catch {
+      message.error('视频上传失败');
+      onError(new Error('上传失败'));
+    }
+  };
+
+  const handleVideoFileChange = (info: {
+    file: UploadFile;
+    fileList: UploadFile[];
+  }) => {
+    setVideoFileList([...info.fileList]);
+    if (info.file.status === 'removed') {
+      handleRemoveVideo();
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    setVideoFileList([]);
+    setVideoUploaded(false);
+    setVideoUrl('');
+    setVideoFileSize(0);
+    form.setFieldValue('video', []);
+  };
+
+  // ─── 视频预览卡片 ───
+  const renderVideoPreview = () => {
+    if (!videoUploaded || !videoUrl) return null;
+    const ext = videoUrl.split('.').pop()?.toUpperCase() || 'MP4';
+    return (
+      <div className={styles['video-preview']}>
+        <div className={styles['video-preview-thumb']}>
+          <img
+            src={`${getImageUrl(videoUrl)}?vframe/jpg/offset/0`}
+            alt="视频封面"
+          />
+          <PlayCircleOutlined className={styles['video-preview-icon']} />
+        </div>
+        <div className={styles['video-preview-info']}>
+          <span className={styles['video-preview-name']}>
+            {videoUrl.split('/').pop() || '未命名视频'}
+          </span>
+          <span className={styles['video-preview-meta']}>
+            {ext} ·{' '}
+            {videoFileSize > 0 ? formatFileSize(videoFileSize) : '已上传'}
+          </span>
+        </div>
+        <CloseOutlined
+          className={styles['video-preview-remove']}
+          onClick={handleRemoveVideo}
+        />
+      </div>
+    );
   };
 
   const handleSubmit = async () => {
@@ -116,6 +226,18 @@ const AddModulePage: React.FC = () => {
         const url = val.response?.url || val.url || val;
         return url ? JSON.stringify([url]) : undefined;
       };
+
+      const getVideoUrls = (val: any): string | undefined => {
+        if (!val) return undefined;
+        if (Array.isArray(val)) {
+          const urls = val
+            .map((item: any) => item?.response?.url || item?.url || item)
+            .filter(Boolean);
+          return urls.length > 0 ? JSON.stringify(urls) : undefined;
+        }
+        const url = val.response?.url || val.url || val;
+        return url ? JSON.stringify([url]) : undefined;
+      };
       console.log('values1', values);
 
       const payload: any = {
@@ -124,7 +246,12 @@ const AddModulePage: React.FC = () => {
         description: values.description || undefined,
         sortOrder: values.sortOrder,
         status: values.status ? 1 : 0,
-        image: getImageUrls(values.image),
+        image:
+          resourceType === 'image' ? getImageUrls(values.image) : undefined,
+        video:
+          resourceType === 'video' && videoUrl
+            ? JSON.stringify([videoUrl])
+            : undefined,
         artistIds: showArtistSelect ? values.artistIds || [] : [],
       };
 
@@ -207,44 +334,98 @@ const AddModulePage: React.FC = () => {
               />
             </Form.Item>
 
-            <Form.Item label="是否配置图片" valuePropName="checked">
+            <Form.Item label="是否配置资源" valuePropName="checked">
               <Switch
                 checkedChildren="是"
                 unCheckedChildren="否"
                 checked={showImageUpload}
                 onChange={(checked) => {
                   setShowImageUpload(checked);
-                  if (!checked) form.setFieldValue('image', undefined);
+                  if (!checked) {
+                    form.setFieldValue('image', undefined);
+                    form.setFieldValue('video', undefined);
+                  }
                 }}
               />
             </Form.Item>
 
             {showImageUpload && (
-              <Form.Item
-                label="上传图片"
-                name="image"
-                valuePropName="fileList"
-                getValueFromEvent={(e: any) => {
-                  if (Array.isArray(e)) return e;
-                  return e?.fileList;
-                }}
-              >
-                <Upload
-                  listType="picture-card"
-                  multiple
-                  accept="image/*"
-                  customRequest={async ({ file, onSuccess, onError }: any) => {
-                    try {
-                      const res = await uploadImageFull(file as File);
-                      onSuccess(res);
-                    } catch (err) {
-                      onError(err);
-                    }
-                  }}
-                >
-                  + 上传
-                </Upload>
-              </Form.Item>
+              <>
+                <Form.Item label="资源类型">
+                  <Select
+                    value={resourceType}
+                    onChange={(value: 'image' | 'video') => {
+                      setResourceType(value);
+                      form.setFieldValue('image', undefined);
+                      form.setFieldValue('video', undefined);
+                    }}
+                    options={[
+                      { label: '图片', value: 'image' },
+                      { label: '视频', value: 'video' },
+                    ]}
+                  />
+                </Form.Item>
+
+                {resourceType === 'image' ? (
+                  <Form.Item
+                    label="上传图片"
+                    name="image"
+                    valuePropName="fileList"
+                    getValueFromEvent={(e: any) => {
+                      if (Array.isArray(e)) return e;
+                      return e?.fileList;
+                    }}
+                  >
+                    <Upload
+                      listType="picture-card"
+                      multiple
+                      accept="image/*"
+                      customRequest={async ({
+                        file,
+                        onSuccess,
+                        onError,
+                      }: any) => {
+                        try {
+                          const res = await uploadImageFull(file as File);
+                          onSuccess(res);
+                        } catch (err) {
+                          onError(err);
+                        }
+                      }}
+                    >
+                      + 上传
+                    </Upload>
+                  </Form.Item>
+                ) : (
+                  <Form.Item
+                    label="上传视频"
+                    required
+                    className={styles['upload-item']}
+                  >
+                    {videoUploaded && videoUrl ? (
+                      renderVideoPreview()
+                    ) : (
+                      <Dragger
+                        accept=".mp4,.mov,.avi,.mkv,.webm"
+                        fileList={videoFileList}
+                        customRequest={handleVideoCustomRequest}
+                        onChange={handleVideoFileChange}
+                        maxCount={1}
+                      >
+                        <p className="ant-upload-drag-icon">
+                          <InboxOutlined />
+                        </p>
+                        <p className="ant-upload-text">
+                          点击或拖拽视频到此区域上传
+                        </p>
+                        <p className={styles['upload-hint']}>
+                          支持 mp4、mov、avi、mkv、webm 格式，500M 以内
+                        </p>
+                      </Dragger>
+                    )}
+                  </Form.Item>
+                )}
+              </>
             )}
 
             <Form.Item

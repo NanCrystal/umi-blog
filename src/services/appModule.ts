@@ -12,6 +12,7 @@ export interface AppModuleItem {
   key: string;
   description: string | null;
   image: string | null;
+  video: string | null; // 视频资源URL
   type: string;
   sortOrder: number;
   status: number;
@@ -48,6 +49,7 @@ export async function createAppModule(data: {
   key: string;
   description?: string;
   image?: string;
+  video?: string;
   sortOrder?: number;
   status?: number;
   artistIds?: number[];
@@ -62,6 +64,7 @@ export async function updateAppModule(
     key?: string;
     description?: string;
     image?: string;
+    video?: string;
     sortOrder?: number;
     status?: number;
     artistIds?: number[];
