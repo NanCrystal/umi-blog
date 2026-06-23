@@ -667,7 +667,7 @@ const ImportTasksPage: React.FC = () => {
                 className={styles['type-select']}
                 allowClear
               >
-                <Option value="instagram">Instagram（INS）</Option>
+                <Option value="ins">Instagram（INS）</Option>
                 <Option value="xiaohongshu">小红书</Option>
                 <Option value="weibo">微博</Option>
                 <Option value="douyin">抖音</Option>
