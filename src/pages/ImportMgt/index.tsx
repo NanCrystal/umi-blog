@@ -205,37 +205,58 @@ const ImportTasksPage: React.FC = () => {
     const selectedArtist = artists.find((a) => a.artistId === selectedArtistId);
 
     try {
-      // ── Step 1: 获取七牛上传凭证 ──
-      setUploadProgress(1); // 标记"准备中"
-      const tokenRes: any = await getQiniuUploadToken();
-      if (!tokenRes?.token || !tokenRes?.uploadUrl) {
-        throw new Error('获取七牛上传凭证失败');
+      // ── 判断上传模式：本地开发走后端代理，生产环境走前端直传七牛 ──
+      const isDev =
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1';
+
+      if (isDev) {
+        // ── 本地开发：后端代理上传（文件经后端转发到七牛） ──
+        const { promise: proxyPromise, abort: proxyAbort } = createImportTask({
+          name: datasetName,
+          file: uploadFile,
+          type: dataType || undefined,
+          artistId: selectedArtistId || undefined,
+          artistName: selectedArtist?.name || undefined,
+          onProgress: (percent) => {
+            setUploadProgress(Math.min(percent, 98));
+          },
+        });
+        abortRef.current = proxyAbort;
+        await proxyPromise;
+      } else {
+        // ── 生产环境：前端直传七牛（走国内节点，快！） ──
+        // Step 1: 获取七牛上传凭证
+        setUploadProgress(1);
+        const tokenRes: any = await getQiniuUploadToken();
+        if (!tokenRes?.token || !tokenRes?.uploadUrl) {
+          throw new Error('获取七牛上传凭证失败');
+        }
+
+        // Step 2: 前端直传七牛
+        const { promise, abort } = uploadToQiniuDirect(
+          uploadFile,
+          tokenRes.token,
+          tokenRes.uploadUrl,
+          (percent) => {
+            setUploadProgress(Math.min(percent, 98));
+          },
+        );
+        abortRef.current = abort;
+
+        const qiniuResult = await promise;
+
+        // Step 3: 通知后端创建任务
+        setUploadProgress(99);
+        await notifyQiniuUploadComplete({
+          name: datasetName,
+          qiniuKey: qiniuResult.key,
+          fileSize: uploadFile.size,
+          artistId: selectedArtistId || undefined,
+          artistName: selectedArtist?.name || undefined,
+          type: dataType || undefined,
+        });
       }
-
-      // ── Step 2: 前端直传七牛（走国内节点，快！） ──
-      const { promise, abort } = uploadToQiniuDirect(
-        uploadFile,
-        tokenRes.token,
-        tokenRes.uploadUrl,
-        (percent) => {
-          // 映射到 1-99%（100% 留给后端创建任务）
-          setUploadProgress(Math.min(percent, 98));
-        },
-      );
-      abortRef.current = abort;
-
-      const qiniuResult = await promise;
-
-      // ── Step 3: 通知后端创建任务（轻量请求，只传 key 和元数据） ──
-      setUploadProgress(99);
-      await notifyQiniuUploadComplete({
-        name: datasetName,
-        qiniuKey: qiniuResult.key,
-        fileSize: uploadFile.size,
-        artistId: selectedArtistId || undefined,
-        artistName: selectedArtist?.name || undefined,
-        type: dataType || undefined,
-      });
 
       // ✅ 全部完成
       setUploadProgress(100);
@@ -646,7 +667,7 @@ const ImportTasksPage: React.FC = () => {
                 className={styles['type-select']}
                 allowClear
               >
-                <Option value="ins">Instagram（INS）</Option>
+                <Option value="instagram">Instagram（INS）</Option>
                 <Option value="xiaohongshu">小红书</Option>
                 <Option value="weibo">微博</Option>
                 <Option value="douyin">抖音</Option>
