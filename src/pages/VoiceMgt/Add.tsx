@@ -31,7 +31,7 @@ import { getImageUrl } from '@/utils/utils';
 import {
   uploadVoiceFile,
   uploadVoiceCover,
-  uploadVoiceZip,
+  uploadAudioZipBatch,
   createVoice,
 } from '@/services/voice';
 import styles from './Add.less';
@@ -75,10 +75,10 @@ const AddVoiceComponent: React.FC = () => {
   // ─── ZIP 上传状态 ───
   const [zipFileList, setZipFileList] = useState<UploadFile[]>([]);
   const [zipUploaded, setZipUploaded] = useState(false);
-  const [zipFileKey, setZipFileKey] = useState('');
-  const [zipFileUrl, setZipFileUrl] = useState('');
+  const [zipFile, setZipFile] = useState<File | null>(null);
   const [zipFileName, setZipFileName] = useState('');
   const [zipSubmitLoading, setZipSubmitLoading] = useState(false);
+  const [zipProgress, setZipProgress] = useState<number | undefined>(undefined);
 
   // ─── 当前 Tab ───
   const [activeTab, setActiveTab] = useState<string>('single');
@@ -134,9 +134,9 @@ const AddVoiceComponent: React.FC = () => {
     // ZIP
     setZipFileList([]);
     setZipUploaded(false);
-    setZipFileUrl('');
-    setZipFileKey('');
+    setZipFile(null);
     setZipFileName('');
+    setZipProgress(undefined);
   };
 
   // ========================== 单条上传 ==========================
@@ -252,24 +252,13 @@ const AddVoiceComponent: React.FC = () => {
   };
 
   // ========================== ZIP 上传 ==========================
-  const handleZipCustomRequest = async (options: any) => {
-    const { file, onSuccess, onError } = options;
-    try {
-      const res = await uploadVoiceZip(file as File);
-      if (!res?.url) {
-        onError(new Error('上传失败'));
-        return;
-      }
-      setZipUploaded(true);
-      setZipFileUrl(res.url);
-      setZipFileKey(res.key || res.url);
-      setZipFileName((file as File).name);
-
-      onSuccess({ url: res.url }, file);
-    } catch {
-      message.error('ZIP 上传失败');
-      onError(new Error('上传失败'));
-    }
+  const handleZipCustomRequest = (options: any) => {
+    const { file, onSuccess } = options;
+    // ZIP 不再预上传到七牛，只保存文件对象，提交时一次性上传+解压
+    setZipUploaded(true);
+    setZipFile(file as File);
+    setZipFileName((file as File).name);
+    onSuccess({ fileName: (file as File).name }, file);
   };
 
   const handleZipFileChange = (info: {
@@ -279,9 +268,9 @@ const AddVoiceComponent: React.FC = () => {
     setZipFileList([...info.fileList]);
     if (info.file.status === 'removed') {
       setZipUploaded(false);
-      setZipFileUrl('');
-      setZipFileKey('');
+      setZipFile(null);
       setZipFileName('');
+      setZipProgress(undefined);
       form.setFieldsValue({
         artistId: undefined,
         shootDate: undefined,
@@ -297,45 +286,52 @@ const AddVoiceComponent: React.FC = () => {
   const handleRemoveZip = () => {
     setZipFileList([]);
     setZipUploaded(false);
-    setZipFileUrl('');
-    setZipFileKey('');
+    setZipFile(null);
     setZipFileName('');
+    setZipProgress(undefined);
     form.resetFields();
   };
 
-  // ─── ZIP 提交 ───
+  // ─── ZIP 提交（上传 + 自动解压入库） ───
   const handleZipSubmit = async () => {
     try {
       const values = await form.validateFields();
-      if (!zipUploaded) {
+      if (!zipUploaded || !zipFile) {
         message.error('请先上传 ZIP 压缩包');
         return;
       }
       setZipSubmitLoading(true);
-      await createVoice({
-        fileName: zipFileName.replace(/\.[^.]+$/, ''),
+      const { promise } = uploadAudioZipBatch({
+        file: zipFile,
         artistId: values.artistId,
-        qiniuKey: zipFileKey,
-        originalUrl: zipFileUrl,
-        coverUrl: coverUrl || undefined,
-        shootDate:
-          values.shootDate?.format('YYYY-MM-DD') ||
-          new Date().toISOString().slice(0, 10),
+        shootDate: values.shootDate?.format('YYYY-MM-DD'),
+        description: values.description || '',
         tagTypeId: values.voiceTypeId,
         tagLocationId: values.voiceLocationId,
         tagPlatformId: values.voicePlatformId,
-        // itineraryId: values.itineraryId, // 行程暂不展示
-        description: `[ZIP批量上传] ${zipFileName}${
-          values.description ? ' · ' + values.description : ''
-        }`,
+        itineraryId: values.itineraryId,
+        onProgress: (percent) => setZipProgress(percent),
       });
-      message.success('ZIP 音频包添加成功');
-      history.push('/admin/voice');
+      const res = await promise;
+      if (res.successCount > 0) {
+        message.success(
+          `ZIP 解析完成：成功 ${res.successCount} 个${
+            res.failCount > 0 ? `，失败 ${res.failCount} 个` : ''
+          }`,
+        );
+        if (res.failFiles?.length) {
+          console.warn('[AudioZip] 失败文件:', res.failFiles);
+        }
+        history.push('/admin/voice');
+      } else {
+        message.error(res.message || 'ZIP 解压失败，未找到有效的音频文件');
+      }
     } catch (err: any) {
       if (err?.errorFields) return;
-      message.error(err?.message || '添加失败');
+      message.error(err?.message || 'ZIP 上传失败');
     } finally {
       setZipSubmitLoading(false);
+      setZipProgress(undefined);
     }
   };
 
@@ -381,13 +377,18 @@ const AddVoiceComponent: React.FC = () => {
 
   // ─── ZIP 预览卡片 ───
   const renderZipPreview = () => {
-    if (!zipUploaded || !zipFileUrl) return null;
+    if (!zipUploaded || !zipFile) return null;
     return (
       <div className={styles['zip-preview']}>
         <FileZipOutlined className={styles['zip-icon']} />
         <div className={styles['zip-info']}>
           <span className={styles['zip-name']}>{zipFileName}</span>
-          <span className={styles['zip-size']}>ZIP · 已上传至七牛</span>
+          <span className={styles['zip-size']}>
+            {(zipFile.size / 1024 / 1024).toFixed(2)} MB
+            {zipProgress != null &&
+              zipProgress < 100 &&
+              ` · 处理中 ${zipProgress}%`}
+          </span>
         </div>
         <CloseOutlined
           className={styles['zip-remove']}
@@ -646,7 +647,7 @@ const AddVoiceComponent: React.FC = () => {
                   required
                   className={styles['upload-item']}
                 >
-                  {zipUploaded && zipFileUrl ? (
+                  {zipUploaded && zipFile ? (
                     renderZipPreview()
                   ) : (
                     <Dragger

@@ -252,6 +252,18 @@ const VoicePage: React.FC<Props> = () => {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // 组件卸载时清理音频资源（防止离开页面后继续请求）
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.removeAttribute('src');
+        audioRef.current.load();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
   // ── 筛选数据加载 ─────────────────────────────────
   useEffect(() => {
     // 类型/地点/平台暂不展示
@@ -731,7 +743,11 @@ const VoicePage: React.FC<Props> = () => {
     );
   };
 
-  // ── 音频播放控制（互斥） ─────────────────────────
+  // ── 音频播放错误计数（防异常重试） ─────────────
+  const errorCountRef = useRef<number>(0);
+  const lastErrorVoiceIdRef = useRef<number | null>(null);
+
+  // ── 音频播放控制（复用实例，避免重复请求） ────────
   const togglePlay = useCallback(
     (voice: Voice, e: React.MouseEvent) => {
       e.stopPropagation();
@@ -749,26 +765,55 @@ const VoicePage: React.FC<Props> = () => {
         return;
       }
 
-      // 不同音频：停止旧的，播放新的
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.removeAttribute('src');
-        audioRef.current.load();
+      // 防止同一音频因错误无限重试（超过3次则拦截）
+      if (
+        lastErrorVoiceIdRef.current === voice.id &&
+        errorCountRef.current >= 3
+      ) {
+        message.warning('该音频播放异常，请稍后重试');
+        return;
       }
 
-      const audio = new Audio(url);
-      audioRef.current = audio;
+      // 切换到新音频时重置错误计数
+      if (lastErrorVoiceIdRef.current !== voice.id) {
+        errorCountRef.current = 0;
+        lastErrorVoiceIdRef.current = voice.id;
+      }
+
+      // 复用或创建 Audio 实例（避免每次 new Audio 导致重复网络请求）
+      let audio = audioRef.current;
+      if (!audio) {
+        audio = new Audio();
+        audio.preload = 'none'; // 不预加载，手动控制
+
+        const handleEnded = () => setIsAudioPlaying(false);
+        const handleError = () => {
+          errorCountRef.current += 1;
+          console.warn(
+            `[VoiceMgt] 音频失败 (${errorCountRef.current}/3), voiceId=${voice.id}`,
+          );
+          message.error('音频加载失败');
+          setIsAudioPlaying(false);
+        };
+
+        audio.addEventListener('ended', handleEnded);
+        audio.addEventListener('error', handleError);
+        (audio as any)._handleEnded = handleEnded;
+        (audio as any)._handleError = handleError;
+
+        audioRef.current = audio;
+      } else {
+        // 复用现有实例：先暂停，重置 src
+        audio.pause();
+        audio.removeAttribute('src');
+      }
+
+      // 设置新音源并播放
+      audio.src = url;
       setPlayingVoice(voice);
       setIsAudioPlaying(true);
-
-      audio.addEventListener('ended', () => {
-        setIsAudioPlaying(false);
-      });
-      audio.addEventListener('error', () => {
-        message.error('音频加载失败');
-        setIsAudioPlaying(false);
-      });
-      audio.play().catch(() => {
+      audio.play().catch((err) => {
+        console.warn('[VoiceMgt] audio.play() 被拒绝:', err.message);
         message.error('音频播放失败');
         setIsAudioPlaying(false);
       });

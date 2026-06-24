@@ -106,8 +106,9 @@ const AddPhotoCardPage: React.FC = () => {
   useEffect(() => {
     if (defaultCategoryId) {
       form.setFieldsValue({ categoryId: defaultCategoryId });
+      batchForm.setFieldsValue({ categoryId: defaultCategoryId });
     }
-  }, [defaultCategoryId, form]);
+  }, [defaultCategoryId, form, batchForm]);
 
   // ─── 构建 TreeSelect 树形数据（后端已返回嵌套树，只需映射为 TreeSelect 格式） ───
   const categoryTreeData = useMemo(() => {
@@ -306,7 +307,7 @@ const AddPhotoCardPage: React.FC = () => {
                 layout="vertical"
                 className={styles['add-form']}
                 autoComplete="off"
-                preserve={false}
+                preserve={true}
                 initialValues={{ orientation: 'portrait' }}
               >
                 {/* 小卡方向 */}
@@ -425,7 +426,11 @@ const AddPhotoCardPage: React.FC = () => {
                 </Form.Item>
 
                 {/* 分类 - 树形选择 */}
-                <Form.Item label="所属分类" name="categoryId">
+                <Form.Item
+                  label="所属分类"
+                  name="categoryId"
+                  rules={[{ required: true, message: '请选择所属分类' }]}
+                >
                   <TreeSelect
                     treeData={categoryTreeData}
                     placeholder="请选择分类"
@@ -497,7 +502,7 @@ const AddPhotoCardPage: React.FC = () => {
                 layout="vertical"
                 className={styles['add-form']}
                 autoComplete="off"
-                preserve={false}
+                preserve={true}
                 initialValues={{ orientation: 'portrait' }}
               >
                 {/* 上传压缩包 */}
@@ -583,7 +588,11 @@ const AddPhotoCardPage: React.FC = () => {
                 </Form.Item>
 
                 {/* 所属分类 */}
-                <Form.Item label="照片类型" name="categoryId">
+                <Form.Item
+                  label="照片类型"
+                  name="categoryId"
+                  rules={[{ required: true, message: '请选择照片类型' }]}
+                >
                   <TreeSelect
                     treeData={categoryTreeData}
                     placeholder="请选择照片类型"

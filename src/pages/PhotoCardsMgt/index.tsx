@@ -635,13 +635,13 @@ const PhotoCardsMgtPage: React.FC = () => {
   // ─── 树选择 ───
   const handleTreeSelect = useCallback(
     async (keys: React.Key[]) => {
-      setSelectedKeys(keys);
-      if (keys.length > 0) {
-        const nodeId = keys[0] as number;
-        loadCards(nodeId, artistIdsParam);
-      } else {
-        setCards([]);
+      // 如果 keys 为空（再次点击已选中节点时 Ant Design 会传空数组），不做任何操作
+      if (keys.length === 0) {
+        return;
       }
+      setSelectedKeys(keys);
+      const nodeId = keys[0] as number;
+      loadCards(nodeId, artistIdsParam);
     },
     [artistIdsParam, loadCards],
   );

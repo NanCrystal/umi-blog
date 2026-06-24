@@ -26,7 +26,7 @@ export async function uploadVoiceCover(file: File): Promise<{ url: string }> {
   });
 }
 
-/** 上传音频 ZIP 压缩包 */
+/** 上传音频 ZIP 压缩包（仅上传，返回 URL） */
 export async function uploadVoiceZip(
   file: File,
 ): Promise<{ url: string; key: string }> {
@@ -38,6 +38,78 @@ export async function uploadVoiceZip(
     requestType: 'form',
     timeout: 600000,
   });
+}
+
+/**
+ * ZIP 批量上传音频（上传 ZIP + 自动解压入库）
+ * 返回 { promise, abort }，支持取消上传
+ */
+export function uploadAudioZipBatch(data: {
+  file: File;
+  artistId: string;
+  shootDate?: string;
+  description?: string;
+  tagTypeId?: number;
+  tagLocationId?: number;
+  tagPlatformId?: number;
+  itineraryId?: number;
+  onProgress?: (percent: number) => void;
+}) {
+  const formData = new FormData();
+  formData.append('file', data.file);
+  formData.append('artistId', data.artistId);
+  if (data.shootDate) formData.append('shootDate', data.shootDate);
+  if (data.description) formData.append('description', data.description);
+  if (data.tagTypeId) formData.append('tagTypeId', String(data.tagTypeId));
+  if (data.tagLocationId)
+    formData.append('tagLocationId', String(data.tagLocationId));
+  if (data.tagPlatformId)
+    formData.append('tagPlatformId', String(data.tagPlatformId));
+  if (data.itineraryId)
+    formData.append('itineraryId', String(data.itineraryId));
+
+  const xhr = new XMLHttpRequest();
+
+  const promise = new Promise<any>((resolve, reject) => {
+    const token = localStorage.getItem('token');
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        data.onProgress?.(Math.round((e.loaded / e.total) * 100));
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch {
+          resolve(xhr.responseText);
+        }
+      } else {
+        let errMsg = 'ZIP 上传失败';
+        try {
+          const res = JSON.parse(xhr.responseText);
+          errMsg = res?.message || res?.error || errMsg;
+        } catch {
+          /* ignore */
+        }
+        reject(new Error(errMsg));
+      }
+    });
+
+    xhr.addEventListener('error', () => reject(new Error('网络错误')));
+    xhr.addEventListener('abort', () => reject(new Error('上传已取消')));
+
+    xhr.open('POST', '/api/audios/upload-zip');
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.send(formData);
+  });
+
+  return {
+    promise,
+    abort: () => xhr.abort(),
+  };
 }
 
 /** 单条创建音频 */
