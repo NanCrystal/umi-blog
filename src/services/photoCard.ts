@@ -164,6 +164,52 @@ export async function batchCreatePhotoCards(
   });
 }
 
+// ─── 批量修改 ───
+
+/** 批量修改小卡参数 */
+export interface BatchUpdateParams {
+  name?: string;
+  categoryId?: number;
+  artistId?: number;
+  releaseDate?: string;
+  remark?: string;
+}
+
+/** 批量修改结果 */
+export interface BatchUpdateResult {
+  success: boolean;
+  updated: number;
+}
+
+/** 批量修改小卡 */
+export async function batchUpdatePhotoCards(
+  ids: number[],
+  data: BatchUpdateParams,
+): Promise<BatchUpdateResult> {
+  return request('/photo-cards/batch-update', {
+    method: 'PUT',
+    data: { ids, ...data },
+  });
+}
+
+// ─── 批量删除 ───
+
+/** 批量删除结果 */
+export interface BatchDeleteResult {
+  success: boolean;
+  deleted: number;
+}
+
+/** 批量删除小卡 */
+export async function batchDeletePhotoCards(
+  ids: number[],
+): Promise<BatchDeleteResult> {
+  return request('/photo-cards/batch-delete', {
+    method: 'DELETE',
+    data: { ids },
+  });
+}
+
 // ─── 上传图片（返回原图 + 缩略图） ───
 export async function uploadCardImage(
   file: File,

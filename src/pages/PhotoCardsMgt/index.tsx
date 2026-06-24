@@ -25,6 +25,10 @@ import {
   UploadOutlined,
   LoadingOutlined,
   ExpandOutlined,
+  CheckSquareOutlined,
+  BorderOutlined,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
 } from '@ant-design/icons';
 import { RcFile } from 'antd/lib/upload';
 import type { DataNode } from 'antd/lib/tree';
@@ -41,6 +45,8 @@ import {
   updateCategorySortOrder,
   deletePhotoCard,
   updatePhotoCard,
+  batchUpdatePhotoCards,
+  batchDeletePhotoCards,
 } from '@/services/photoCard';
 import { getArtistList } from '@/services/artist';
 import { getPhotoCardTypes } from '@/services/photoTag';
@@ -67,6 +73,8 @@ interface TreeHandlers {
   onAdd: (parentId: number) => void;
   onRename: (node: TreeCategory) => void;
   onDelete: (node: TreeCategory) => void;
+  onMoveUp: (node: TreeCategory) => void;
+  onMoveDown: (node: TreeCategory) => void;
 }
 
 /* ============================================================
@@ -85,7 +93,8 @@ function getDescendantIds(tree: TreeCategory[], nodeId: number): number[] {
   const findAndCollect = (nodes: TreeCategory[]): boolean => {
     for (const n of nodes) {
       if (n.id === nodeId) {
-        collect([n]);
+        // 只收集子孙节点，不包含自身
+        if (n.children) collect(n.children);
         return true;
       }
       if (n.children && findAndCollect(n.children)) return true;
@@ -147,6 +156,24 @@ const TreeNodeTitle: React.FC<TreeNodeTitleProps> = ({ node, handlers }) => {
       <span className={styles['tree-node-name']}>{node.name}</span>
       {hover && (
         <span className={styles['tree-node-actions']}>
+          {!isRoot && (
+            <ArrowUpOutlined
+              className={styles['tree-action-icon']}
+              onClick={(e) => {
+                e.stopPropagation();
+                handlers.onMoveUp(node);
+              }}
+            />
+          )}
+          {!isRoot && (
+            <ArrowDownOutlined
+              className={styles['tree-action-icon']}
+              onClick={(e) => {
+                e.stopPropagation();
+                handlers.onMoveDown(node);
+              }}
+            />
+          )}
           <PlusCircleOutlined
             className={styles['tree-action-icon']}
             onClick={(e) => {
@@ -203,6 +230,9 @@ interface CardItemProps {
   onPreview: (card: PhotoCardItem) => void;
   onEdit: (card: PhotoCardItem) => void;
   onDelete: (card: PhotoCardItem) => void;
+  selected?: boolean;
+  onToggleSelect?: (cardId: number) => void;
+  showCheckbox?: boolean;
 }
 
 const CardItem: React.FC<CardItemProps> = ({
@@ -210,6 +240,9 @@ const CardItem: React.FC<CardItemProps> = ({
   onPreview,
   onEdit,
   onDelete,
+  selected,
+  onToggleSelect,
+  showCheckbox,
 }) => {
   const [hover, setHover] = useState(false);
   const isLandscape = card.orientation === 'landscape';
@@ -218,11 +251,29 @@ const CardItem: React.FC<CardItemProps> = ({
     <div
       className={`${styles['card-item']} ${
         isLandscape ? styles['card-item-landscape'] : ''
-      }`}
+      } ${selected ? styles['card-item-selected'] : ''}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onClick={() => onPreview(card)}
     >
+      {/* Checkbox */}
+      {showCheckbox && (
+        <div
+          className={styles['card-checkbox-wrap']}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect?.(card.id);
+          }}
+        >
+          {selected ? (
+            <CheckSquareOutlined
+              className={styles['card-checkbox-icon-checked']}
+            />
+          ) : (
+            <BorderOutlined className={styles['card-checkbox-icon']} />
+          )}
+        </div>
+      )}
       <div className={styles['card-image-wrap']}>
         <img
           src={getImageUrl(card.frontImage)}
@@ -332,6 +383,15 @@ const PhotoCardsMgtPage: React.FC = () => {
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewCard, setPreviewCard] = useState<PhotoCardItem | null>(null);
 
+  // ─── Batch Edit State ───
+  const [selectedCardIds, setSelectedCardIds] = useState<Set<number>>(
+    new Set(),
+  );
+  const [batchEditMode, setBatchEditMode] = useState(false);
+  const [batchModalVisible, setBatchModalVisible] = useState(false);
+  const [batchForm] = Form.useForm();
+  const [batchSubmitting, setBatchSubmitting] = useState(false);
+
   // ─── 计算树形数据（后端已直接返回树形结构，无需前端构建） ───
   const treeData = categoryTreeData;
   const selectedNodeId = selectedKeys[0] as number | undefined;
@@ -424,6 +484,40 @@ const PhotoCardsMgtPage: React.FC = () => {
     }
   }, []);
 
+  // ─── 刷新数据（保持当前选中节点） ───
+  const refreshData = useCallback(async () => {
+    setLoading(true);
+    setCardLoading(true);
+    try {
+      const [categoryRes, cardsRes] = await Promise.all([
+        getPhotoCardCategories(),
+        selectedNodeId
+          ? getPhotoCards({
+              categoryId: selectedNodeId,
+              artistIds: artistIdsParam,
+              page: pagination.page,
+              pageSize: pagination.pageSize,
+            })
+          : getPhotoCards({ page: 1, pageSize: 24 }),
+      ]);
+      setCategoryTreeData(categoryRes || []);
+      if (cardsRes) {
+        setCards(cardsRes.list || []);
+        setPagination({
+          page: cardsRes.page,
+          pageSize: cardsRes.pageSize,
+          total: cardsRes.total,
+        });
+      }
+      // 保持 selectedKeys 不变，不重置选中节点
+    } catch {
+      // 错误由拦截器统一处理
+    } finally {
+      setLoading(false);
+      setCardLoading(false);
+    }
+  }, [selectedNodeId, artistIdsParam, pagination.page, pagination.pageSize]);
+
   useEffect(() => {
     loadData();
   }, [loadData]);
@@ -487,7 +581,7 @@ const PhotoCardsMgtPage: React.FC = () => {
             const ids = getDescendantIds(treeData, node.id);
             await Promise.all(ids.map((id) => deletePhotoCardCategory(id)));
             message.success('删除成功');
-            loadData();
+            refreshData();
             if (selectedKeys.includes(node.id)) {
               setSelectedKeys([]);
             }
@@ -497,7 +591,7 @@ const PhotoCardsMgtPage: React.FC = () => {
         },
       });
     },
-    [treeData, selectedKeys, loadData],
+    [treeData, selectedKeys, refreshData],
   );
 
   // 树操作 handlers
@@ -505,6 +599,8 @@ const PhotoCardsMgtPage: React.FC = () => {
     onAdd: (parentId) => handleNodeAdd(parentId),
     onRename: (node) => handleNodeRename(node),
     onDelete: (node) => handleNodeDelete(node),
+    onMoveUp: (node) => handleMoveUp(node),
+    onMoveDown: (node) => handleMoveDown(node),
   };
 
   const submitNodeForm = async () => {
@@ -523,102 +619,63 @@ const PhotoCardsMgtPage: React.FC = () => {
         message.success('重命名成功');
       }
       setNodeModalVisible(false);
-      loadData();
+      refreshData();
     } catch (error) {
       // 表单校验失败
     }
   };
 
-  // ─── 拖拽排序 ───
-  const handleTreeDrop = useCallback(
-    async (info: any) => {
-      const dragKey = info.dragNode.key as number;
-      const dropKey = info.node.key as number;
-      const dropToGap = info.dropToGap as boolean;
-      const dropPosition = info.dropPosition as number;
+  // ─── 上下移动排序（同级内） ───
+  const handleMoveNode = useCallback(
+    async (node: TreeCategory, direction: 'up' | 'down') => {
+      // 深拷贝当前树数据
+      const newTree: TreeCategory[] = JSON.parse(
+        JSON.stringify(categoryTreeData),
+      );
 
-      // 不允许拖拽到自己
-      if (dragKey === dropKey) return;
+      // 在树中找到目标节点的父级及其兄弟列表
+      let parentChildren: TreeCategory[] | undefined;
+      let nodeIndex = -1;
 
-      // 计算新 parentId
-      let newParentId: number | null;
-      if (dropToGap) {
-        // 放在节点间隙（同级），新 parent = 目标节点的 parent
-        const dropNode = flatCategories.find((n) => n.id === dropKey);
-        if (!dropNode) return;
-        newParentId = dropNode.parentId;
-      } else {
-        // 放到节点上作为子节点
-        newParentId = dropKey;
-      }
-
-      // 不允许拖拽到自己的子孙节点中
-      if (newParentId != null) {
-        const descendantIds = getDescendantIds(treeData, newParentId);
-        if (descendantIds.includes(dragKey)) {
-          message.warning('不能将节点拖拽到其自身或子孙节点中');
-          return;
+      const findInLevel = (nodes: TreeCategory[]): boolean => {
+        for (let i = 0; i < nodes.length; i++) {
+          if (nodes[i].id === node.id) {
+            parentChildren = nodes;
+            nodeIndex = i;
+            return true;
+          }
+          if (nodes[i].children && findInLevel(nodes[i].children!)) return true;
         }
-      }
+        return false;
+      };
+      findInLevel(newTree);
 
-      // 拷贝并更新展平的 categories
-      const updated = flattenTree(categoryTreeData).map((c) => ({ ...c }));
-      const dragItem = updated.find((c) => c.id === dragKey);
-      if (!dragItem) return;
-      dragItem.parentId = newParentId;
+      if (!parentChildren || nodeIndex < 0) return;
 
-      // 重新计算目标父级下所有兄弟节点的 sortOrder
-      const siblings = updated
-        .filter((c) => c.parentId === newParentId)
-        .sort((a, b) => a.sortOrder - b.sortOrder);
+      // 边界检查
+      const siblings: TreeCategory[] = parentChildren;
+      if (direction === 'up' && nodeIndex === 0) return;
+      if (direction === 'down' && nodeIndex === siblings.length - 1) return;
 
-      // 排除拖拽节点自身，计算插入位置
-      const withoutDrag = siblings.filter((c) => c.id !== dragKey);
-      let insertIndex: number;
+      // 交换位置
+      const swapIndex = direction === 'up' ? nodeIndex - 1 : nodeIndex + 1;
+      const temp = siblings[nodeIndex];
+      siblings[nodeIndex] = siblings[swapIndex];
+      siblings[swapIndex] = temp;
 
-      if (dropToGap) {
-        const dropIdx = withoutDrag.findIndex((c) => c.id === dropKey);
-        insertIndex = dropPosition === -1 ? dropIdx : dropIdx + 1;
-        if (insertIndex < 0) insertIndex = withoutDrag.length;
-      } else {
-        // 作为子节点加入，放在末尾
-        insertIndex = withoutDrag.length;
-      }
-
-      // 如果 dragged item 不在 withoutDrag 中，插入它
-      withoutDrag.splice(insertIndex, 0, dragItem);
-
-      // 重新编号 sortOrder
-      withoutDrag.forEach((item, idx) => {
+      // 同时更新 sortOrder
+      siblings.forEach((item: TreeCategory, idx: number) => {
         item.sortOrder = idx + 1;
       });
 
-      // 乐观更新 UI
-      // 从 updated 扁平数据重建树（乐观更新）
-      const map = new Map<number, any>();
-      const roots: any[] = [];
-      updated.forEach((item) => map.set(item.id, { ...item, children: [] }));
-      updated.forEach((item) => {
-        const node = map.get(item.id)!;
-        if (item.parentId != null && map.has(item.parentId)) {
-          map.get(item.parentId)!.children!.push(node);
-        } else {
-          roots.push(node);
-        }
-      });
-      roots.forEach((n: any) => {
-        if (n.children?.length === 0) delete n.children;
-        else if (n.children)
-          n.children.forEach((c: any) => {
-            if (c.children?.length === 0) delete c.children;
-          });
-      });
-      setCategoryTreeData(roots);
+      // 更新 UI
+      setCategoryTreeData(newTree);
 
-      // 调用后端持久化
+      // 持久化：展平所有节点发送到后端
+      const flat = flattenTree(newTree);
       try {
         await updateCategorySortOrder(
-          updated.map((c) => ({
+          flat.map((c) => ({
             id: c.id,
             sortOrder: c.sortOrder,
             parentId: c.parentId,
@@ -626,10 +683,20 @@ const PhotoCardsMgtPage: React.FC = () => {
         );
       } catch {
         message.error('排序保存失败');
-        loadData();
+        refreshData();
       }
     },
-    [categoryTreeData, treeData, loadData],
+    [categoryTreeData, refreshData],
+  );
+
+  const handleMoveUp = useCallback(
+    async (node: TreeCategory) => handleMoveNode(node, 'up'),
+    [handleMoveNode],
+  );
+
+  const handleMoveDown = useCallback(
+    async (node: TreeCategory) => handleMoveNode(node, 'down'),
+    [handleMoveNode],
   );
 
   // ─── 树选择 ───
@@ -763,15 +830,100 @@ const PhotoCardsMgtPage: React.FC = () => {
           try {
             await deletePhotoCard(card.id);
             message.success('删除成功');
-            loadData();
+            refreshData();
           } catch {
             // 错误由拦截器统一处理
           }
         },
       });
     },
-    [loadData],
+    [refreshData],
   );
+
+  // ─── 批量选择 ───
+
+  const handleToggleSelectCard = useCallback((cardId: number) => {
+    setSelectedCardIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(cardId)) {
+        next.delete(cardId);
+      } else {
+        next.add(cardId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    if (
+      selectedCardIds.size === filteredCards.length &&
+      filteredCards.length > 0
+    ) {
+      setSelectedCardIds(new Set());
+    } else {
+      setSelectedCardIds(new Set(filteredCards.map((c) => c.id)));
+    }
+  }, [filteredCards, selectedCardIds.size]);
+
+  const handleToggleBatchMode = useCallback(() => {
+    setBatchEditMode((prev) => !prev);
+    setSelectedCardIds(new Set());
+  }, []);
+
+  const handleOpenBatchEdit = useCallback(() => {
+    batchForm.resetFields();
+    setBatchModalVisible(true);
+  }, [batchForm]);
+
+  const handleSubmitBatchEdit = async () => {
+    try {
+      const values = await batchForm.validateFields();
+      setBatchSubmitting(true);
+
+      await batchUpdatePhotoCards(Array.from(selectedCardIds), {
+        name: values.name || undefined,
+        categoryId: values.categoryId || undefined,
+        artistId: values.artistId || undefined,
+        releaseDate: values.releaseDate
+          ? values.releaseDate.format('YYYY-MM-DD')
+          : undefined,
+        remark: values.remark || undefined,
+      });
+
+      message.success(`成功修改 ${selectedCardIds.size} 张小卡`);
+      setBatchModalVisible(false);
+      setBatchEditMode(false);
+      setSelectedCardIds(new Set());
+      refreshData();
+    } catch (error) {
+      // 表单校验失败或接口错误
+    } finally {
+      setBatchSubmitting(false);
+    }
+  };
+
+  // ─── 批量删除 ───
+
+  const handleBatchDelete = useCallback(() => {
+    Modal.confirm({
+      title: '批量删除小卡',
+      content: `确定要删除选中的 ${selectedCardIds.size} 张小卡吗？此操作不可撤销。`,
+      okText: '确定',
+      cancelText: '取消',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          const res = await batchDeletePhotoCards(Array.from(selectedCardIds));
+          message.success(`成功删除 ${res.deleted} 张小卡`);
+          setBatchEditMode(false);
+          setSelectedCardIds(new Set());
+          refreshData();
+        } catch {
+          // 错误由拦截器统一处理
+        }
+      },
+    });
+  }, [selectedCardIds, refreshData]);
 
   // ─── 翻页 ───
   const handlePageChange = useCallback(
@@ -876,7 +1028,7 @@ const PhotoCardsMgtPage: React.FC = () => {
         message.success('新增成功');
       }
       setCardModalVisible(false);
-      loadData();
+      refreshData();
     } catch (error) {
       // 表单校验失败
     }
@@ -920,7 +1072,6 @@ const PhotoCardsMgtPage: React.FC = () => {
           <Spin spinning={loading}>
             <Tree
               // showIcon
-              draggable
               treeData={treeDataNodes}
               selectedKeys={selectedKeys}
               expandedKeys={expandedKeys}
@@ -930,7 +1081,6 @@ const PhotoCardsMgtPage: React.FC = () => {
                 setExpandedKeys(keys);
                 setAutoExpandParent(false);
               }}
-              onDrop={handleTreeDrop}
               className={styles['category-tree']}
             />
             {treeData.length === 0 && !loading && (
@@ -993,20 +1143,82 @@ const PhotoCardsMgtPage: React.FC = () => {
                 )}
               </div>
             </div>
-            {selectedNodeId && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleAddCard}
-              >
-                新增小卡
-              </Button>
+            <div className={styles['header-actions']}>
+              {selectedNodeId && (
+                <>
+                  {batchEditMode && (
+                    <Button
+                      icon={<BorderOutlined />}
+                      onClick={handleToggleBatchMode}
+                      className={styles['batch-mode-btn']}
+                    >
+                      取消选择
+                    </Button>
+                  )}
+                  {!batchEditMode && (
+                    <Button
+                      icon={<CheckSquareOutlined />}
+                      onClick={handleToggleBatchMode}
+                      className={styles['batch-mode-btn']}
+                    >
+                      批量设置
+                    </Button>
+                  )}
+                  {batchEditMode && selectedCardIds.size > 0 && (
+                    <Button
+                      type="primary"
+                      onClick={handleOpenBatchEdit}
+                      disabled={selectedCardIds.size === 0}
+                    >
+                      修改 ({selectedCardIds.size})
+                    </Button>
+                  )}
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={handleAddCard}
+                  >
+                    新增小卡
+                  </Button>
+                </>
+              )}
+            </div>
+            {/* 批量删除按钮 - 有选中时显示在左下角 */}
+            {batchEditMode && selectedCardIds.size > 0 && (
+              <div className={styles['batch-delete-btn-wrap']}>
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={handleBatchDelete}
+                  className={styles['batch-delete-btn']}
+                >
+                  删除 ({selectedCardIds.size})
+                </Button>
+              </div>
             )}
           </div>
         </div>
 
         {/* 卡片网格 */}
         <Spin spinning={cardLoading} className={styles['card-spin']}>
+          {batchEditMode && (
+            <div className={styles['batch-toolbar']}>
+              <div className={styles['batch-toolbar-left']}>
+                <span
+                  className={styles['select-all-link']}
+                  onClick={handleSelectAll}
+                >
+                  {selectedCardIds.size === filteredCards.length &&
+                  filteredCards.length > 0
+                    ? '取消全选'
+                    : '全选'}
+                </span>
+                <span className={styles['selected-count']}>
+                  已选 {selectedCardIds.size} / {filteredCards.length} 项
+                </span>
+              </div>
+            </div>
+          )}
           <div className={styles['card-grid']}>
             {filteredCards.length > 0
               ? filteredCards.map((card) => (
@@ -1016,6 +1228,9 @@ const PhotoCardsMgtPage: React.FC = () => {
                     onPreview={handlePreviewCard}
                     onEdit={openEditCardModal}
                     onDelete={handleDeleteCard}
+                    selected={selectedCardIds.has(card.id)}
+                    onToggleSelect={handleToggleSelectCard}
+                    showCheckbox={batchEditMode}
                   />
                 ))
               : null}
@@ -1303,6 +1518,73 @@ const PhotoCardsMgtPage: React.FC = () => {
           <Form.Item label="备注" name="remark">
             <Input.TextArea
               placeholder="请输入备注信息"
+              maxLength={200}
+              showCount
+              rows={3}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* ============================ 批量编辑弹窗 ============================ */}
+      <Modal
+        title={`批量修改 (${selectedCardIds.size} 项)`}
+        open={batchModalVisible}
+        onOk={handleSubmitBatchEdit}
+        onCancel={() => setBatchModalVisible(false)}
+        okText="保存"
+        cancelText="取消"
+        confirmLoading={batchSubmitting}
+        destroyOnClose
+        width={560}
+      >
+        <Form
+          form={batchForm}
+          layout="vertical"
+          className={styles['tag-form']}
+          preserve={false}
+          autoComplete="off"
+        >
+          <Form.Item label="小卡名称" name="name">
+            <Input placeholder="留空则不修改" maxLength={50} showCount />
+          </Form.Item>
+
+          <Form.Item label="所属分类" name="categoryId">
+            <Select placeholder="留空则不修改" allowClear>
+              {flattenTree(categoryTreeData).map((c) => (
+                <Select.Option key={c.id} value={c.id}>
+                  {c.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item label="艺人" name="artistId">
+            <Select
+              placeholder="留空则不修改"
+              allowClear
+              showSearch
+              optionFilterProp="children"
+            >
+              {artists.map((a) => (
+                <Select.Option key={a.id} value={a.id}>
+                  {a.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item label="发售时间" name="releaseDate">
+            <DatePicker
+              style={{ width: '100%' }}
+              placeholder="留空则不修改"
+              format="YYYY-MM-DD"
+            />
+          </Form.Item>
+
+          <Form.Item label="描述" name="remark">
+            <Input.TextArea
+              placeholder="留空则不修改"
               maxLength={200}
               showCount
               rows={3}
