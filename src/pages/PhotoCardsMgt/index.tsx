@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
 import {
   Tree,
   Input,
@@ -344,6 +350,66 @@ const PhotoCardsMgtPage: React.FC = () => {
     total: 0,
   });
 
+  // ─── 响应式列数计算（精确读取 grid 实际列数）───
+  const cardContainerRef = useRef<HTMLDivElement>(null);
+  const [cols, setCols] = useState(4);
+  /** 请求版本号，用于消除 cols 变化导致的竞态：只有最新请求的响应才更新状态 */
+  const requestIdRef = useRef(0);
+
+  /** 从 grid container 读取实际渲染列数 */
+  const readActualCols = useCallback(() => {
+    const el = cardContainerRef.current;
+    if (!el) return;
+    // 找到 .card-grid 元素（cardContainerRef 挂在 card-spin-wrapper 上，向下找 grid）
+    const grid = el.querySelector(
+      `.${styles['card-grid']}`,
+    ) as HTMLElement | null;
+    if (!grid) return;
+    const templateCols = getComputedStyle(grid).gridTemplateColumns;
+    // gridTemplateColumns 返回 "150px 150px 150px ..." 这样的字符串，数空格分隔数即列数
+    const count = templateCols.split(' ').filter(Boolean).length;
+    if (count > 0) setCols(count);
+  }, []);
+
+  const dynamicPageSize = cols * 3; // 精确 3 行
+
+  useEffect(() => {
+    const el = cardContainerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      readActualCols();
+    });
+    observer.observe(el);
+    // 初始测量延迟到 loading 结束后执行，确保左侧 tree 已撑开、右侧容器宽度稳定
+    if (!loading) {
+      const raf = requestAnimationFrame(readActualCols);
+      return () => {
+        observer.disconnect();
+        cancelAnimationFrame(raf);
+      };
+    }
+    return () => observer.disconnect();
+  }, [readActualCols, loading]);
+
+  // cols 变化时重新加载（防抖 100ms，等布局稳定）
+  const colsTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    if (cols <= 0) return;
+    // 首次渲染 pagination.pageSize 是 24（默认值），
+    // 只要 dynamicPageSize 不等于当前 pageSize 就触发修正
+    if (pagination.pageSize === cols * 3) return; // 已经对齐，跳过
+
+    clearTimeout(colsTimerRef.current);
+    colsTimerRef.current = setTimeout(() => {
+      ++requestIdRef.current;
+      loadCards(filterCategoryId, artistIdsParam, 1, cols * 3);
+    }, 100);
+
+    return () => clearTimeout(colsTimerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cols]);
+
   // ─── Tree State ───
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
@@ -411,7 +477,7 @@ const PhotoCardsMgtPage: React.FC = () => {
     return ids.length > 0 ? ids.join(',') : undefined;
   }, [selectedArtists]);
 
-  // ─── 加载小卡列表（支持分类 + 艺人联合筛选） ───
+  // ─── 加载小卡列表（支持分类 + 艺人联合筛选，带竞态保护） ───
   const loadCards = useCallback(
     async (
       categoryId?: number,
@@ -419,6 +485,7 @@ const PhotoCardsMgtPage: React.FC = () => {
       page = 1,
       pageSize = 24,
     ) => {
+      const ridAtCallStart = requestIdRef.current; // 记录调用时的版本号
       setCardLoading(true);
       try {
         const params: {
@@ -430,6 +497,8 @@ const PhotoCardsMgtPage: React.FC = () => {
         if (categoryId) params.categoryId = categoryId;
         if (artistIds) params.artistIds = artistIds;
         const res = await getPhotoCards(params);
+        // 竞态保护：如果已有更新的请求发出，丢弃过期响应
+        if (ridAtCallStart !== requestIdRef.current) return;
         if (res) {
           setCards(res.list || []);
           setPagination({
@@ -442,10 +511,15 @@ const PhotoCardsMgtPage: React.FC = () => {
           setPagination({ page: 1, pageSize: 24, total: 0 });
         }
       } catch {
+        // 同样检查竞态，避免错误响应覆盖新请求
+        if (ridAtCallStart !== requestIdRef.current) return;
         setCards([]);
         setPagination({ page: 1, pageSize: 24, total: 0 });
       } finally {
-        setCardLoading(false);
+        // 只有当前最新请求才关闭 loading
+        if (ridAtCallStart === requestIdRef.current) {
+          setCardLoading(false);
+        }
       }
     },
     [],
@@ -454,10 +528,11 @@ const PhotoCardsMgtPage: React.FC = () => {
   // ─── 过滤后的小卡列表（后端已处理艺人筛选，这里直接用 cards） ───
   const filteredCards = cards;
 
-  // ─── 加载数据 ───
+  // ─── 加载数据（只在 mount 执行一次，不依赖 cols）───
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
+      // 初始 pageSize 先用一个合理默认值（后面 ResizeObserver 会修正）
       const [categoryRes, cardsRes, artistRes, cardTypeRes] = await Promise.all(
         [
           getPhotoCardCategories(),
@@ -478,11 +553,11 @@ const PhotoCardsMgtPage: React.FC = () => {
       setArtists(artistRes || []);
       setCardTypes(cardTypeRes || []);
     } catch {
-      // 错误由拦截器统一处理
+      // ignore
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); // ← 空依赖，只执行一次
 
   // ─── 刷新数据（保持当前选中节点） ───
   const refreshData = useCallback(async () => {
@@ -498,7 +573,7 @@ const PhotoCardsMgtPage: React.FC = () => {
               page: pagination.page,
               pageSize: pagination.pageSize,
             })
-          : getPhotoCards({ page: 1, pageSize: 24 }),
+          : getPhotoCards({ page: 1, pageSize: dynamicPageSize }),
       ]);
       setCategoryTreeData(categoryRes || []);
       if (cardsRes) {
@@ -531,11 +606,13 @@ const PhotoCardsMgtPage: React.FC = () => {
         const firstRoot = categoryTreeData[0];
         if (firstRoot) {
           setSelectedKeys([firstRoot.id]);
-          loadCards(firstRoot.id, artistIdsParam);
+          // ★ 这里要等 cols 稳定后再请求，所以不传 dynamicPageSize（让 cols effect 去修正）
+          // 或者加判断：如果 cols 已经稳定（不是默认值4），直接用 dynamicPageSize
+          loadCards(firstRoot.id, artistIdsParam, 1, cols > 4 ? cols * 3 : 24);
         }
       }
     }
-  }, [categoryTreeData, artistIdsParam, loadCards]);
+  }, [categoryTreeData]); // ← 不要把 dynamicPageSize 放进依赖，避免 cols 变化再次触发
 
   // ─── 树节点 CRUD ───
 
@@ -1200,57 +1277,68 @@ const PhotoCardsMgtPage: React.FC = () => {
         </div>
 
         {/* 卡片网格 */}
-        <Spin spinning={cardLoading} className={styles['card-spin']}>
-          {batchEditMode && (
-            <div className={styles['batch-toolbar']}>
-              <div className={styles['batch-toolbar-left']}>
-                <span
-                  className={styles['select-all-link']}
-                  onClick={handleSelectAll}
-                >
-                  {selectedCardIds.size === filteredCards.length &&
-                  filteredCards.length > 0
-                    ? '取消全选'
-                    : '全选'}
-                </span>
-                <span className={styles['selected-count']}>
-                  已选 {selectedCardIds.size} / {filteredCards.length} 项
-                </span>
+        <Spin
+          spinning={cardLoading}
+          className={styles['card-spin']}
+          wrapperClassName={styles['card-spin-wrapper']}
+        >
+          {/* ← ref 挂在这里，作为滚动容器 */}
+          <div ref={cardContainerRef}>
+            {batchEditMode && (
+              <div className={styles['batch-toolbar']}>
+                <div className={styles['batch-toolbar-left']}>
+                  <span
+                    className={styles['select-all-link']}
+                    onClick={handleSelectAll}
+                  >
+                    {selectedCardIds.size === filteredCards.length &&
+                    filteredCards.length > 0
+                      ? '取消全选'
+                      : '全选'}
+                  </span>
+                  <span className={styles['selected-count']}>
+                    已选 {selectedCardIds.size} / {filteredCards.length} 项
+                  </span>
+                </div>
               </div>
+            )}
+            <div className={styles['card-grid']}>
+              {filteredCards.length > 0
+                ? filteredCards.map((card) => (
+                    <CardItem
+                      key={card.id}
+                      card={card}
+                      onPreview={handlePreviewCard}
+                      onEdit={openEditCardModal}
+                      onDelete={handleDeleteCard}
+                      selected={selectedCardIds.has(card.id)}
+                      onToggleSelect={handleToggleSelectCard}
+                      showCheckbox={batchEditMode}
+                    />
+                  ))
+                : null}
             </div>
-          )}
-          <div className={styles['card-grid']}>
-            {filteredCards.length > 0
-              ? filteredCards.map((card) => (
-                  <CardItem
-                    key={card.id}
-                    card={card}
-                    onPreview={handlePreviewCard}
-                    onEdit={openEditCardModal}
-                    onDelete={handleDeleteCard}
-                    selected={selectedCardIds.has(card.id)}
-                    onToggleSelect={handleToggleSelectCard}
-                    showCheckbox={batchEditMode}
-                  />
-                ))
-              : null}
+            {/* 分页 */}
+            {pagination.total > 0 && (
+              <div className={styles['pagination-wrap']}>
+                <Pagination
+                  current={pagination.page}
+                  pageSize={dynamicPageSize}
+                  total={pagination.total}
+                  showQuickJumper
+                  showTotal={(total) => `共 ${total} 张`}
+                  onChange={(page) =>
+                    loadCards(
+                      filterCategoryId,
+                      artistIdsParam,
+                      page,
+                      dynamicPageSize,
+                    )
+                  }
+                />
+              </div>
+            )}
           </div>
-          {/* 分页 */}
-          {pagination.total > 0 && (
-            <div className={styles['pagination-wrap']}>
-              <Pagination
-                current={pagination.page}
-                pageSize={pagination.pageSize}
-                total={pagination.total}
-                showSizeChanger
-                showQuickJumper
-                showTotal={(total) => `共 ${total} 张`}
-                pageSizeOptions={['10', '20', '50', '100']}
-                onChange={handlePageChange}
-                onShowSizeChange={handlePageChange}
-              />
-            </div>
-          )}
         </Spin>
       </div>
 

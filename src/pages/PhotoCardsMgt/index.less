@@ -6,7 +6,7 @@
   font-family: var(--font-body, 'Cormorant Garamond', serif);
   background-color: var(--color-canvas, #000000);
   padding: 0;
-  min-height: 100vh;
+  // min-height: 100vh;
   color: var(--color-primary, #ffffff);
   display: flex;
   height: calc(100vh - 48px);
@@ -290,37 +290,59 @@
 /* ==============================
    卡片网格
    ============================== */
+.card-spin-wrapper {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 .card-spin {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
+  overflow: hidden;
 
-  > .ant-spin-nested-loading,
-  > .ant-spin-container {
-    display: block;
+  // nested-loading 撑满高度，建立 flex 纵向上下文
+  :global(.ant-spin-nested-loading) {
     height: 100%;
+    display: flex;
+    flex-direction: column;
   }
 }
-.card-grid {
-  width: 100%;
-  min-height: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 14px;
-  padding: 18px;
+// container 占满剩余空间，并且在这里滚动
+:global(.ant-spin-container) {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  align-content: start;
 
   &::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
   }
-
   &::-webkit-scrollbar-track {
     background: transparent;
   }
-
   &::-webkit-scrollbar-thumb {
-    background: var(--color-hairline, #262626);
+    background: #333;
+    border-radius: 3px;
   }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+
+// card-scroll-inner 不再负责滚动，只是普通容器
+.card-scroll-inner {
+}
+.card-grid {
+  width: 100%;
+  display: grid;
+  // 卡片最小宽度统一为 150px，与 readActualCols 读取的列数一致
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  padding: 18px;
+  align-content: start;
+  // 关键：让 grid 高度不撑满容器，避免影响 ResizeObserver 测量
+  align-self: start;
 }
 
 .card-item {
