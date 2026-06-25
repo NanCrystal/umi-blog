@@ -16,8 +16,10 @@ import {
   Badge,
   Image,
   Tooltip,
+  Upload,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import type { UploadFile } from 'antd/es/upload/interface';
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -29,6 +31,8 @@ import {
   ArrowUpOutlined,
   ArrowDownOutlined,
   CloseOutlined,
+  InboxOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import styles from './index.less';
 import moment from 'moment';
@@ -44,12 +48,14 @@ import {
   BannerItem,
 } from '@/services/banner';
 import { uploadImageFull } from '@/services/upload';
+import { uploadVideoFile } from '@/services/video';
 import { getArtistList } from '@/services/artist';
-import { formatDateTime, getImageUrl } from '@/utils/utils';
+import { formatDateTime, getImageUrl, formatFileSize } from '@/utils/utils';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 const { TextArea } = Input;
+const { Dragger } = Upload;
 
 type BannerStatus = 'active' | 'inactive';
 type TerminalType = 'all' | 'mobile' | 'pc' | 'app';
@@ -86,6 +92,15 @@ const SwiperMgtPage: React.FC = () => {
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [editingItem, setEditingItem] = useState<BannerItem | null>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
+
+  // 详情弹窗
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [detailItem, setDetailItem] = useState<BannerItem | null>(null);
+
+  // 视频预览弹窗
+  const [videoPreviewVisible, setVideoPreviewVisible] = useState(false);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>('');
+
   const [form] = Form.useForm();
   const [currentMediaType, setCurrentMediaType] = useState<string>('image');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -94,6 +109,11 @@ const SwiperMgtPage: React.FC = () => {
   const [artists, setArtists] = useState<
     { id: number; name: string; artistId: string }[]
   >([]);
+
+  // 视频上传状态
+  const [videoFileList, setVideoFileList] = useState<UploadFile[]>([]);
+  const [videoUploaded, setVideoUploaded] = useState(false);
+  const [videoFileSize, setVideoFileSize] = useState(0);
 
   // 加载列表
   const fetchList = (
@@ -139,6 +159,10 @@ const SwiperMgtPage: React.FC = () => {
     setCurrentMediaType('image');
     setImageUrls([]);
     setVideoUrl('');
+    // 重置视频状态
+    setVideoFileList([]);
+    setVideoUploaded(false);
+    setVideoFileSize(0);
     form.resetFields();
     form.setFieldsValue({
       mediaType: 'image',
@@ -152,13 +176,31 @@ const SwiperMgtPage: React.FC = () => {
     setModalMode('edit');
     setEditingItem(item);
     setCurrentMediaType(item.mediaType);
+    // 重置视频状态
+    setVideoFileList([]);
+    setVideoFileSize(0);
+
     const urls = Array.isArray(item.imageUrl) ? item.imageUrl : [];
     if (item.mediaType === 'image') {
       setImageUrls(urls);
       setVideoUrl('');
+      setVideoUploaded(false);
     } else {
       setImageUrls([]);
-      setVideoUrl(urls[0] || '');
+      const videoUrlValue = urls[0] || '';
+      setVideoUrl(videoUrlValue);
+      setVideoUploaded(!!videoUrlValue);
+      // 如果有视频URL，设置文件列表用于回显
+      if (videoUrlValue) {
+        setVideoFileList([
+          {
+            uid: '-1',
+            name: videoUrlValue.split('/').pop() || 'video',
+            status: 'done',
+            url: videoUrlValue,
+          },
+        ]);
+      }
     }
     form.setFieldsValue({
       title: item.title,
@@ -173,6 +215,17 @@ const SwiperMgtPage: React.FC = () => {
           : undefined,
     });
     setModalVisible(true);
+  };
+
+  const handleViewDetail = (item: BannerItem) => {
+    setDetailItem(item);
+    setDetailModalVisible(true);
+  };
+
+  // 打开视频预览弹窗
+  const handleVideoPreview = (url: string) => {
+    setVideoPreviewUrl(url);
+    setVideoPreviewVisible(true);
   };
 
   const handleDelete = (item: BannerItem) => {
@@ -217,19 +270,52 @@ const SwiperMgtPage: React.FC = () => {
       const urls = results.map((res) => res.url);
       setImageUrls((prev) => [...prev, ...urls]);
       message.success(`成功上传 ${urls.length} 张图片`);
+      // 上传图片时清空视频
+      setVideoUrl('');
+      setVideoUploaded(false);
+      setVideoFileList([]);
+      setVideoFileSize(0);
     } catch {
       message.error('图片上传失败');
     }
   };
 
-  const handleVideoUpload = async (file: File) => {
+  // ─── 视频上传处理（使用正确的视频上传接口）───
+  const handleVideoCustomRequest = async (options: any) => {
+    const { file, onSuccess, onError } = options;
     try {
-      const res = await uploadImageFull(file);
+      const res = await uploadVideoFile(file as File);
+      if (!res?.url) {
+        onError(new Error('上传失败'));
+        return;
+      }
+      setVideoUploaded(true);
       setVideoUrl(res.url);
-      message.success('视频上传成功');
+      setVideoFileSize((file as File).size);
+      // 上传视频时清空图片
+      setImageUrls([]);
+      onSuccess({ url: res.url }, file);
     } catch {
       message.error('视频上传失败');
+      onError(new Error('上传失败'));
     }
+  };
+
+  const handleVideoFileChange = (info: {
+    file: UploadFile;
+    fileList: UploadFile[];
+  }) => {
+    setVideoFileList([...info.fileList]);
+    if (info.file.status === 'removed') {
+      handleRemoveVideo();
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    setVideoFileList([]);
+    setVideoUploaded(false);
+    setVideoUrl('');
+    setVideoFileSize(0);
   };
 
   const handleModalOk = async () => {
@@ -275,6 +361,10 @@ const SwiperMgtPage: React.FC = () => {
       form.resetFields();
       setImageUrls([]);
       setVideoUrl('');
+      // 重置视频状态
+      setVideoFileList([]);
+      setVideoUploaded(false);
+      setVideoFileSize(0);
       fetchList(pagination.current, pagination.pageSize);
     } catch {
       // 校验失败或接口错误
@@ -309,27 +399,33 @@ const SwiperMgtPage: React.FC = () => {
 
   const columns = useMemo<ColumnsType<BannerItem>>(
     () => [
+      // {
+      //   title: '预览',
+      //   dataIndex: 'imageUrl',
+      //   key: 'preview',
+      //   render: (value: string[] | string, item) =>
+      //     item.mediaType === 'video' ? (
+      //       <div className={styles['video-preview']}>
+      //         <PlayCircleOutlined style={{ fontSize: 24 }} />
+      //         <span style={{ fontSize: 12, marginTop: 4 }}>视频</span>
+      //       </div>
+      //     ) : (
+      //       <Image
+      //         src={getImageUrl(
+      //           Array.isArray(value) ? value[0] : value?.split(',')[0],
+      //         )}
+      //         width={80}
+      //         height={50}
+      //         style={{ borderRadius: 6, objectFit: 'cover' }}
+      //       />
+      //     ),
+      // },
       {
-        title: '预览',
-        dataIndex: 'imageUrl',
-        key: 'preview',
-        render: (value: string[] | string, item) =>
-          item.mediaType === 'video' ? (
-            <div className={styles['video-preview']}>
-              <PlayCircleOutlined style={{ fontSize: 24 }} />
-              <span style={{ fontSize: 12, marginTop: 4 }}>视频</span>
-            </div>
-          ) : (
-            <Image
-              src={getImageUrl(
-                Array.isArray(value) ? value[0] : value?.split(',')[0],
-              )}
-              width={80}
-              height={50}
-              style={{ borderRadius: 6, objectFit: 'cover' }}
-              fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNjY2IiBmb250LXNpemU9IjEyIj7mlq/lkKc8L3RleHQ+PC9zdmc+"
-            />
-          ),
+        title: '序号',
+        key: 'index',
+        width: 80,
+        render: (_, __, index) =>
+          (pagination.current - 1) * pagination.pageSize + index + 1,
       },
       {
         title: '标题',
@@ -447,7 +543,7 @@ const SwiperMgtPage: React.FC = () => {
       },
       {
         title: '操作',
-        width: 240,
+        width: 350,
         key: 'action',
         render: (_: unknown, item) => (
           <div className={styles['table-actions']}>
@@ -466,6 +562,14 @@ const SwiperMgtPage: React.FC = () => {
               onClick={() => handleEdit(item)}
             >
               编辑
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => handleViewDetail(item)}
+            >
+              查看
             </Button>
             <Button
               type="link"
@@ -631,6 +735,10 @@ const SwiperMgtPage: React.FC = () => {
           form.resetFields();
           setImageUrls([]);
           setVideoUrl('');
+          // 重置视频状态
+          setVideoFileList([]);
+          setVideoUploaded(false);
+          setVideoFileSize(0);
         }}
         confirmLoading={submitLoading}
         width={640}
@@ -668,7 +776,18 @@ const SwiperMgtPage: React.FC = () => {
           >
             <Select
               placeholder="选择媒体类型"
-              onChange={(v) => setCurrentMediaType(v as string)}
+              onChange={(v) => {
+                setCurrentMediaType(v as string);
+                // 切换媒体类型时，清空对方的内容
+                if (v === 'image') {
+                  setVideoUrl('');
+                  setVideoUploaded(false);
+                  setVideoFileList([]);
+                  setVideoFileSize(0);
+                } else {
+                  setImageUrls([]);
+                }
+              }}
             >
               <Option value="image">图片</Option>
               <Option value="video">视频</Option>
@@ -747,29 +866,56 @@ const SwiperMgtPage: React.FC = () => {
           )}
 
           {currentMediaType === 'video' && (
-            <Form.Item label="上传视频" required>
-              <input
-                type="file"
-                accept="video/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleVideoUpload(file);
-                  e.target.value = '';
-                }}
-                className={styles['file-input']}
-              />
-              {videoUrl && (
-                <div className={styles['preview-container']}>
-                  <div
-                    style={{
-                      color: 'rgba(255,255,255,0.65)',
-                      fontSize: 12,
-                      marginTop: 8,
-                    }}
-                  >
-                    已上传视频：{videoUrl}
+            <Form.Item
+              label="上传视频"
+              required
+              className={styles['upload-item']}
+            >
+              {videoUploaded && videoUrl ? (
+                // 视频预览卡片（参考 Add.tsx 样式）
+                <div className={styles['video-preview-card']}>
+                  <div className={styles['video-preview-thumb']}>
+                    <img
+                      src={`${getImageUrl(videoUrl)}?vframe/jpg/offset/0`}
+                      alt="视频封面"
+                    />
+                    <PlayCircleOutlined
+                      className={styles['video-preview-icon']}
+                    />
                   </div>
+                  <div className={styles['video-preview-info']}>
+                    <span className={styles['video-preview-name']}>
+                      {videoUrl.split('/').pop() || '未命名视频'}
+                    </span>
+                    <span className={styles['video-preview-meta']}>
+                      {videoUrl.split('.').pop()?.toUpperCase() || 'MP4'} ·{' '}
+                      {videoFileSize > 0
+                        ? formatFileSize(videoFileSize)
+                        : '已上传'}
+                    </span>
+                  </div>
+                  <CloseOutlined
+                    className={styles['video-preview-remove']}
+                    onClick={handleRemoveVideo}
+                  />
                 </div>
+              ) : (
+                // 拖拽上传区域（参考 Add.tsx 样式）
+                <Dragger
+                  accept=".mp4,.mov,.avi,.mkv,.webm"
+                  fileList={videoFileList}
+                  customRequest={handleVideoCustomRequest}
+                  onChange={handleVideoFileChange}
+                  maxCount={1}
+                >
+                  <p className="ant-upload-drag-icon">
+                    <InboxOutlined />
+                  </p>
+                  <p className="ant-upload-text">点击或拖拽视频到此区域上传</p>
+                  <p className={styles['upload-hint']}>
+                    支持 mp4、mov、avi、mkv、webm 格式，500M 以内
+                  </p>
+                </Dragger>
               )}
             </Form.Item>
           )}
@@ -824,6 +970,202 @@ const SwiperMgtPage: React.FC = () => {
             />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* 详情查看弹窗 */}
+      <Modal
+        title="Banner 详情"
+        open={detailModalVisible}
+        onCancel={() => {
+          setDetailModalVisible(false);
+          setDetailItem(null);
+        }}
+        footer={[
+          <Button
+            key="close"
+            onClick={() => {
+              setDetailModalVisible(false);
+              setDetailItem(null);
+            }}
+          >
+            关闭
+          </Button>,
+        ]}
+        width={640}
+        destroyOnClose
+      >
+        {detailItem && (
+          <div className={styles['detail-content']}>
+            {/* 基本信息区域 */}
+            <div className={styles['detail-section']}>
+              <div className={styles['detail-section-title']}>基本信息</div>
+              <div className={styles['detail-grid']}>
+                <div className={styles['detail-item']}>
+                  <span className={styles['detail-label']}>标题</span>
+                  <span className={styles['detail-value']}>
+                    {detailItem.title || '无标题'}
+                  </span>
+                </div>
+                <div className={styles['detail-item']}>
+                  <span className={styles['detail-label']}>媒体类型</span>
+                  <Tag
+                    color={detailItem.mediaType === 'video' ? 'blue' : 'green'}
+                  >
+                    {detailItem.mediaType === 'video' ? '视频' : '图片'}
+                  </Tag>
+                </div>
+                <div className={styles['detail-item']}>
+                  <span className={styles['detail-label']}>状态</span>
+                  <span
+                    className={`${styles['status-tag']} ${
+                      STATUS_MAP[detailItem.status]?.className
+                    }`}
+                  >
+                    {STATUS_MAP[detailItem.status]?.label || detailItem.status}
+                  </span>
+                </div>
+                <div className={styles['detail-item']}>
+                  <span className={styles['detail-label']}>排序权重</span>
+                  <span className={styles['detail-value']}>
+                    {detailItem.sortOrder}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 艺人信息 */}
+            <div className={styles['detail-section']}>
+              <div className={styles['detail-section-title']}>艺人信息</div>
+              <div className={styles['detail-grid']}>
+                <div className={styles['detail-item']}>
+                  <span className={styles['detail-label']}>艺人名称</span>
+                  <span className={styles['detail-value']}>
+                    {(() => {
+                      const artist = artists.find(
+                        (a) => a.artistId === detailItem.artistId,
+                      );
+                      return artist?.name || detailItem.artistId || '-';
+                    })()}
+                  </span>
+                </div>
+                <div className={styles['detail-item']}>
+                  <span className={styles['detail-label']}>跳转链接</span>
+                  <span
+                    className={styles['detail-value']}
+                    style={{ wordBreak: 'break-all' }}
+                  >
+                    {detailItem.linkUrl || '-'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 媒体预览区域 */}
+            <div className={styles['detail-section']}>
+              <div className={styles['detail-section-title']}>媒体内容</div>
+              <div className={styles['detail-media']}>
+                {detailItem.mediaType === 'video' ? (
+                  // 视频预览（可点击播放）
+                  <div
+                    className={styles['detail-video-wrapper']}
+                    onClick={() =>
+                      handleVideoPreview(detailItem.imageUrl?.[0] || '')
+                    }
+                  >
+                    <div className={styles['detail-video-preview']}>
+                      <img
+                        src={`${getImageUrl(
+                          detailItem.imageUrl?.[0] || '',
+                        )}?vframe/jpg/offset/0`}
+                        alt="视频封面"
+                        className={styles['detail-video-thumb']}
+                      />
+                      <PlayCircleOutlined
+                        className={styles['detail-video-icon']}
+                      />
+                    </div>
+                    <div className={styles['detail-video-info']}>
+                      <div className={styles['detail-video-name']}>
+                        {detailItem.imageUrl?.[0]?.split('/').pop() ||
+                          '未命名视频'}
+                      </div>
+                      <div className={styles['detail-video-meta']}>
+                        点击预览播放
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  // 图片预览
+                  <div className={styles['detail-images-wrapper']}>
+                    {(detailItem.imageUrl || []).map(
+                      (url: string, index: number) => (
+                        <Image
+                          key={`preview-${index}`}
+                          src={getImageUrl(url)}
+                          width={140}
+                          height={90}
+                          style={{ borderRadius: 4, objectFit: 'cover' }}
+                          fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQwIiBoZWlnaHQ9IjkwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMzMzMiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzY2NiIgZm9udC1zaXplPSIxMiI+5pqp5Lm65omLPC90ZXh0Pjwvc3ZnPg=="
+                        />
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 时间信息 */}
+            <div className={styles['detail-section']}>
+              <div className={styles['detail-section-title']}>时间设置</div>
+              <div className={styles['detail-grid']}>
+                <div className={styles['detail-item']}>
+                  <span className={styles['detail-label']}>上架时间</span>
+                  <span className={styles['detail-value']}>
+                    {detailItem.startTime
+                      ? formatDateTime(detailItem.startTime)
+                      : '永久有效'}
+                  </span>
+                </div>
+                <div className={styles['detail-item']}>
+                  <span className={styles['detail-label']}>下架时间</span>
+                  <span className={styles['detail-value']}>
+                    {detailItem.endTime
+                      ? formatDateTime(detailItem.endTime)
+                      : '永久有效'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* 视频预览播放弹窗 */}
+      <Modal
+        title="视频预览"
+        open={videoPreviewVisible}
+        onCancel={() => {
+          setVideoPreviewVisible(false);
+          setVideoPreviewUrl('');
+        }}
+        footer={null}
+        width={800}
+        destroyOnClose
+        centered
+      >
+        <div className={styles['video-player-wrapper']}>
+          <video
+            src={getImageUrl(videoPreviewUrl)}
+            controls
+            autoPlay
+            style={{
+              width: '100%',
+              maxHeight: 500,
+              backgroundColor: '#000',
+              borderRadius: 4,
+            }}
+          />
+        </div>
       </Modal>
     </div>
   );

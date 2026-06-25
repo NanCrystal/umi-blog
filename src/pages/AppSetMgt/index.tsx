@@ -124,7 +124,7 @@ const AppSetMgtPage: React.FC = () => {
       title: '排序',
       dataIndex: 'sortOrder',
       key: 'sortOrder',
-      width: 80,
+      width: 100,
     },
     {
       title: '操作',
@@ -163,7 +163,7 @@ const AppSetMgtPage: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
-      width: 160,
+      width: 300,
       render: (_, record) => (
         <Space>
           <Button
