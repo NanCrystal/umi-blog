@@ -22,7 +22,7 @@ const EssayDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!item) {
-      history.replace('/essay');
+      history.replace('/admin/profile');
     }
   }, []);
 

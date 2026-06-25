@@ -3,7 +3,7 @@ const HomePage = '@/pages/Home/index';
 const DocumentPage = '@/pages/Document/index';
 const EssayPage = '@/pages/Essay/index';
 const EssayDetailPage = '@/pages/Essay/detail';
-const AddPage = '@/pages/AddPage/index';
+const AddPage = '@/pages/Essay/AddPage/index';
 const CommentPage = '@/pages/Comment/index';
 const CommentListPage = '@/pages/Comment/List';
 const WallPaperPage = '@/pages/WallPaper/index';
@@ -30,7 +30,7 @@ const VideoMgtPage = '@/pages/VideoMgt/index';
 const VideoMgtAddPage = '@/pages/VideoMgt/Add';
 const VoiceMgtPage = '@/pages/VoiceMgt/index';
 const VoiceMgtAddPage = '@/pages/VoiceMgt/Add';
-const ProfileMgtPage = '@/pages/ProfileMgt/index';
+const BookMgtPage = '@/pages/BookMgt/index';
 const PhotoCardsMgtPage = '@/pages/PhotoCardsMgt/index';
 const PhotoCardsMgtAddPage = '@/pages/PhotoCardsMgt/Add';
 const ImportTasksPage = '@/pages/ImportMgt/index';
@@ -62,7 +62,14 @@ export default [
         path: '/admin/photocards/add',
         component: PhotoCardsMgtAddPage,
       },
-      { exact: true, path: '/admin/profile', component: ProfileMgtPage },
+      { exact: true, path: '/admin/book', component: BookMgtPage },
+      { exact: false, path: '/admin/profile', component: EssayPage },
+      { exact: false, path: '/admin/profile/add', component: AddPage },
+      {
+        exact: false,
+        path: '/admin/profile/detail',
+        component: EssayDetailPage,
+      },
       { exact: true, path: '/admin/import/tasks', component: ImportTasksPage },
       { exact: true, path: '/admin/data', component: DataMgtPage },
       { exact: true, path: '/admin/itinerary', component: ItineraryMgtPage },

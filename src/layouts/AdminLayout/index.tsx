@@ -36,7 +36,7 @@ const menuItems: MenuItem[] = [
       { key: '/admin/video', icon: <VideoCameraOutlined />, label: '视频管理' },
       { key: '/admin/voice', icon: <SoundOutlined />, label: '音频管理' },
       { key: '/admin/photocards', icon: <IdcardOutlined />, label: '小卡管理' },
-      // { key: '/admin/profile', icon: <FileTextOutlined />, label: '档案管理' },
+      { key: '/admin/book', icon: <FileTextOutlined />, label: '遗笺管理' },
     ],
   },
   { key: '/admin/sync', icon: <SyncOutlined />, label: '社交同步' },
