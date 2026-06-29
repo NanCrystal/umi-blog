@@ -57,6 +57,13 @@ export default [
       { exact: true, path: '/admin/voice', component: VoiceMgtPage },
       { exact: true, path: '/admin/voice/add', component: VoiceMgtAddPage },
       { exact: true, path: '/admin/photocards', component: PhotoCardsMgtPage },
+      { exact: true, path: '/admin/article', component: EssayPage },
+      { exact: true, path: '/admin/article/add', component: AddPage },
+      {
+        exact: true,
+        path: '/admin/article/detail',
+        component: EssayDetailPage,
+      },
       {
         exact: true,
         path: '/admin/photocards/add',

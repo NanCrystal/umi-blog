@@ -106,7 +106,7 @@ const AddPage: React.FC = () => {
       content: '当前内容尚未发表，离开后将丢失所有编辑内容。',
       okText: '确认离开',
       cancelText: '继续编辑',
-      onOk: () => history.push('/home'),
+      onOk: () => history.push('/admin/article'),
     });
   };
 
@@ -137,7 +137,7 @@ const AddPage: React.FC = () => {
         await createArticle(articleData);
         message.success('发表成功！');
       }
-      setTimeout(() => history.push('/essay'), 800);
+      setTimeout(() => history.push('/admin/article'), 800);
     } catch {
       message.error('操作失败，请重试');
       setPublished(false);

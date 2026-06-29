@@ -38,13 +38,13 @@ const EssayPage: React.FC = () => {
 
   // 点击卡片主体 -> 详情
   const handleView = (item: ArticleItem) => {
-    history.push('/essay/detail', { data: item });
+    history.push('/admin/article/detail', { data: item });
   };
 
   // 点击编辑 -> AddPage 回显
   const handleEdit = (e: React.MouseEvent, item: ArticleItem) => {
     e.stopPropagation();
-    history.push('/add', { from: 'edit', data: item });
+    history.push('/admin/article/add', { from: 'edit', data: item });
   };
 
   // 点击删除 -> 二次确认 -> 调接口 -> 刷新列表
@@ -69,7 +69,7 @@ const EssayPage: React.FC = () => {
   };
 
   const handleAdd = () => {
-    history.push('/add', { from: 'essay' });
+    history.push('/admin/article/add', { from: 'essay' });
   };
 
   // 格式化时间
