@@ -121,6 +121,16 @@ const LoginPage: React.FC<Props> = () => {
           </div>
         </div>
       </div>
+
+      {/* 底部备案信息 */}
+      <a
+        href="https://beian.miit.gov.cn"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles['login-footer']}
+      >
+        粤ICP备2023158149号-1
+      </a>
     </div>
   );
 };
