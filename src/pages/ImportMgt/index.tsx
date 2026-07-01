@@ -469,7 +469,7 @@ const ImportTasksPage: React.FC = () => {
               下载
             </Button>
           )}
-          {record.status === 'COMPLETED' && (
+          {(record.status === 'COMPLETED' || record.status === 'FAILED') && (
             <Button
               className={`${styles['action-btn']}`}
               size="small"
