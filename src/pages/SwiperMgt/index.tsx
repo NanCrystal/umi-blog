@@ -569,7 +569,7 @@ const SwiperMgtPage: React.FC = () => {
               icon={<EyeOutlined />}
               onClick={() => handleViewDetail(item)}
             >
-              查看
+              详情
             </Button>
             <Button
               type="link"

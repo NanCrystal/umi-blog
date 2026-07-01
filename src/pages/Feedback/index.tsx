@@ -93,7 +93,6 @@ const FeedbackPage: React.FC = () => {
       {
         title: '用户',
         key: 'user',
-        width: 180,
         render: (_, item) => (
           <div className={styles['user-cell']}>
             {item.user?.avatarUrl ? (
@@ -117,7 +116,6 @@ const FeedbackPage: React.FC = () => {
         title: '问题类型',
         dataIndex: 'type',
         key: 'type',
-        width: 120,
         render: (type: string) => <Tag>{type}</Tag>,
       },
       {
@@ -125,13 +123,11 @@ const FeedbackPage: React.FC = () => {
         dataIndex: 'description',
         key: 'description',
         ellipsis: true,
-        width: 250,
       },
       {
         title: '截图',
         dataIndex: 'image',
         key: 'image',
-        width: 80,
         render: (image: string | null) =>
           image ? (
             <Image
@@ -148,14 +144,12 @@ const FeedbackPage: React.FC = () => {
         title: '联系方式',
         dataIndex: 'contact',
         key: 'contact',
-        width: 140,
         render: (v: string | null) => v || '-',
       },
       {
         title: '状态',
         dataIndex: 'status',
         key: 'status',
-        width: 100,
         render: (status: string) =>
           status === 'resolved' ? (
             <Tag color="green">已解决</Tag>
@@ -167,13 +161,12 @@ const FeedbackPage: React.FC = () => {
         title: '提交时间',
         dataIndex: 'createdAt',
         key: 'createdAt',
-        width: 160,
         render: (v: string) => formatDateTime(v),
       },
       {
         title: '操作',
         key: 'action',
-        width: 240,
+        width: 300,
         fixed: 'right',
         render: (_, item) => (
           <Space size={4}>
@@ -183,7 +176,7 @@ const FeedbackPage: React.FC = () => {
               icon={<EyeOutlined />}
               onClick={() => handleView(item)}
             >
-              查看
+              详情
             </Button>
             <Button
               type="link"

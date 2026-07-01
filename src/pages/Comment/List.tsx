@@ -190,7 +190,7 @@ const CommentsList: React.FC = () => {
               icon={<EyeOutlined />}
               onClick={() => handleView(item)}
             >
-              查看
+              详情
             </Button>
             <Button
               type="link"

@@ -44,7 +44,7 @@ const AppSetMgtPage: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
   const [detailVisible, setDetailVisible] = useState(false);
   const [detailData, setDetailData] = useState<AppModuleItem | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -172,7 +172,7 @@ const AppSetMgtPage: React.FC = () => {
             icon={<EyeOutlined />}
             onClick={() => handleViewDetail(record.id)}
           >
-            查看详情
+            详情
           </Button>
           <Button
             type="link"

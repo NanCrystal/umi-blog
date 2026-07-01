@@ -427,6 +427,7 @@ const ItineraryMgt: React.FC = () => {
       {
         title: '操作',
         key: 'action',
+        width: 300,
         render: (_: unknown, item) => (
           <div className={styles['table-actions']}>
             <Button
@@ -435,7 +436,7 @@ const ItineraryMgt: React.FC = () => {
               icon={<EyeOutlined />}
               onClick={() => handleViewDetail(item)}
             >
-              查看
+              详情
             </Button>
             <Button
               type="link"

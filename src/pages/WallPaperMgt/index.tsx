@@ -245,7 +245,7 @@ const WallPaperMgt: React.FC = () => {
               });
             }}
           >
-            查看
+            详情
           </Button>
         ),
       },
