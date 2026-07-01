@@ -246,12 +246,11 @@ const AddModulePage: React.FC = () => {
         description: values.description || undefined,
         sortOrder: values.sortOrder,
         status: values.status ? 1 : 0,
-        image:
-          resourceType === 'image' ? getImageUrls(values.image) : undefined,
+        image: resourceType === 'image' ? getImageUrls(values.image) : null,
         video:
           resourceType === 'video' && videoUrl
             ? JSON.stringify([videoUrl])
-            : undefined,
+            : '[]',
         artistIds: showArtistSelect ? values.artistIds || [] : [],
       };
 
