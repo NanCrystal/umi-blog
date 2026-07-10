@@ -45,7 +45,12 @@ import {
   batchUpdatePhotos,
   clearAllPhotos,
 } from '@/services/photo';
-import { getImageUrl, getThumbUrl, formatFileSize } from '@/utils/utils';
+import {
+  getImageUrl,
+  getThumbUrl,
+  formatFileSize,
+  formatDateTime,
+} from '@/utils/utils';
 import { getArtistList, getSyncPosts } from '@/services/artist';
 import { getItineraryList } from '@/services/itinerary';
 import { uploadImageFull } from '@/services/upload';
@@ -2002,7 +2007,9 @@ const PhotoPage: React.FC<Props> = () => {
               <div className={styles['preview-info-item']}>
                 <span className={styles['preview-info-label']}>拍摄日期</span>
                 <span className={styles['preview-info-value']}>
-                  {previewingPhoto.shootDate || '-'}
+                  {previewingPhoto.shootDate
+                    ? formatDateTime(previewingPhoto.shootDate)
+                    : '-'}
                 </span>
               </div>
               <div className={styles['preview-info-item']}>

@@ -28,7 +28,7 @@ import {
   getPhotoPlatforms,
 } from '@/services/photoTag';
 
-import { getImageUrl, formatFileSize } from '@/utils/utils';
+import { getImageUrl, formatFileSize, formatDateTime } from '@/utils/utils';
 import { uploadImageFull } from '@/services/upload';
 import { uploadVideoFile } from '@/services/video';
 import { getArtistList } from '@/services/artist';
@@ -2379,7 +2379,9 @@ const VideoPage: React.FC<Props> = () => {
               <div className={styles['preview-info-item']}>
                 <span className={styles['preview-info-label']}>拍摄日期</span>
                 <span className={styles['preview-info-value']}>
-                  {previewingVideo.shootDate || '-'}
+                  {previewingVideo.shootDate
+                    ? formatDateTime(previewingVideo.shootDate)
+                    : '-'}
                 </span>
               </div>
               <div className={styles['preview-info-item']}>
