@@ -10,6 +10,7 @@ import {
   Space,
   Progress,
   Upload,
+  Checkbox,
 } from 'antd';
 import {
   PlusOutlined,
@@ -661,6 +662,17 @@ const ImportTasksPage: React.FC = () => {
             </div>
           )}
 
+          {/* 隐藏选项（Checkbox） */}
+          {uploadFile && !uploading && !uploadDone && (
+            <div className={styles['dataset-type-selector']}>
+              <Checkbox
+                onChange={(e) => console.log('隐藏选项:', e.target.checked)}
+              >
+                上传后隐藏此数据集内容
+              </Checkbox>
+            </div>
+          )}
+
           {/* 进度条 */}
           {(uploading || uploadDone) && (
             <div className={styles['progress-wrap']}>
@@ -760,6 +772,11 @@ const ImportTasksPage: React.FC = () => {
                 </Option>
               ))}
             </Select>
+          </Form.Item>
+
+          {/* 隐藏选项（Checkbox） */}
+          <Form.Item name="hidden" valuePropName="checked">
+            <Checkbox>隐藏此数据集内容</Checkbox>
           </Form.Item>
         </Form>
       </Modal>

@@ -1,5 +1,7 @@
 import { defineConfig } from 'umi';
 import routes from './config/router';
+// 根据环境变量切换后端地址
+const API_TARGET = process.env.API_TARGET || 'http://localhost:3000';
 
 export default defineConfig({
   nodeModulesTransform: {
@@ -19,13 +21,13 @@ export default defineConfig({
   fastRefresh: {},
   proxy: {
     '/api': {
-      target: 'http://localhost:3000', // Nest 后端
+      target: API_TARGET,
       changeOrigin: true,
       pathRewrite: { '^/api': '' },
       timeout: 15 * 60 * 1000, // 视频上传 15 分钟超时
     },
     '/uploads': {
-      target: 'http://localhost:3000', // 将前端对 /uploads 的请求代理到 Nest 后端
+      target: API_TARGET,
       changeOrigin: true,
     },
   },

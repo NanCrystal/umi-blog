@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider umi dev",
+    "start:prod": "cross-env NODE_OPTIONS=--openssl-legacy-provider API_TARGET=https://api.tauol.online umi dev",
     "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider umi build",
     "prettier": "prettier --write '**/*.{js,jsx,tsx,ts,less,md,json}'",
     "test": "umi-test",

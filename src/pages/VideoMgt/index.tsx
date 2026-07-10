@@ -17,6 +17,7 @@ import {
   LinkOutlined,
   DoubleRightOutlined,
   PictureOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import { Modal, message, Form, Input, Select, DatePicker, Upload } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
@@ -1106,6 +1107,37 @@ const VideoPage: React.FC<Props> = () => {
     });
   };
 
+  // 批量隐藏视频
+  const handleBatchHide = () => {
+    const ids = Array.from(selectedIds);
+    Modal.confirm({
+      title: '确认隐藏',
+      content: `确定要隐藏选中的 ${ids.length} 条视频吗？隐藏后在前端将不再显示。`,
+      okText: '隐藏',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await batchUpdateVideos(ids, { hidden: true });
+          message.success(`成功隐藏 ${ids.length} 条视频`);
+          setSelectedIds(new Set());
+          setSelectedRowKeys([]);
+          Object.keys(groups).forEach((ym) => {
+            if (groups[ym].loaded) {
+              const nextGroups = {
+                ...groups,
+                [ym]: { ...groups[ym], loaded: false, videos: [] },
+              };
+              setGroups(nextGroups);
+              loadMonth(ym, nextGroups);
+            }
+          });
+        } catch {
+          message.error('隐藏失败');
+        }
+      },
+    });
+  };
+
   // 一键清空所有视频
   const handleClearAll = () => {
     Modal.confirm({
@@ -1246,6 +1278,13 @@ const VideoPage: React.FC<Props> = () => {
                     onClick={handleClearAll}
                   >
                     一键清空
+                  </Button>
+                  <Button
+                    icon={<EyeOutlined />}
+                    disabled={selectedRowKeys.length === 0}
+                    onClick={handleBatchHide}
+                  >
+                    批量隐藏
                   </Button>
                   <Button
                     icon={<DownloadOutlined />}
@@ -2260,9 +2299,9 @@ const VideoPage: React.FC<Props> = () => {
           setPreviewIndex(-1);
         }}
         footer={null}
-        width={800}
         destroyOnClose
-        bodyStyle={{ height: 500, overflow: 'hidden' }}
+        width="50%"
+        bodyStyle={{ height: '70vh', overflow: 'hidden' }}
       >
         {previewingVideo && (
           <div className={styles['preview-content']}>

@@ -452,20 +452,28 @@ const AppSetMgtPage: React.FC = () => {
                           background: '#0d0d0d',
                           border: '1px solid #262626',
                           display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          minHeight: 160,
-                          maxHeight: 280,
+                          flexWrap: 'wrap',
+                          gap: 8,
+                          padding: 8,
                         }}
                       >
                         {imageList.map((url: string, index: number) => (
-                          <Image
+                          <div
                             key={index}
-                            src={getThumbFullUrl(url)}
-                            width="100%"
-                            preview={{ src: getImageUrl(url) }}
-                            style={{ maxHeight: 280, objectFit: 'contain' }}
-                          />
+                            style={{
+                              width: 'calc(20% - 6.4px)',
+                              aspectRatio: '1',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <Image
+                              src={getThumbFullUrl(url)}
+                              width="100%"
+                              height="100%"
+                              preview={{ src: getImageUrl(url) }}
+                              style={{ objectFit: 'cover' }}
+                            />
+                          </div>
                         ))}
                       </div>
                     </div>

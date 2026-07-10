@@ -48,6 +48,7 @@ import {
 import { batchLinkMedia, unlinkMedia } from '@/services/socialLink';
 import { getImageUrl, formatDateTime } from '@/utils/utils';
 import styles from './index.less';
+import { log } from 'console';
 
 const platformIcons: Record<string, React.ReactNode> = {
   weibo: <WeiboSquareOutlined style={{ fontSize: 18 }} />,
@@ -316,6 +317,7 @@ const SyncMgtPage = () => {
     setDetailModalOpen(true);
     try {
       const res = await getSyncPostDetail(record.id);
+      console.log('res', res);
       setDetailRecord(res);
       setCurrentImgIndex(0);
       setLinkedMedia(res?.linkedMedia || []);
@@ -367,6 +369,13 @@ const SyncMgtPage = () => {
     type: 'photo' | 'video';
     url: string;
     originalUrl?: string;
+    id?: number;
+    mediaType?: string;
+    visibility?: {
+      hiddenInGallery: boolean;
+      hideSource?: string | null;
+      canShow: boolean;
+    };
   }[] = [];
   for (const m of linkedMedia) {
     if (m.mediaType === 'PHOTO' && m.media?.url) {
@@ -374,12 +383,18 @@ const SyncMgtPage = () => {
         type: 'photo',
         url: getImageUrl(m.media.url),
         originalUrl: m.media.url,
+        id: m.media?.id,
+        mediaType: m.mediaType,
+        visibility: m.visibility,
       });
     } else if (m.mediaType === 'VIDEO' && m.media?.originalUrl) {
       linkedDisplay.push({
         type: 'video',
         url: getImageUrl(m.media.originalUrl),
         originalUrl: m.media.originalUrl,
+        id: m.media?.id,
+        mediaType: m.mediaType,
+        visibility: m.visibility,
       });
     }
   }
@@ -387,6 +402,8 @@ const SyncMgtPage = () => {
     linkedDisplay.length > 0
       ? linkedDisplay
       : images.map((url: string) => ({ type: 'photo' as const, url }));
+  console.log('displayMedia', displayMedia);
+
   const currentMedia = displayMedia[currentImgIndex];
 
   const mediaCount = displayMedia.length;
@@ -581,41 +598,35 @@ const SyncMgtPage = () => {
       width: 300,
       render: (_: any, record: any) => (
         <Space size="small">
-          <Tooltip title="查看详情">
-            <Button
-              type="link"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetail(record)}
-            >
-              详情
-            </Button>
-          </Tooltip>
-          <Tooltip title="关联照片/视频">
-            <Button
-              type="link"
-              size="small"
-              icon={<LinkOutlined />}
-              onClick={() => {
-                setLinkingPostId(record.id);
-                setLinkMediaIds([]);
-                setLinkModalOpen(true);
-              }}
-            >
-              关联
-            </Button>
-          </Tooltip>
-          <Tooltip title="删除">
-            <Button
-              type="link"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record.id)}
-            >
-              删除
-            </Button>
-          </Tooltip>
+          <Button
+            type="link"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => handleViewDetail(record)}
+          >
+            详情
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            icon={<LinkOutlined />}
+            onClick={() => {
+              setLinkingPostId(record.id);
+              setLinkMediaIds([]);
+              setLinkModalOpen(true);
+            }}
+          >
+            关联
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record.id)}
+          >
+            删除
+          </Button>
         </Space>
       ),
     },
@@ -1013,10 +1024,10 @@ const SyncMgtPage = () => {
         open={detailModalOpen}
         onCancel={() => setDetailModalOpen(false)}
         footer={null}
-        width={800}
         className={styles['detail-modal']}
         destroyOnClose
-        bodyStyle={{ height: 500, overflow: 'hidden' }}
+        width="50%"
+        bodyStyle={{ height: '70vh', overflow: 'hidden' }}
       >
         {detailLoading ? (
           <div style={{ textAlign: 'center', padding: 60 }}>
@@ -1066,6 +1077,51 @@ const SyncMgtPage = () => {
                   alt={`媒体 ${currentImgIndex + 1}`}
                 />
               )}
+
+              {/* 恢复显示按钮 - 左上角 */}
+              {currentMedia?.visibility?.hiddenInGallery === true && (
+                <div
+                  className={styles['preview-show-btn']}
+                  title="恢复显示"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      // 获取当前媒体对应的linkedMedia中的SocialPostMedia ID
+                      const currentLinkedMedia = linkedMedia.find(
+                        (m: any) => m.media?.id === currentMedia?.id,
+                      );
+                      const socialPostMediaId = currentLinkedMedia?.id;
+                      const mediaType =
+                        currentLinkedMedia?.mediaType || 'PHOTO';
+
+                      if (socialPostMediaId) {
+                        await fetch(
+                          `/api/sync/posts/${detailRecord.id}/media/${socialPostMediaId}/show`,
+                          {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ mediaType }),
+                          },
+                        );
+                        message.success('已恢复显示');
+                      } else {
+                        // 如果找不到关联，直接调用photos的show接口
+                        await fetch(`/api/photos/${currentMedia?.id}/show`, {
+                          method: 'PATCH',
+                        });
+                        message.success('已恢复显示');
+                      }
+                      setDetailModalOpen(false);
+                    } catch (error) {
+                      message.error('恢复显示失败');
+                    }
+                  }}
+                >
+                  <EyeOutlined />
+                  {/* <span className={styles['preview-show-btn-text']}>恢复显示</span> */}
+                </div>
+              )}
+
               {displayMedia.length > 0 && (
                 <span
                   className={styles['preview-download-btn']}
@@ -1154,7 +1210,7 @@ const SyncMgtPage = () => {
               >
                 <span className={styles['preview-info-label']}>内容</span>
                 <span className={styles['preview-info-value']}>
-                  {detailRecord.content?.replace(/<[^>]*>/g, '') || '无)'}
+                  {detailRecord.content?.replace(/<[^>]*>/g, '') || '无'}
                 </span>
               </div>
               <div className={styles['preview-info-item']}>

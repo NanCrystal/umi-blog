@@ -229,7 +229,34 @@
   border: none !important;
   color: #ffffff !important;
 }
-/* ─── 图片上传区域 (picture-card) ─── */
+/* ─── 图片上传区域（支持拖拽排序） ─── */
+.file-input {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1px dashed #333333;
+  border-radius: 0;
+  color: #999999;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: #555555;
+    color: #cccccc;
+  }
+}
+
+.preview-container {
+  margin-top: 12px;
+  padding: 12px;
+  background: #0d0d0d;
+  border: 1px solid #262626;
+  border-radius: 0;
+  display: inline-block;
+  min-width: 100%;
+}
+
+/* ─── 图片上传区域 (picture-card) - 保留兼容 */
 .add-form {
   :global(.ant-upload-list-picture-card-container) {
     .ant-upload-list-item {

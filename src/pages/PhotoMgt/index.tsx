@@ -17,6 +17,8 @@ import {
   DoubleRightOutlined,
   LinkOutlined,
   UploadOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
 } from '@ant-design/icons';
 import {
   Modal,
@@ -1118,6 +1120,38 @@ const PhotoPage: React.FC<Props> = () => {
     });
   };
 
+  // 批量隐藏照片
+  const handleBatchHide = () => {
+    const ids = Array.from(selectedIds);
+    Modal.confirm({
+      title: '确认隐藏',
+      content: `确定要隐藏选中的 ${ids.length} 张照片吗？隐藏后在前端将不再显示。`,
+      okText: '隐藏',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await batchUpdatePhotos(ids, { hidden: true });
+          message.success(`成功隐藏 ${ids.length} 张照片`);
+          setSelectedIds(new Set());
+          setSelectedRowKeys([]);
+          // 刷新所有已加载月份的数据
+          Object.keys(groups).forEach((ym) => {
+            if (groups[ym].loaded) {
+              const nextGroups = {
+                ...groups,
+                [ym]: { ...groups[ym], loaded: false, photos: [] },
+              };
+              setGroups(nextGroups);
+              loadMonth(ym, nextGroups);
+            }
+          });
+        } catch {
+          message.error('隐藏失败');
+        }
+      },
+    });
+  };
+
   // 一键清空所有照片
   const handleClearAll = () => {
     Modal.confirm({
@@ -1265,6 +1299,13 @@ const PhotoPage: React.FC<Props> = () => {
                     onClick={handleClearAll}
                   >
                     一键清空
+                  </Button>
+                  <Button
+                    icon={<EyeOutlined />}
+                    disabled={selectedRowKeys.length === 0}
+                    onClick={handleBatchHide}
+                  >
+                    批量隐藏
                   </Button>
                   <Button
                     icon={<DownloadOutlined />}
@@ -1909,9 +1950,9 @@ const PhotoPage: React.FC<Props> = () => {
           setPreviewIndex(-1);
         }}
         footer={null}
-        width={800}
+        width="50%"
         destroyOnClose
-        bodyStyle={{ height: 500, overflow: 'hidden' }}
+        bodyStyle={{ height: '70vh', overflow: 'hidden' }}
       >
         {previewingPhoto && (
           <div className={styles['preview-content']}>

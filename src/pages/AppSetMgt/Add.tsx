@@ -9,6 +9,7 @@ import {
   InputNumber,
   Button,
   Upload,
+  Image,
   message,
 } from 'antd';
 import {
@@ -54,6 +55,11 @@ const AddModulePage: React.FC = () => {
   const [videoUrl, setVideoUrl] = useState('');
   const [videoFileSize, setVideoFileSize] = useState(0);
 
+  // 图片上传状态（支持拖拽排序）
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+
   useEffect(() => {
     fetchArtists();
     checkEditMode();
@@ -74,32 +80,11 @@ const AddModulePage: React.FC = () => {
           sortOrder: data.sortOrder ?? 0,
           artistIds: data.artistIds?.map((a: ArtistItem) => a.id) || [],
         });
-        if (data.image) {
-          setShowImageUpload(true);
-          let imageList: string[] = [];
-          try {
-            const parsed =
-              typeof data.image === 'string'
-                ? JSON.parse(data.image)
-                : data.image;
-            imageList = Array.isArray(parsed) ? parsed : [parsed];
-          } catch {
-            imageList = [data.image];
-          }
-          form.setFieldValue(
-            'image',
-            imageList.map((url: string, index: number) => ({
-              uid: `-${index}`,
-              name: url.split('/').pop() || 'image',
-              status: 'done',
-              url,
-              thumbUrl: getImageUrl(url),
-            })),
-          );
-        }
+        // 资源类型回显逻辑：video有值优先video，image有值则image，都没有默认image
+        let hasImage = false;
+        let hasVideo = false;
+
         if (data.video) {
-          setShowImageUpload(true);
-          setResourceType('video');
           let videoList: string[] = [];
           try {
             const parsed =
@@ -110,7 +95,11 @@ const AddModulePage: React.FC = () => {
           } catch {
             videoList = [data.video];
           }
-          if (videoList.length > 0) {
+          // 检查video是否有有效内容（非空数组）
+          if (videoList.length > 0 && videoList[0]) {
+            hasVideo = true;
+            setShowImageUpload(true);
+            setResourceType('video');
             setVideoUploaded(true);
             setVideoUrl(videoList[0]);
             form.setFieldValue(
@@ -123,6 +112,41 @@ const AddModulePage: React.FC = () => {
               })),
             );
           }
+        }
+
+        if (data.image && !hasVideo) {
+          let imageList: string[] = [];
+          try {
+            const parsed =
+              typeof data.image === 'string'
+                ? JSON.parse(data.image)
+                : data.image;
+            imageList = Array.isArray(parsed) ? parsed : [parsed];
+          } catch {
+            imageList = [data.image];
+          }
+          // 检查image是否有有效内容
+          if (imageList.length > 0 && imageList[0]) {
+            hasImage = true;
+            setShowImageUpload(true);
+            setResourceType('image');
+            setImageUrls(imageList);
+            form.setFieldValue(
+              'image',
+              imageList.map((url: string, index: number) => ({
+                uid: `-${index}`,
+                name: url.split('/').pop() || 'image',
+                status: 'done',
+                url,
+                thumbUrl: getImageUrl(url),
+              })),
+            );
+          }
+        }
+
+        // 都没有资源时，默认显示图片类型（但不上传区域不展开）
+        if (!hasImage && !hasVideo) {
+          setResourceType('image');
         }
         const hasArtists = data.artistIds && data.artistIds.length > 0;
         setShowArtistSelect(hasArtists);
@@ -138,6 +162,54 @@ const AddModulePage: React.FC = () => {
       setArtists(data || []);
     } catch (error) {
       console.error('获取艺人列表失败', error);
+    }
+  };
+
+  // ─── 图片上传处理（支持拖拽排序） ───
+  const handleImageUpload = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    const newUrls: string[] = [...imageUrls];
+    for (const file of Array.from(fileList)) {
+      try {
+        const res = await uploadImageFull(file);
+        if (res?.url) {
+          newUrls.push(res.url);
+        }
+      } catch (err) {
+        console.error('图片上传失败', err);
+        message.error('图片上传失败');
+      }
+    }
+    setImageUrls(newUrls);
+    // 同步到表单
+    form.setFieldValue(
+      'image',
+      newUrls.map((url, index) => ({
+        uid: `-${index}`,
+        name: url.split('/').pop() || 'image',
+        status: 'done',
+        url,
+        thumbUrl: getImageUrl(url),
+      })),
+    );
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const newUrls = imageUrls.filter((_, i) => i !== index);
+    setImageUrls(newUrls);
+    if (newUrls.length > 0) {
+      form.setFieldValue(
+        'image',
+        newUrls.map((url, idx) => ({
+          uid: `-${idx}`,
+          name: url.split('/').pop() || 'image',
+          status: 'done',
+          url,
+          thumbUrl: getImageUrl(url),
+        })),
+      );
+    } else {
+      form.setFieldValue('image', undefined);
     }
   };
 
@@ -215,29 +287,6 @@ const AddModulePage: React.FC = () => {
       setLoading(true);
       console.log('values', values);
 
-      const getImageUrls = (val: any): string | undefined => {
-        if (!val) return undefined;
-        if (Array.isArray(val)) {
-          const urls = val
-            .map((item: any) => item?.response?.url || item?.url || item)
-            .filter(Boolean);
-          return urls.length > 0 ? JSON.stringify(urls) : undefined;
-        }
-        const url = val.response?.url || val.url || val;
-        return url ? JSON.stringify([url]) : undefined;
-      };
-
-      const getVideoUrls = (val: any): string | undefined => {
-        if (!val) return undefined;
-        if (Array.isArray(val)) {
-          const urls = val
-            .map((item: any) => item?.response?.url || item?.url || item)
-            .filter(Boolean);
-          return urls.length > 0 ? JSON.stringify(urls) : undefined;
-        }
-        const url = val.response?.url || val.url || val;
-        return url ? JSON.stringify([url]) : undefined;
-      };
       console.log('values1', values);
 
       const payload: any = {
@@ -246,7 +295,10 @@ const AddModulePage: React.FC = () => {
         description: values.description || undefined,
         sortOrder: values.sortOrder,
         status: values.status ? 1 : 0,
-        image: resourceType === 'image' ? getImageUrls(values.image) : null,
+        image:
+          resourceType === 'image' && imageUrls.length > 0
+            ? JSON.stringify(imageUrls)
+            : null,
         video:
           resourceType === 'video' && videoUrl
             ? JSON.stringify([videoUrl])
@@ -366,34 +418,104 @@ const AddModulePage: React.FC = () => {
                 </Form.Item>
 
                 {resourceType === 'image' ? (
-                  <Form.Item
-                    label="上传图片"
-                    name="image"
-                    valuePropName="fileList"
-                    getValueFromEvent={(e: any) => {
-                      if (Array.isArray(e)) return e;
-                      return e?.fileList;
-                    }}
-                  >
-                    <Upload
-                      listType="picture-card"
-                      multiple
+                  <Form.Item label="上传图片" required>
+                    <input
+                      type="file"
                       accept="image/*"
-                      customRequest={async ({
-                        file,
-                        onSuccess,
-                        onError,
-                      }: any) => {
-                        try {
-                          const res = await uploadImageFull(file as File);
-                          onSuccess(res);
-                        } catch (err) {
-                          onError(err);
-                        }
+                      multiple
+                      onChange={(e) => {
+                        handleImageUpload(e.target.files);
+                        e.target.value = '';
                       }}
-                    >
-                      + 上传
-                    </Upload>
+                      className={styles['file-input']}
+                    />
+                    {imageUrls.length > 0 && (
+                      <div className={styles['preview-container']}>
+                        {imageUrls.map((url, index) => (
+                          <div
+                            key={url + index}
+                            draggable
+                            onDragStart={() => setDragIndex(index)}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              if (dragIndex === null || dragIndex === index)
+                                return;
+                              setImageUrls((prev) => {
+                                const newUrls = [...prev];
+                                const [dragged] = newUrls.splice(dragIndex, 1);
+                                newUrls.splice(index, 0, dragged);
+                                // 同步到表单
+                                form.setFieldValue(
+                                  'image',
+                                  newUrls.map((u, idx) => ({
+                                    uid: `-${idx}`,
+                                    name: u.split('/').pop() || 'image',
+                                    status: 'done',
+                                    url: u,
+                                    thumbUrl: getImageUrl(u),
+                                  })),
+                                );
+                                return newUrls;
+                              });
+                              setDragIndex(index);
+                            }}
+                            onDragEnd={() => setDragIndex(null)}
+                            style={{
+                              position: 'relative',
+                              display: 'inline-block',
+                              marginRight: 8,
+                              marginBottom: 8,
+                              cursor: 'move',
+                              opacity: dragIndex === index ? 0.5 : 1,
+                            }}
+                          >
+                            <Image
+                              src={`${getImageUrl(url)}${
+                                imageErrors.has(index) ? `?t=${Date.now()}` : ''
+                              }`}
+                              width={100}
+                              height={60}
+                              style={{ borderRadius: 4, objectFit: 'cover' }}
+                              fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'%3E%3Crect fill='%23333' width='100' height='60'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-size='10'%3E加载中...%3C/text%3E%3C/svg%3E"
+                              onError={() => {
+                                setImageErrors((prev) =>
+                                  new Set(prev).add(index),
+                                );
+                                // 延迟重试（CDN传播延迟）
+                                setTimeout(() => {
+                                  setImageErrors((prev) => {
+                                    const next = new Set(prev);
+                                    next.delete(index);
+                                    return next;
+                                  });
+                                }, 1500);
+                              }}
+                              onLoad={() => {
+                                setImageErrors((prev) => {
+                                  const next = new Set(prev);
+                                  next.delete(index);
+                                  return next;
+                                });
+                              }}
+                            />
+                            <CloseOutlined
+                              onClick={() => handleRemoveImage(index)}
+                              style={{
+                                position: 'absolute',
+                                top: -6,
+                                right: -6,
+                                color: '#fff',
+                                background: '#ff4d4f',
+                                borderRadius: '50%',
+                                fontSize: 10,
+                                padding: 2,
+                                cursor: 'pointer',
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </Form.Item>
                 ) : (
                   <Form.Item

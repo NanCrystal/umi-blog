@@ -282,7 +282,7 @@ const CardItem: React.FC<CardItemProps> = ({
       )}
       <div className={styles['card-image-wrap']}>
         <img
-          src={getImageUrl(card.frontImage)}
+          src={card.frontImageUrl || getImageUrl(card.frontImage)}
           alt={card.name}
           className={styles['card-image']}
         />
@@ -346,7 +346,7 @@ const PhotoCardsMgtPage: React.FC = () => {
   // ─── Pagination State ───
   const [pagination, setPagination] = useState({
     page: 1,
-    pageSize: 24,
+    pageSize: 0, // 0 表示尚未初始化，等 cols 确定后再加载
     total: 0,
   });
 
@@ -355,23 +355,36 @@ const PhotoCardsMgtPage: React.FC = () => {
   const [cols, setCols] = useState(4);
   /** 请求版本号，用于消除 cols 变化导致的竞态：只有最新请求的响应才更新状态 */
   const requestIdRef = useRef(0);
+  /** 是否已完成首次加载（cols 稳定后只触发一次） */
+  const initialLoadedRef = useRef(false);
+  // ★ ResizeObserver 防抖定时器
+  const resizeTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
-  /** 从 grid container 读取实际渲染列数 */
+  /** 从 grid container 读取实际渲染列数（带防抖） */
   const readActualCols = useCallback(() => {
-    const el = cardContainerRef.current;
-    if (!el) return;
-    // 找到 .card-grid 元素（cardContainerRef 挂在 card-spin-wrapper 上，向下找 grid）
-    const grid = el.querySelector(
-      `.${styles['card-grid']}`,
-    ) as HTMLElement | null;
-    if (!grid) return;
-    const templateCols = getComputedStyle(grid).gridTemplateColumns;
-    // gridTemplateColumns 返回 "150px 150px 150px ..." 这样的字符串，数空格分隔数即列数
-    const count = templateCols.split(' ').filter(Boolean).length;
-    if (count > 0) setCols(count);
+    // 防抖：100ms 内只执行一次
+    clearTimeout(resizeTimerRef.current);
+    resizeTimerRef.current = setTimeout(() => {
+      const el = cardContainerRef.current;
+      if (!el) return;
+      // 找到 .card-grid 元素（cardContainerRef 挂在 card-spin-wrapper 上，向下找 grid）
+      const grid = el.querySelector(
+        `.${styles['card-grid']}`,
+      ) as HTMLElement | null;
+      if (!grid) return;
+      const templateCols = getComputedStyle(grid).gridTemplateColumns;
+      // gridTemplateColumns 返回 "150px 150px 150px ..." 这样的字符串，数空格分隔数即列数
+      const count = templateCols.split(' ').filter(Boolean).length;
+      if (count > 0) setCols(count);
+    }, 150); // 150ms 防抖，给布局更多稳定时间
   }, []);
 
   const dynamicPageSize = cols * 3; // 精确 3 行
+
+  // cols 变化时加载的 refs（必须在 useEffect 之前声明）
+  const colsTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  /** 上一次实际用于请求的 cols（防止重复请求） */
+  const requestedColsRef = useRef<number | null>(null);
 
   useEffect(() => {
     const el = cardContainerRef.current;
@@ -380,35 +393,49 @@ const PhotoCardsMgtPage: React.FC = () => {
       readActualCols();
     });
     observer.observe(el);
-    // 初始测量延迟到 loading 结束后执行，确保左侧 tree 已撑开、右侧容器宽度稳定
+    // 初始测量延迟到 loading 结束后执行
+    let rafId: number | undefined;
     if (!loading) {
-      const raf = requestAnimationFrame(readActualCols);
-      return () => {
-        observer.disconnect();
-        cancelAnimationFrame(raf);
-      };
+      rafId = requestAnimationFrame(readActualCols);
     }
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (rafId !== undefined) cancelAnimationFrame(rafId);
+    };
   }, [readActualCols, loading]);
-
-  // cols 变化时重新加载（防抖 100ms，等布局稳定）
-  const colsTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     if (cols <= 0) return;
-    // 首次渲染 pagination.pageSize 是 24（默认值），
-    // 只要 dynamicPageSize 不等于当前 pageSize 就触发修正
-    if (pagination.pageSize === cols * 3) return; // 已经对齐，跳过
+
+    // 首次加载：cols + selectedNodeId 都就绪后才请求数据
+    if (!initialLoadedRef.current) {
+      // 等 selectedNodeId 有值（默认选中根节点后）再触发
+      if (!filterCategoryId) return;
+
+      clearTimeout(colsTimerRef.current);
+      colsTimerRef.current = setTimeout(() => {
+        initialLoadedRef.current = true;
+        requestedColsRef.current = cols;
+        ++requestIdRef.current;
+        loadCards(filterCategoryId, artistIdsParam, 1, cols * 3);
+      }, 400);
+      return () => clearTimeout(colsTimerRef.current);
+    }
+
+    // 后续变化：cols 没变则跳过
+    if (requestedColsRef.current === cols) return;
 
     clearTimeout(colsTimerRef.current);
     colsTimerRef.current = setTimeout(() => {
+      if (requestedColsRef.current === cols) return;
+      requestedColsRef.current = cols;
       ++requestIdRef.current;
       loadCards(filterCategoryId, artistIdsParam, 1, cols * 3);
-    }, 100);
+    }, 500);
 
-    return () => clearTimeout(colsTimerRef.current);
+    return () => clearTimeout(colsTimerRef);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cols]);
+  }, [cols, filterCategoryId]);
 
   // ─── Tree State ───
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
@@ -462,6 +489,9 @@ const PhotoCardsMgtPage: React.FC = () => {
   const treeData = categoryTreeData;
   const selectedNodeId = selectedKeys[0] as number | undefined;
 
+  // ★ 优化1: 缓存 flattenTree 结果，避免频繁递归
+  const flatTreeData = useMemo(() => flattenTree(treeData), [treeData]);
+
   const selectedNodeData = useMemo(
     () => (selectedNodeId ? findNode(treeData, selectedNodeId) : undefined),
     [selectedNodeId, treeData],
@@ -477,7 +507,18 @@ const PhotoCardsMgtPage: React.FC = () => {
     return ids.length > 0 ? ids.join(',') : undefined;
   }, [selectedArtists]);
 
-  // ─── 加载小卡列表（支持分类 + 艺人联合筛选，带竞态保护） ───
+  // ─── 过滤后的小卡列表（后端已处理艺人筛选，这里直接用 cards） ───
+  const filteredCards = cards;
+
+  // ★ 优化2: 缓存卡片图片URL，避免每张卡片重复调用 getImageUrl
+  const filteredCardsWithUrls = useMemo(
+    () =>
+      (filteredCards || []).map((card) => ({
+        ...card,
+        frontImageUrl: getImageUrl(card.frontImage),
+      })),
+    [filteredCards],
+  );
   const loadCards = useCallback(
     async (
       categoryId?: number,
@@ -525,31 +566,17 @@ const PhotoCardsMgtPage: React.FC = () => {
     [],
   );
 
-  // ─── 过滤后的小卡列表（后端已处理艺人筛选，这里直接用 cards） ───
-  const filteredCards = cards;
-
-  // ─── 加载数据（只在 mount 执行一次，不依赖 cols）───
+  // ─── 加载辅助数据（只在 mount 执行一次，不含卡片数据）───
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      // 初始 pageSize 先用一个合理默认值（后面 ResizeObserver 会修正）
-      const [categoryRes, cardsRes, artistRes, cardTypeRes] = await Promise.all(
-        [
-          getPhotoCardCategories(),
-          getPhotoCards({ page: 1, pageSize: 24 }),
-          getArtistList(),
-          getPhotoCardTypes(),
-        ],
-      );
+      // 卡片数据由 cols useEffect 统一加载（等列数稳定后用正确的 pageSize）
+      const [categoryRes, artistRes, cardTypeRes] = await Promise.all([
+        getPhotoCardCategories(),
+        getArtistList(),
+        getPhotoCardTypes(),
+      ]);
       setCategoryTreeData(categoryRes || []);
-      if (cardsRes) {
-        setCards(cardsRes.list || []);
-        setPagination({
-          page: cardsRes.page,
-          pageSize: cardsRes.pageSize,
-          total: cardsRes.total,
-        });
-      }
       setArtists(artistRes || []);
       setCardTypes(cardTypeRes || []);
     } catch {
@@ -600,19 +627,17 @@ const PhotoCardsMgtPage: React.FC = () => {
   // 默认展开所有节点，并选中第一个根节点
   useEffect(() => {
     if (categoryTreeData.length > 0) {
-      const allIds = flattenTree(categoryTreeData).map((c) => c.id);
+      // ★ 优化: 使用缓存的 flatTreeData
+      const allIds = flatTreeData.map((c) => c.id);
       setExpandedKeys(allIds);
       if (selectedKeys.length === 0) {
         const firstRoot = categoryTreeData[0];
         if (firstRoot) {
           setSelectedKeys([firstRoot.id]);
-          // ★ 这里要等 cols 稳定后再请求，所以不传 dynamicPageSize（让 cols effect 去修正）
-          // 或者加判断：如果 cols 已经稳定（不是默认值4），直接用 dynamicPageSize
-          loadCards(firstRoot.id, artistIdsParam, 1, cols > 4 ? cols * 3 : 24);
         }
       }
     }
-  }, [categoryTreeData]); // ← 不要把 dynamicPageSize 放进依赖，避免 cols 变化再次触发
+  }, [categoryTreeData, flatTreeData]); // 只设置选中状态，数据加载交给 cols useEffect 统一处理
 
   // ─── 树节点 CRUD ───
 
@@ -655,7 +680,7 @@ const PhotoCardsMgtPage: React.FC = () => {
         cancelText: '取消',
         onOk: async () => {
           try {
-            const ids = getDescendantIds(treeData, node.id);
+            const ids = [node.id, ...getDescendantIds(treeData, node.id)];
             await Promise.all(ids.map((id) => deletePhotoCardCategory(id)));
             message.success('删除成功');
             refreshData();
@@ -671,14 +696,23 @@ const PhotoCardsMgtPage: React.FC = () => {
     [treeData, selectedKeys, refreshData],
   );
 
-  // 树操作 handlers
-  const treeHandlers: TreeHandlers = {
-    onAdd: (parentId) => handleNodeAdd(parentId),
-    onRename: (node) => handleNodeRename(node),
-    onDelete: (node) => handleNodeDelete(node),
-    onMoveUp: (node) => handleMoveUp(node),
-    onMoveDown: (node) => handleMoveDown(node),
-  };
+  // 树操作 handlers（用 useCallback 包裹，保持引用稳定）
+  const treeHandlers: TreeHandlers = useMemo(
+    () => ({
+      onAdd: (parentId) => handleNodeAdd(parentId),
+      onRename: (node) => handleNodeRename(node),
+      onDelete: (node) => handleNodeDelete(node),
+      onMoveUp: (node) => handleMoveUp(node),
+      onMoveDown: (node) => handleMoveDown(node),
+    }),
+    [
+      handleNodeAdd,
+      handleNodeRename,
+      handleNodeDelete,
+      handleMoveUp,
+      handleMoveDown,
+    ],
+  );
 
   const submitNodeForm = async () => {
     try {
@@ -785,7 +819,7 @@ const PhotoCardsMgtPage: React.FC = () => {
       }
       setSelectedKeys(keys);
       const nodeId = keys[0] as number;
-      loadCards(nodeId, artistIdsParam);
+      loadCards(nodeId, artistIdsParam, 1, dynamicPageSize);
     },
     [artistIdsParam, loadCards],
   );
@@ -795,7 +829,7 @@ const PhotoCardsMgtPage: React.FC = () => {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       setSearchValue(value);
-      const allFlat = flattenTree(categoryTreeData);
+      // ★ 优化: 使用缓存的 flatTreeData，避免每次输入都递归遍历
       if (value) {
         const matchedKeys: React.Key[] = [];
         const searchNodes = (nodes: TreeCategory[]) => {
@@ -810,11 +844,12 @@ const PhotoCardsMgtPage: React.FC = () => {
         setExpandedKeys(matchedKeys);
         setAutoExpandParent(true);
       } else {
-        setExpandedKeys(allFlat.map((c) => c.id));
+        // ★ 优化: 使用缓存的 flatTreeData
+        setExpandedKeys(flatTreeData.map((c) => c.id));
         setAutoExpandParent(false);
       }
     },
-    [treeData, categoryTreeData],
+    [treeData, flatTreeData],
   );
 
   // ─── 艺人筛选切换（联动接口请求） ───
@@ -843,9 +878,9 @@ const PhotoCardsMgtPage: React.FC = () => {
   useEffect(() => {
     // 只有在已选中树节点时才触发
     if (selectedNodeId) {
-      loadCards(selectedNodeId, artistIdsParam);
+      loadCards(selectedNodeId, artistIdsParam, 1, dynamicPageSize);
     }
-  }, [artistIdsParam, selectedNodeId, loadCards]);
+  }, [artistIdsParam, selectedNodeId, loadCards, dynamicPageSize]);
 
   // ─── 新增小卡（跳转到新增页面） ───
 
@@ -1303,8 +1338,8 @@ const PhotoCardsMgtPage: React.FC = () => {
               </div>
             )}
             <div className={styles['card-grid']}>
-              {filteredCards.length > 0
-                ? filteredCards.map((card) => (
+              {filteredCardsWithUrls.length > 0
+                ? filteredCardsWithUrls.map((card) => (
                     <CardItem
                       key={card.id}
                       card={card}
@@ -1569,7 +1604,7 @@ const PhotoCardsMgtPage: React.FC = () => {
           {/* 所属分类 - 预选当前树节点，禁用编辑 */}
           <Form.Item label="所属分类" name="categoryId">
             <Select placeholder="请选择分类" allowClear disabled>
-              {flattenTree(treeData).map((c) => (
+              {flatTreeData.map((c) => (
                 <Select.Option key={c.id} value={c.id}>
                   {c.name}
                 </Select.Option>
@@ -1639,7 +1674,7 @@ const PhotoCardsMgtPage: React.FC = () => {
 
           <Form.Item label="所属分类" name="categoryId">
             <Select placeholder="留空则不修改" allowClear>
-              {flattenTree(categoryTreeData).map((c) => (
+              {flatTreeData.map((c) => (
                 <Select.Option key={c.id} value={c.id}>
                   {c.name}
                 </Select.Option>

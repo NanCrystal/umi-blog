@@ -19,6 +19,7 @@ import {
   PauseCircleFilled,
   CloseCircleFilled,
   UploadOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { Modal, message, Form, Input, Select, DatePicker } from 'antd';
@@ -1094,6 +1095,29 @@ const VoicePage: React.FC<Props> = () => {
     });
   };
 
+  // 批量隐藏音频
+  const handleBatchHide = () => {
+    const ids = Array.from(selectedIds);
+    Modal.confirm({
+      title: '确认隐藏',
+      content: `确定要隐藏选中的 ${ids.length} 条音频吗？隐藏后在前端将不再显示。`,
+      okText: '隐藏',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await batchUpdateVoices(ids, { hidden: true });
+          message.success(`成功隐藏 ${ids.length} 条音频`);
+          setSelectedIds(new Set());
+          setSelectedRowKeys([]);
+          // 刷新数据
+          fetchVoices();
+        } catch {
+          message.error('隐藏失败');
+        }
+      },
+    });
+  };
+
   // 批量设置
   const handleBatchEdit = () => {
     if (selectedIds.size === 0) return;
@@ -1202,6 +1226,13 @@ const VoicePage: React.FC<Props> = () => {
                     onClick={handleBatchDelete}
                   >
                     删除
+                  </Button>
+                  <Button
+                    icon={<EyeOutlined />}
+                    disabled={selectedRowKeys.length === 0}
+                    onClick={handleBatchHide}
+                  >
+                    批量隐藏
                   </Button>
                   <Button
                     icon={<DownloadOutlined />}
