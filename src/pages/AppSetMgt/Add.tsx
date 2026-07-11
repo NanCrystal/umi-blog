@@ -9,7 +9,6 @@ import {
   InputNumber,
   Button,
   Upload,
-  Image,
   message,
 } from 'antd';
 import {
@@ -59,6 +58,9 @@ const AddModulePage: React.FC = () => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const [imageRetryCount, setImageRetryCount] = useState<
+    Record<number, number>
+  >({});
 
   useEffect(() => {
     fetchArtists();
@@ -469,19 +471,27 @@ const AddModulePage: React.FC = () => {
                               opacity: dragIndex === index ? 0.5 : 1,
                             }}
                           >
-                            <Image
+                            <img
                               src={`${getImageUrl(url)}${
                                 imageErrors.has(index) ? `?t=${Date.now()}` : ''
                               }`}
                               width={100}
                               height={60}
-                              style={{ borderRadius: 4, objectFit: 'cover' }}
-                              fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'%3E%3Crect fill='%23333' width='100' height='60'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-size='10'%3E加载中...%3C/text%3E%3C/svg%3E"
+                              style={{
+                                borderRadius: 4,
+                                objectFit: 'cover',
+                                display: 'block',
+                              }}
                               onError={() => {
+                                const retries = imageRetryCount[index] || 0;
+                                if (retries >= 3) return;
                                 setImageErrors((prev) =>
                                   new Set(prev).add(index),
                                 );
-                                // 延迟重试（CDN传播延迟）
+                                setImageRetryCount((prev) => ({
+                                  ...prev,
+                                  [index]: retries + 1,
+                                }));
                                 setTimeout(() => {
                                   setImageErrors((prev) => {
                                     const next = new Set(prev);
