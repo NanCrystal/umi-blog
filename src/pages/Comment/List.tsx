@@ -247,6 +247,7 @@ const CommentsList: React.FC = () => {
             <div className={styles['table-header-title']}>
               <MessageOutlined style={{ marginRight: 8 }} />
               留言列表
+              <span className={styles['table-header-count']}>({total})</span>
             </div>
           )}
           pagination={{
