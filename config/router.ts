@@ -19,6 +19,7 @@ const ArtistMgtAppSet = '@/pages/ArtistMgt/AppSet';
 const AppSetMgt = '@/pages/AppSetMgt/index';
 const AppSetMgtAddPage = '@/pages/AppSetMgt/Add';
 const SyncMgtPage = '@/pages/SyncMgt/index';
+const SyncMgtAddPage = '@/pages/SyncMgt/Add';
 
 const DataMgtPage = '@/pages/DataMgt/index';
 const ItineraryMgtPage = '@/pages/ItineraryMgt/index';
@@ -90,6 +91,7 @@ export default [
         component: AppSetMgtAddPage,
       },
       { exact: true, path: '/admin/sync', component: SyncMgtPage },
+      { exact: true, path: '/admin/sync/add', component: SyncMgtAddPage },
       { exact: true, path: '/admin/photo_info', component: PhotoInfoPage },
       { exact: true, path: '/admin/photo_info', component: PhotoInfoPage },
       { exact: true, path: '/admin/comments', component: CommentListPage },

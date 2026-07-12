@@ -141,6 +141,44 @@ export async function deleteSyncPost(id: number) {
   return request(`/sync/posts/${id}`, { method: 'DELETE' });
 }
 
+/** 手动新建同步记录（含关联媒体） */
+export async function createSyncPost(data: {
+  artistId: number;
+  platform: string;
+  platformPostId?: string;
+  title?: string;
+  content: string;
+  publishTime?: string;
+  images?: string[];
+  media?: {
+    mediaType: 'PHOTO' | 'VIDEO' | 'VOICE';
+    mediaId: number;
+    sortOrder: number;
+  }[];
+}) {
+  return request('/sync/posts', { method: 'POST', data });
+}
+
+/** 编辑同步记录（含关联媒体整条替换） */
+export async function updateSyncPost(
+  id: number,
+  data: {
+    artistId?: number;
+    platform?: string;
+    title?: string;
+    content?: string;
+    publishTime?: string;
+    images?: string[];
+    media?: {
+      mediaType: 'PHOTO' | 'VIDEO' | 'VOICE';
+      mediaId: number;
+      sortOrder: number;
+    }[];
+  },
+) {
+  return request(`/sync/posts/${id}`, { method: 'PUT', data });
+}
+
 export async function batchDeleteSyncPosts(ids: number[]) {
   return request('/sync/posts/batch-delete', {
     method: 'POST',

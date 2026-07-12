@@ -198,6 +198,22 @@ export async function updateVoice(
   return request(`/audios/${id}`, { method: 'PUT', data });
 }
 
+/** 简单分页列表（供媒体库弹窗选择） */
+export async function getVoices(params: {
+  page?: number;
+  pageSize?: number;
+  artistIds?: string[];
+}) {
+  return request('/audios', {
+    method: 'GET',
+    params: {
+      page: params.page,
+      pageSize: params.pageSize,
+      artistIds: params.artistIds?.join(','),
+    },
+  });
+}
+
 /** 批量更新音频 */
 export async function batchUpdateVoices(
   ids: number[],

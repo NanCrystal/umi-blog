@@ -628,3 +628,334 @@
     }
   }
 }
+
+// ========== 新建/编辑弹窗 ==========
+.sync-add-modal {
+  :global(.ant-modal-content) {
+    background: #141414;
+    border: 1px solid #262626;
+  }
+
+  :global(.ant-modal-header) {
+    background: #141414;
+    border-bottom: 1px solid #262626;
+  }
+
+  :global(.ant-modal-title) {
+    color: #fff;
+  }
+
+  :global(.ant-form-item-label > label) {
+    color: #bbb;
+  }
+
+  :global(.ant-input),
+  :global(.ant-input-number),
+  :global(.ant-picker),
+  :global(.ant-select-selector) {
+    background: #1f1f1f !important;
+    border-color: #333 !important;
+    color: #fff !important;
+  }
+
+  :global(.ant-select-selection-placeholder),
+  :global(.ant-input::placeholder) {
+    color: #666 !important;
+  }
+
+  :global(.ant-select-arrow),
+  :global(.ant-picker-suffix) {
+    color: #888 !important;
+  }
+
+  :global(.ant-modal-body) {
+    max-height: 78vh;
+    overflow-y: auto;
+  }
+}
+
+.add-form {
+  .add-row {
+    display: flex;
+    gap: 16px;
+  }
+
+  .add-media-title {
+    margin: 8px 0 12px;
+    font-size: 13px;
+    color: #999;
+    border-top: 1px solid #262626;
+    padding-top: 16px;
+  }
+
+  .add-media-block {
+    margin-bottom: 16px;
+    padding: 12px;
+    border: 1px solid #262626;
+    background: #1a1a1a;
+  }
+
+  .add-media-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .add-media-label {
+    font-size: 13px;
+    color: #ccc;
+  }
+
+  .add-lib-btn {
+    background: transparent;
+    border-color: #4a9eff;
+    color: #4a9eff;
+
+    &:hover {
+      background: rgba(74, 158, 255, 0.1) !important;
+      color: #4a9eff !important;
+    }
+  }
+
+  .add-thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .add-thumb-wrap {
+    position: relative;
+    width: 92px;
+    border: 1px solid #333;
+    background: #0a0a0a;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+
+  /* 拖拽中（源）高亮：绿色描边 + 发光 + 微放大 */
+  .add-thumb-drag {
+    border-color: #5fa657 !important;
+    box-shadow: 0 0 0 2px rgba(95, 166, 87, 0.5), 0 4px 12px rgba(0, 0, 0, 0.5);
+    transform: scale(1.06);
+    opacity: 0.9;
+    z-index: 2;
+  }
+
+  /* 放置目标高亮：虚线绿框 + 浅绿底 */
+  .add-thumb-drop {
+    border-color: #5fa657 !important;
+    border-style: dashed;
+    background: rgba(95, 166, 87, 0.12);
+  }
+
+  .add-thumb {
+    width: 100%;
+    height: 72px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .add-audio {
+    width: 100%;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    font-size: 13px;
+  }
+
+  .add-thumb-name {
+    font-size: 11px;
+    color: #999;
+    padding: 2px 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .add-thumb-del {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    padding: 2px;
+    cursor: pointer;
+    font-size: 12px;
+
+    &:hover {
+      color: #e85d5d;
+    }
+  }
+
+  .add-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+  }
+}
+
+// ========== 预览弹窗 ==========
+.add-preview-modal {
+  :global(.ant-modal-content) {
+    background: #141414;
+    border: 1px solid #262626;
+  }
+
+  :global(.ant-modal-header) {
+    background: #141414;
+    border-bottom: 1px solid #262626;
+  }
+
+  :global(.ant-modal-title) {
+    color: #fff;
+  }
+
+  :global(.ant-modal-body) {
+    background: #0a0a0a;
+    padding: 12px;
+  }
+}
+
+// ========== 新增/编辑独立页面 ==========
+.sync-add-page {
+  padding: 20px 28px 40px;
+  min-height: 100%;
+  box-sizing: border-box;
+
+  .add-page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .add-page-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .add-page-body {
+    max-width: 920px;
+    background: #141414;
+    border: 1px solid #262626;
+    padding: 24px 28px 28px;
+    box-sizing: border-box;
+
+    // 发布时间选择器在深色背景下文字改为白色
+    :global(.ant-picker-input) > input {
+      color: #fff;
+    }
+  }
+}
+
+// ========== 媒体库选择弹窗 ==========
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  max-height: 52vh;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.picker-cell {
+  position: relative;
+  border: 1px solid #333;
+  background: #0a0a0a;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: #666;
+  }
+}
+
+.picker-cell-active {
+  border-color: #5fa657;
+}
+
+.picker-thumb {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  display: block;
+}
+
+.picker-audio {
+  height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #888;
+
+  .picker-audio-name {
+    font-size: 11px;
+    color: #aaa;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .picker-audio-dur {
+    font-size: 10px;
+    color: #666;
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+.picker-check {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: #5fa657;
+  font-size: 18px;
+  background: #141414;
+  border-radius: 50%;
+}
+
+.picker-cap {
+  font-size: 11px;
+  color: #aaa;
+  padding: 2px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.picker-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #262626;
+}
+
+.picker-page-btn {
+  background: #1f1f1f;
+  border: 1px solid #333;
+  color: #ccc;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 12px;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: #666;
+    color: #fff;
+  }
+}

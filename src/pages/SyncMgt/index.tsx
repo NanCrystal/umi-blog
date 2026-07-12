@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { history } from 'umi';
 import {
   Tabs,
   Table,
@@ -19,10 +20,12 @@ import {
   ReloadOutlined,
   ThunderboltOutlined,
   DeleteOutlined,
+  PlusOutlined,
   EyeOutlined,
   UploadOutlined,
   LinkOutlined,
   DownloadOutlined,
+  EditOutlined,
   WeiboSquareOutlined,
   InstagramOutlined,
   TikTokOutlined,
@@ -335,7 +338,11 @@ const SyncMgtPage = () => {
     Modal.confirm({
       title: '确认取消关联',
       content: `确定要取消与 ${
-        mediaItem.mediaType === 'PHOTO' ? '照片' : '视频'
+        mediaItem.mediaType === 'PHOTO'
+          ? '照片'
+          : mediaItem.mediaType === 'VIDEO'
+          ? '视频'
+          : '音频'
       } #${mediaItem.media?.id} 的关联吗？`,
       okText: '确认取消',
       okType: 'danger',
@@ -366,7 +373,7 @@ const SyncMgtPage = () => {
   const images = detailRecord?.images || [];
   // 构建展示媒体列表（含类型信息）
   const linkedDisplay: {
-    type: 'photo' | 'video';
+    type: 'photo' | 'video' | 'voice';
     url: string;
     originalUrl?: string;
     id?: number;
@@ -392,6 +399,15 @@ const SyncMgtPage = () => {
         type: 'video',
         url: getImageUrl(m.media.originalUrl),
         originalUrl: m.media.originalUrl,
+        id: m.media?.id,
+        mediaType: m.mediaType,
+        visibility: m.visibility,
+      });
+    } else if (m.mediaType === 'VOICE' && m.media?.qiniuKey) {
+      linkedDisplay.push({
+        type: 'voice',
+        url: getImageUrl(m.media.qiniuKey),
+        originalUrl: m.media.qiniuKey,
         id: m.media?.id,
         mediaType: m.mediaType,
         visibility: m.visibility,
@@ -567,9 +583,21 @@ const SyncMgtPage = () => {
         const hasVideo = record.linkedMedia.some(
           (m: any) => m.mediaType === 'VIDEO',
         );
+        const hasVoice = record.linkedMedia.some(
+          (m: any) => m.mediaType === 'VOICE',
+        );
+        const parts: string[] = [];
+        if (hasPhoto) parts.push('图片');
+        if (hasVideo) parts.push('视频');
+        if (hasVoice) parts.push('音频');
         return (
-          <span style={{ color: hasVideo ? '#999' : '#5fa657', fontSize: 12 }}>
-            {hasPhoto && hasVideo ? '图片/视频' : hasPhoto ? '图片' : '视频'}
+          <span
+            style={{
+              color: hasVoice && !hasPhoto && !hasVideo ? '#b37feb' : '#999',
+              fontSize: 12,
+            }}
+          >
+            {parts.join('/')}
           </span>
         );
       },
@@ -621,6 +649,16 @@ const SyncMgtPage = () => {
           <Button
             type="link"
             size="small"
+            icon={<EditOutlined />}
+            onClick={() => {
+              history.push(`/admin/sync/add?id=${record.id}`);
+            }}
+          >
+            编辑
+          </Button>
+          <Button
+            type="link"
+            size="small"
             danger
             icon={<DeleteOutlined />}
             onClick={() => handleDelete(record.id)}
@@ -646,6 +684,16 @@ const SyncMgtPage = () => {
             <div className={styles['mgt-page-title']}>社交同步管理</div>
             <div className={styles['mgt-page-actions']}>
               <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                style={{ background: '#5fa657', borderColor: '#5fa657' }}
+                onClick={() => {
+                  history.push('/admin/sync/add');
+                }}
+              >
+                新建
+              </Button>
+              <Button
                 icon={<ReloadOutlined />}
                 onClick={() => {
                   setPage(1);
@@ -654,7 +702,7 @@ const SyncMgtPage = () => {
               >
                 刷新
               </Button>
-              <Button
+              {/* <Button
                 icon={<SyncOutlined spin={syncing} />}
                 loading={syncing}
                 onClick={handleSyncAll}
@@ -682,7 +730,7 @@ const SyncMgtPage = () => {
                 onClick={() => setImportModalOpen(true)}
               >
                 导入
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>
@@ -762,7 +810,7 @@ const SyncMgtPage = () => {
             >
               批量删除
             </Button>
-            <Button
+            {/* <Button
               type="primary"
               icon={<ThunderboltOutlined spin={quickSyncing || fullSyncing} />}
               loading={quickSyncing || fullSyncing}
@@ -770,7 +818,7 @@ const SyncMgtPage = () => {
             >
               一键同步
               {activeTab ? `(${platformLabels[activeTab] || activeTab})` : ''}
-            </Button>
+            </Button> */}
             <Button danger icon={<DeleteOutlined />} onClick={handleClearAll}>
               一键清空
             </Button>
@@ -1020,7 +1068,13 @@ const SyncMgtPage = () => {
 
       {/* 详情弹窗（与 PhotoMgt 预览样式完全一致） */}
       <Modal
-        title={currentMedia?.type === 'video' ? '视频详情' : '图片详情'}
+        title={
+          currentMedia?.type === 'video'
+            ? '视频详情'
+            : currentMedia?.type === 'voice'
+            ? '音频详情'
+            : '图片详情'
+        }
         open={detailModalOpen}
         onCancel={() => setDetailModalOpen(false)}
         footer={null}
@@ -1046,104 +1100,139 @@ const SyncMgtPage = () => {
             </span>
 
             {/* 左侧：预览（图片或视频） */}
-            <div
-              className={
-                styles[
-                  currentMedia?.type === 'video'
-                    ? 'preview-video'
-                    : 'preview-image'
-                ]
-              }
-            >
-              {currentMedia?.type === 'video' ? (
-                <video
-                  src={currentMedia.url}
-                  controls
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
-                    display: 'block',
-                  }}
-                >
-                  您的浏览器不支持视频播放
-                </video>
-              ) : (
-                <img
-                  src={
-                    currentMedia?.url
-                      ? `${currentMedia.url}?imageView2/2/w/800/q/90`
-                      : ''
-                  }
-                  alt={`媒体 ${currentImgIndex + 1}`}
-                />
-              )}
-
-              {/* 恢复显示按钮 - 左上角 */}
-              {currentMedia?.visibility?.hiddenInGallery === true && (
-                <div
-                  className={styles['preview-show-btn']}
-                  title="恢复显示"
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    try {
-                      // 获取当前媒体对应的linkedMedia中的SocialPostMedia ID
-                      const currentLinkedMedia = linkedMedia.find(
-                        (m: any) => m.media?.id === currentMedia?.id,
-                      );
-                      const socialPostMediaId = currentLinkedMedia?.id;
-                      const mediaType =
-                        currentLinkedMedia?.mediaType || 'PHOTO';
-
-                      if (socialPostMediaId) {
-                        await fetch(
-                          `/api/sync/posts/${detailRecord.id}/media/${socialPostMediaId}/show`,
-                          {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ mediaType }),
-                          },
+            {displayMedia.length > 0 && currentMedia?.url && (
+              <div
+                className={
+                  styles[
+                    currentMedia?.type === 'video'
+                      ? 'preview-video'
+                      : currentMedia?.type === 'voice'
+                      ? 'preview-video'
+                      : 'preview-image'
+                  ]
+                }
+              >
+                {currentMedia.type === 'video' ? (
+                  <video
+                    src={currentMedia.url}
+                    controls
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      display: 'block',
+                    }}
+                  >
+                    您的浏览器不支持视频播放
+                  </video>
+                ) : currentMedia.type === 'voice' ? (
+                  <div
+                    style={{ padding: 20, textAlign: 'center', width: '100%' }}
+                  >
+                    <audio
+                      src={currentMedia.url}
+                      controls
+                      controlsList="nodownload"
+                      style={{ width: '100%', outline: 'none' }}
+                      preload="metadata"
+                    >
+                      您的浏览器不支持音频播放
+                    </audio>
+                  </div>
+                ) : (
+                  <img
+                    src={`${currentMedia.url}?imageView2/2/w/800/q/90`}
+                    alt={`媒体 ${currentImgIndex + 1}`}
+                  />
+                )}
+                {currentMedia?.visibility?.hiddenInGallery === true && (
+                  <div
+                    className={styles['preview-show-btn']}
+                    title="恢复显示"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      try {
+                        // 获取当前媒体对应的linkedMedia中的SocialPostMedia ID
+                        const currentLinkedMedia = linkedMedia.find(
+                          (m: any) => m.media?.id === currentMedia?.id,
                         );
-                        message.success('已恢复显示');
-                      } else {
-                        // 如果找不到关联，直接调用photos的show接口
-                        await fetch(`/api/photos/${currentMedia?.id}/show`, {
-                          method: 'PATCH',
-                        });
-                        message.success('已恢复显示');
-                      }
-                      setDetailModalOpen(false);
-                    } catch (error) {
-                      message.error('恢复显示失败');
-                    }
-                  }}
-                >
-                  <EyeOutlined />
-                  {/* <span className={styles['preview-show-btn-text']}>恢复显示</span> */}
-                </div>
-              )}
+                        const socialPostMediaId = currentLinkedMedia?.id;
+                        const mediaType =
+                          currentLinkedMedia?.mediaType || 'PHOTO';
 
-              {displayMedia.length > 0 && (
-                <span
-                  className={styles['preview-download-btn']}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const url = currentMedia?.url;
-                    if (!url) return;
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download =
-                      currentMedia.type === 'video' ? 'video.mp4' : 'image.jpg';
-                    a.target = '_blank';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                  }}
-                >
-                  <DownloadOutlined />
-                  {currentMedia?.type === 'video' ? '下载视频' : '下载'}
-                </span>
-              )}
-            </div>
+                        if (socialPostMediaId) {
+                          await fetch(
+                            `/api/sync/posts/${detailRecord.id}/media/${socialPostMediaId}/show`,
+                            {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ mediaType }),
+                            },
+                          );
+                          message.success('已恢复显示');
+                        } else {
+                          // 如果找不到关联，直接调用photos的show接口
+                          await fetch(`/api/photos/${currentMedia?.id}/show`, {
+                            method: 'PATCH',
+                          });
+                          message.success('已恢复显示');
+                        }
+                        setDetailModalOpen(false);
+                      } catch (error) {
+                        message.error('恢复显示失败');
+                      }
+                    }}
+                  >
+                    <EyeOutlined />
+                    {/* <span className={styles['preview-show-btn-text']}>恢复显示</span> */}
+                  </div>
+                )}
+
+                {displayMedia.length > 0 && (
+                  <span
+                    className={styles['preview-download-btn']}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const url = currentMedia?.url;
+                      if (!url) return;
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download =
+                        currentMedia.type === 'video'
+                          ? 'video.mp4'
+                          : currentMedia.type === 'voice'
+                          ? 'audio.mp3'
+                          : 'image.jpg';
+                      a.target = '_blank';
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                    }}
+                  >
+                    <DownloadOutlined />
+                    {currentMedia?.type === 'video'
+                      ? '下载视频'
+                      : currentMedia?.type === 'voice'
+                      ? '下载音频'
+                      : '下载'}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {(!displayMedia.length || !currentMedia?.url) && (
+              <div
+                style={{
+                  flex: '0 0 320px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#666',
+                  fontSize: 14,
+                }}
+              >
+                无
+              </div>
+            )}
 
             {/* 右侧：详细信息 */}
             <div className={styles['preview-info']}>
@@ -1230,9 +1319,13 @@ const SyncMgtPage = () => {
                           const vc = linkedMedia.filter(
                             (m: any) => m.mediaType === 'VIDEO',
                           ).length;
+                          const ac = linkedMedia.filter(
+                            (m: any) => m.mediaType === 'VOICE',
+                          ).length;
                           const parts: string[] = [];
                           if (pc) parts.push(`${pc} 张照片`);
                           if (vc) parts.push(`${vc} 个视频`);
+                          if (ac) parts.push(`${ac} 个音频`);
                           return `已关联 ${parts.join('，')}`;
                         })()
                       : '未关联'}
@@ -1274,10 +1367,20 @@ const SyncMgtPage = () => {
                         }}
                       >
                         <Tag
-                          color={m.mediaType === 'PHOTO' ? 'green' : 'blue'}
+                          color={
+                            m.mediaType === 'PHOTO'
+                              ? 'green'
+                              : m.mediaType === 'VIDEO'
+                              ? 'blue'
+                              : 'purple'
+                          }
                           style={{ margin: 0, fontSize: 11, flexShrink: 0 }}
                         >
-                          {m.mediaType === 'PHOTO' ? '照片' : '视频'}
+                          {m.mediaType === 'PHOTO'
+                            ? '照片'
+                            : m.mediaType === 'VIDEO'
+                            ? '视频'
+                            : '音频'}
                         </Tag>
                         <span
                           style={{

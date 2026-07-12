@@ -110,6 +110,22 @@ export async function updateVideo(
   return request(`/videos/${id}`, { method: 'PUT', data });
 }
 
+/** 简单分页列表（供媒体库弹窗选择） */
+export async function getVideos(params: {
+  page?: number;
+  pageSize?: number;
+  artistIds?: string[];
+}) {
+  return request('/videos', {
+    method: 'GET',
+    params: {
+      page: params.page,
+      pageSize: params.pageSize,
+      artistIds: params.artistIds?.join(','),
+    },
+  });
+}
+
 /** 批量更新视频 */
 export async function batchUpdateVideos(
   ids: number[],

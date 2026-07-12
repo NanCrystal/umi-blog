@@ -669,8 +669,17 @@ textarea:focus {
     }
 
     > li {
-      color: var(--color-muted, #999999) !important;
       font-family: var(--font-mono, monospace) !important;
+
+      .ant-picker-time-panel-cell-inner {
+        color: #ffffff !important;
+      }
+
+      &:hover:not(.ant-picker-time-panel-cell-selected) {
+        .ant-picker-time-panel-cell-inner {
+          background: rgba(255, 255, 255, 0.15);
+        }
+      }
     }
 
     > li.ant-picker-time-panel-cell-selected {

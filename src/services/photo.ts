@@ -108,6 +108,22 @@ export async function updatePhoto(
   return request(`/photos/${id}`, { method: 'PUT', data });
 }
 
+/** 简单分页列表（供媒体库弹窗选择） */
+export async function getPhotos(params: {
+  page?: number;
+  pageSize?: number;
+  artistIds?: string[];
+}) {
+  return request('/photos', {
+    method: 'GET',
+    params: {
+      page: params.page,
+      pageSize: params.pageSize,
+      artistIds: params.artistIds?.join(','),
+    },
+  });
+}
+
 /** 删除单张照片 */
 export async function deletePhoto(id: number) {
   return request(`/photos/${id}`, { method: 'DELETE' });
