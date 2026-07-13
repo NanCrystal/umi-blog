@@ -492,6 +492,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime-corejs2@npm:^7.10.2":
+  version: 7.29.7
+  resolution: "@babel/runtime-corejs2@npm:7.29.7"
+  dependencies:
+    core-js: "npm:^2.6.12"
+  checksum: 10c0/b3e839e047f53f917588b8f487b6f77a48a79275f68c19356ee0510ebdccb3a56b7002a5c66f13d36ffd85e84857b4e289f4c3c6f7c39e1061d0772eed5ac6c5
+  languageName: node
+  linkType: hard
+
 "@babel/runtime@npm:7.18.6":
   version: 7.18.6
   resolution: "@babel/runtime@npm:7.18.6"
@@ -3101,31 +3110,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:3.6.5":
-  version: 3.6.5
-  resolution: "core-js@npm:3.6.5"
-  checksum: 10c0/ab5f869adda3d4dfa8e8753f5b6e6990196f585e701c5fdb2bfd780bdc57235ceefdcd156f557faf9c2d3ed6010383870d3082318f8eda3218b1908413477a04
-  languageName: node
-  linkType: hard
-
-"core-js@npm:3.8.2":
-  version: 3.8.2
-  resolution: "core-js@npm:3.8.2"
-  checksum: 10c0/cda6ebdb253401121f042d1cf97754c7e53b006a9c9b40e84ae201db261ae485307b642f668f8cb789dc66adc28ebcef4e99295650a73ca868a5a43d0668894a
-  languageName: node
-  linkType: hard
-
-"core-js@npm:^1.0.0":
-  version: 1.2.7
-  resolution: "core-js@npm:1.2.7"
-  checksum: 10c0/2b2966e40833f522129da4cc979688760654e9b38e32b06517a94c0edf2882d8990c4b1b0087cb2abfbe6219fdb21dc64343fa264a6b6280ec88c3682b8eee66
-  languageName: node
-  linkType: hard
-
-"core-js@npm:^2.4.0":
-  version: 2.6.12
-  resolution: "core-js@npm:2.6.12"
-  checksum: 10c0/00128efe427789120a06b819adc94cc72b96955acb331cb71d09287baf9bd37bebd191d91f1ee4939c893a050307ead4faea08876f09115112612b6a05684b63
+"core-js@npm:^3.36.0":
+  version: 3.49.0
+  resolution: "core-js@npm:3.49.0"
+  checksum: 10c0/2e42edb47eda38fd5368380131623c8aa5d4a6b42164125b17744bdc08fa5ebbbdd06b4b4aa6ca3663470a560b0f2fba48e18f142dfe264b0039df85bc625694
   languageName: node
   linkType: hard
 
@@ -7631,6 +7619,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"qiniu-js@npm:^3.4.4":
+  version: 3.4.4
+  resolution: "qiniu-js@npm:3.4.4"
+  dependencies:
+    "@babel/runtime-corejs2": "npm:^7.10.2"
+    querystring: "npm:^0.2.1"
+    spark-md5: "npm:^3.0.0"
+  checksum: 10c0/d10d1dc73b2e8c6f10bc8191f7e81a7c41d8a519f0ba904ecf0754d71489dc2cabb6391ab9caf7782fea16b8f15fab8a548b249e0c7aef6ede9861c9ea0586dc
+  languageName: node
+  linkType: hard
+
 "qiniu@npm:^7.15.1":
   version: 7.15.1
   resolution: "qiniu@npm:7.15.1"
@@ -7687,6 +7686,13 @@ __metadata:
   version: 0.2.1
   resolution: "querystring-es3@npm:0.2.1"
   checksum: 10c0/476938c1adb45c141f024fccd2ffd919a3746e79ed444d00e670aad68532977b793889648980e7ca7ff5ffc7bfece623118d0fbadcaf217495eeb7059ae51580
+  languageName: node
+  linkType: hard
+
+"querystring@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "querystring@npm:0.2.1"
+  checksum: 10c0/6841b32bec4f16ffe7f5b5e4373b47ad451f079cde3a7f45e63e550f0ecfd8f8189ef81fb50079413b3fc1c59b06146e4c98192cb74ed7981aca72090466cd94
   languageName: node
   linkType: hard
 
@@ -9179,6 +9185,7 @@ __metadata:
     lint-staged: "npm:^10.0.7"
     prettier: "npm:^2.2.0"
     qiniu: "npm:^7.15.1"
+    qiniu-js: "npm:^3.4.4"
     react: "npm:17.x"
     react-dom: "npm:17.x"
     react-lottie-player: "npm:^1.4.3"
@@ -9661,6 +9668,13 @@ __metadata:
   version: 0.7.6
   resolution: "source-map@npm:0.7.6"
   checksum: 10c0/59f6f05538539b274ba771d2e9e32f6c65451982510564438e048bc1352f019c6efcdc6dd07909b1968144941c14015c2c7d4369fb7c4d7d53ae769716dcc16c
+  languageName: node
+  linkType: hard
+
+"spark-md5@npm:^3.0.0":
+  version: 3.0.2
+  resolution: "spark-md5@npm:3.0.2"
+  checksum: 10c0/3fd11735eac5e7d60d6006d99ac0a055f148a89e9baf5f0b51ac103022dec30556b44190b37f6737ca50f81e8e50dc13e724f9edf6290c412ff5ab2101ce7780
   languageName: node
   linkType: hard
 

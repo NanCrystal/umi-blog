@@ -562,6 +562,96 @@
   opacity: 1;
 }
 
+/* ─── 分片上传进度面板（新增）─── */
+.chunk-upload-progress {
+  background: #0a0a0a;
+  border: 1px solid #262626;
+  padding: 16px 20px;
+  border-radius: 0;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.progress-filename {
+  color: #ffffff;
+  font-size: 14px;
+  font-family: 'Cormorant Garamond', serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+.progress-filesize {
+  color: #65dca8;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.progress-bar {
+  margin-bottom: 10px;
+
+  :global(.ant-progress-text) {
+    color: #c3d9f3 !important;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+
+  :global(.ant-progress-inner) {
+    background: #1a1a1a;
+  }
+}
+
+.progress-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-stats {
+  color: #666666;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+
+  span {
+    display: inline-block;
+  }
+}
+
+.progress-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  :global(.ant-btn-link) {
+    color: #999999;
+    padding: 0 4px;
+    font-size: 13px;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #ffffff;
+    }
+  }
+}
+
+.resume-hint {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(250, 173, 20, 0.08);
+  border-left: 2px solid #faad14;
+  color: #faad14;
+  font-size: 12px;
+  font-family: 'Cormorant Garamond', serif;
+}
+
 /* ─── 响应式 ─── */
 @media (max-width: 768px) {
   .tab-panel {
@@ -570,5 +660,9 @@
 
   .form-wrap {
     padding: 8px 0;
+  }
+
+  .progress-filename {
+    max-width: 180px;
   }
 }

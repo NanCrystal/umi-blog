@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { history } from 'umi';
 import {
   Breadcrumb,
@@ -9,6 +9,7 @@ import {
   Button,
   Upload,
   message,
+  Progress,
 } from 'antd';
 import {
   InboxOutlined,
@@ -16,6 +17,8 @@ import {
   CloseOutlined,
   PlayCircleOutlined,
   PictureOutlined,
+  PauseCircleOutlined,
+  LoadingOutlined,
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import {
@@ -27,12 +30,25 @@ import { getArtistList } from '@/services/artist';
 import { getItineraryList } from '@/services/itinerary';
 import { getImageUrl, formatFileSize } from '@/utils/utils';
 import { uploadVideoFile, createVideo } from '@/services/video';
-import { uploadImageFull } from '@/services/upload';
+import {
+  uploadImageFull,
+  createVideoUploadSession,
+  uploadVideoChunk,
+  completeVideoUpload,
+  getDirectUploadToken,
+  notifyDirectUpload,
+} from '@/services/upload';
 import styles from './Add.less';
+
+// 使用 require 绕过 qiniu-js 的类型问题
+const qiniu = require('qiniu-js');
 
 const { Dragger } = Upload;
 const { TextArea } = Input;
 const { Option } = Select;
+
+/** 分片大小：4MB */
+const CHUNK_SIZE = 4 * 1024 * 1024;
 
 const AddVideoComponent: React.FC = () => {
   const [form] = Form.useForm();
@@ -52,6 +68,20 @@ const AddVideoComponent: React.FC = () => {
   const [fileUrl, setFileUrl] = useState('');
   const [fileSize, setFileSize] = useState(0);
   const [submitLoading, setSubmitLoading] = useState(false);
+
+  // ─── 分片上传状态（新增）───
+  const [uploading, setUploading] = useState(false); // 是否正在上传
+  const [sessionId, setSessionId] = useState<string>(''); // 会话ID
+  const [progressPercent, setProgressPercent] = useState(0); // 进度百分比
+  const [uploadSpeed, setUploadSpeed] = useState(0); // 上传速度 bytes/s
+  const [remainingTime, setRemainingTime] = useState(0); // 剩余时间秒数
+  const [paused, setPaused] = useState(false); // 是否暂停
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // 选中的文件
+  const fileRef = useRef<File | null>(null); // 持久引用
+  const abortRef = useRef<boolean>(false); // 中止标志
+  const startTimeRef = useRef<number>(Date.now()); // 直传开始时间
+  const speedSampleTimeRef = useRef<number>(Date.now()); // 速度采样时间点
+  const speedSampleStartBytesRef = useRef<number>(0); // 速度采样起始字节
 
   // 封面上传状态
   const [coverUrl, setCoverUrl] = useState('');
@@ -86,31 +116,296 @@ const AddVideoComponent: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // ─── 上传处理 ───
-  const handleCustomRequest = async (options: any) => {
-    const { file, onSuccess, onError } = options;
-    try {
-      const res = await uploadVideoFile(file as File);
-      if (!res?.url) {
-        onError(new Error('上传失败'));
-        return;
+  // 页面离开时提示
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (uploading) {
+        e.preventDefault();
+        e.returnValue = '';
       }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [uploading]);
+
+  // ════════════════════════════════════════
+  // 🚀 分片上传核心逻辑（新增）
+  // ════════════════════════════════════════
+
+  /** 最大重试次数 */
+  const MAX_CHUNK_RETRIES = 3;
+  /** 重试延迟 ms */
+  const CHUNK_RETRY_DELAY = 2000;
+
+  /** 选择文件后自动启动分片上传 */
+  const startChunkedUpload = async (file: File) => {
+    setSelectedFile(file);
+    fileRef.current = file;
+    setFileSize(file.size);
+    abortRef.current = false;
+    setPaused(false);
+
+    try {
+      // Step 1: 创建上传会话
+      const session = await createVideoUploadSession(file.name, file.size);
+      setSessionId(session.sessionId);
+      setUploading(true);
+      setProgressPercent(0);
+
+      // Step 2: 分片上传循环（带自动重试）
+      const totalParts = session.totalParts;
+      let uploadedBytes = 0;
+      const startTime = Date.now();
+      let speedSampleBytes = 0;
+      let speedSampleTime = Date.now();
+
+      for (let partNum = 1; partNum <= totalParts; partNum++) {
+        if (abortRef.current) break;
+        while (paused && !abortRef.current) {
+          await new Promise((r) => setTimeout(r, 500));
+          if (abortRef.current) break;
+        }
+        if (abortRef.current) break;
+
+        const start = (partNum - 1) * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, file.size);
+        const chunk = file.slice(start, end);
+
+        // ★ 带重试的分片上传（网络抖动不再导致整体失败）
+        let lastError: any = null;
+        for (let attempt = 1; attempt <= MAX_CHUNK_RETRIES; attempt++) {
+          if (abortRef.current) break;
+          try {
+            await uploadVideoChunk(session.sessionId, partNum, chunk);
+            lastError = null;
+            break; // 成功，跳出重试循环
+          } catch (err: any) {
+            lastError = err;
+            console.warn(
+              `[分片] Part ${partNum}/${totalParts} 第${attempt}/${MAX_CHUNK_RETRIES}次失败:`,
+              err?.message || err,
+            );
+            if (attempt < MAX_CHUNK_RETRIES) {
+              // 指数退避等待：2s, 4s
+              const delay = CHUNK_RETRY_DELAY * Math.pow(2, attempt - 1);
+              await new Promise((r) => setTimeout(r, delay));
+            }
+          }
+        }
+        // 重试耗尽仍失败 → 抛出外层 catch 终止
+        if (lastError && !abortRef.current) throw lastError;
+        if (abortRef.current) break;
+
+        uploadedBytes += chunk.size;
+        speedSampleBytes += chunk.size;
+
+        // 更新进度
+        const percent = Math.round((partNum / totalParts) * 100);
+        setProgressPercent(percent);
+
+        // 计算速度（每秒采样）
+        const now = Date.now();
+        if (now - speedSampleTime >= 1000) {
+          setUploadSpeed(
+            Math.round(speedSampleBytes / ((now - speedSampleTime) / 1000)),
+          );
+          speedSampleBytes = 0;
+          speedSampleTime = now;
+        }
+
+        // 计算剩余时间
+        const elapsed = now - startTime;
+        if (elapsed > 1000 && uploadedBytes > 0) {
+          const avgSpeed = uploadedBytes / (elapsed / 1000);
+          setRemainingTime(Math.round((file.size - uploadedBytes) / avgSpeed));
+        }
+      }
+
+      if (abortRef.current) return;
+
+      // Step 3: 完成合并
+      const result = await completeVideoUpload(session.sessionId);
       setUploaded(true);
-      setFileUrl(res.url);
-      setFileKey(res.key || res.url);
-      setFileSize((file as File).size);
+      setFileUrl(result.url);
+      setFileKey(result.key || result.url);
+      setUploading(false);
+      setProgressPercent(100);
+      setUploadSpeed(0);
+      setRemainingTime(0);
 
-      const fileName = (file as File).name.replace(/\.[^.]+$/, '');
-      form.setFieldsValue({ fileName });
-
-      onSuccess({ url: res.url }, file);
-    } catch {
-      message.error('视频上传失败');
-      onError(new Error('上传失败'));
+      // 自动填充文件名
+      form.setFieldsValue({ fileName: file.name.replace(/\.[^.]+$/, '') });
+    } catch (err: any) {
+      console.error('Chunked upload error:', err);
+      setUploading(false);
+      message.error(err?.message || '视频上传失败，请重试');
     }
   };
 
-  // ─── 封面上传 ───
+  /** 暂停/继续上传 */
+  const togglePause = () => {
+    setPaused(!paused);
+  };
+
+  /** 取消上传 */
+  const cancelUpload = () => {
+    abortRef.current = true;
+    setPaused(false);
+    setUploading(false);
+    setSelectedFile(null);
+    fileRef.current = null;
+    setSessionId('');
+    setProgressPercent(0);
+    setFileList([]);
+    setFileSize(0);
+  };
+
+  // ─── 文件选择处理 ───
+  const handleFileSelect = (file: File) => {
+    // 小于50MB的文件使用原有单次上传方式
+    if (file.size < 50 * 1024 * 1024) {
+      handleSmallFileUpload(file);
+    } else if (file.size >= 50 * 1024 * 1024 && file.size < 200 * 1024 * 1024) {
+      // 50MB ~ 200MB: 走后端分片中转（原有逻辑）
+      startChunkedUpload(file);
+    } else {
+      // >= 200MB: 走 qiniu-js 前端直传（不经过服务器中转）
+      startDirectUpload(file);
+    }
+  };
+
+  /** 大文件前端直传七牛（>=200MB，绕过服务器带宽瓶颈） */
+  const startDirectUpload = async (file: File) => {
+    setSelectedFile(file);
+    fileRef.current = file;
+    setFileSize(file.size);
+    abortRef.current = false;
+    setPaused(false);
+
+    // 初始化直传速度采样
+    startTimeRef.current = Date.now();
+    speedSampleTimeRef.current = Date.now();
+    speedSampleStartBytesRef.current = 0;
+
+    try {
+      // Step 1: 获取直传凭证（含 persistentOps 自动触发 PFOP）
+      const tokenRes = await getDirectUploadToken(file.name, file.size);
+      setSessionId('direct_' + Date.now());
+      setUploading(true);
+      setProgressPercent(0);
+
+      // Step 2: 使用 qiniu-js SDK 直传七牛
+      await new Promise<void>((resolve, reject) => {
+        const subscription = qiniu.upload(
+          file,
+          tokenRes.key,
+          tokenRes.token,
+          undefined,
+          {
+            useCdnDomain: true,
+            region: qiniu.region.z2, // 华东区，根据七牛空间选择
+            retryCount: 3,
+          },
+        );
+
+        const task = subscription.subscribe({
+          next(res: any) {
+            if (abortRef.current) {
+              task.abort();
+              reject(new Error('已取消'));
+              return;
+            }
+            if (paused) return; // 暂停时跳过进度更新
+
+            // res.total: { loaded, size, percent }
+            const percent = Math.round(res.total?.percent || 0);
+            setProgressPercent(percent);
+
+            // 计算速度
+            const now = Date.now();
+            const loadedBytes = res.total?.loaded || 0;
+            if (speedSampleTimeRef.current > 0) {
+              const elapsed = (now - speedSampleTimeRef.current) / 1000;
+              if (elapsed >= 1) {
+                setUploadSpeed(
+                  Math.round(
+                    (loadedBytes - speedSampleStartBytesRef.current) / elapsed,
+                  ),
+                );
+                speedSampleStartBytesRef.current = loadedBytes;
+                speedSampleTimeRef.current = now;
+              }
+            }
+
+            // 剩余时间
+            const elapsedSec = (now - startTimeRef.current) / 1000;
+            if (elapsedSec > 0 && loadedBytes > 0 && file.size > loadedBytes) {
+              const avgSpeed = loadedBytes / elapsedSec;
+              setRemainingTime(
+                Math.round((file.size - loadedBytes) / avgSpeed),
+              );
+            }
+          },
+          error(err: any) {
+            reject(new Error(err.message || '七牛直传失败'));
+          },
+          complete(_res: any) {
+            resolve();
+          },
+        });
+      });
+
+      // Step 3: 直传完成，通知后端入库
+      await notifyDirectUpload({
+        qiniuKey: `/${tokenRes.key}`,
+        fileName: file.name,
+        size: file.size,
+      });
+
+      // 更新状态
+      setUploaded(true);
+      setFileUrl(`/${tokenRes.key}`);
+      setFileKey(`/${tokenRes.key}`);
+      setUploading(false);
+      setProgressPercent(100);
+      setUploadSpeed(0);
+      setRemainingTime(0);
+
+      form.setFieldsValue({ fileName: file.name.replace(/\.[^.]+$/, '') });
+    } catch (err: any) {
+      console.error('Direct upload error:', err);
+      setUploading(false);
+      message.error(err?.message || '视频上传失败，请重试');
+    }
+  };
+
+  /** 小文件使用原有单次上传 */
+  const handleSmallFileUpload = async (file: File) => {
+    try {
+      const res = await uploadVideoFile(file);
+      if (!res?.url) throw new Error('上传失败');
+
+      setUploaded(true);
+      setFileUrl(res.url);
+      setFileKey(res.key || res.url);
+      setFileSize(file.size);
+      setSelectedFile(file);
+
+      form.setFieldsValue({ fileName: file.name.replace(/\.[^.]+$/, '') });
+    } catch {
+      message.error('视频上传失败');
+    }
+  };
+
+  // 自定义请求（兼容 Dragger 组件）
+  const handleCustomRequest = (options: any) => {
+    const { file } = options;
+    setFileList([{ uid: '-1', name: file.name, status: 'done' }]);
+    handleFileSelect(file as File);
+    options.onSuccess({}, file);
+  };
+
+  // ─── 封面上传（保持不变）───
   const handleCoverUpload = async (options: any) => {
     const { file, onSuccess, onError } = options;
     try {
@@ -143,32 +438,20 @@ const AddVideoComponent: React.FC = () => {
     setCoverUrl('');
   };
 
-  const handleFileChange = (info: {
-    file: UploadFile;
-    fileList: UploadFile[];
-  }) => {
-    setFileList([...info.fileList]);
-    if (info.file.status === 'removed') {
-      setUploaded(false);
-      setFileUrl('');
-      setFileKey('');
-      setFileSize(0);
-      form.setFieldsValue({ fileName: '', shootDate: undefined });
-    }
-  };
-
   const handleRemoveVideo = () => {
     setFileList([]);
     setUploaded(false);
     setFileUrl('');
     setFileKey('');
     setFileSize(0);
+    setSelectedFile(null);
+    fileRef.current = null;
     setCoverUrl('');
     setCoverFileList([]);
     form.setFieldsValue({ fileName: '', shootDate: undefined });
   };
 
-  // ─── 提交 ───
+  // ─── 提交（保持不变）───
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -230,6 +513,74 @@ const AddVideoComponent: React.FC = () => {
     );
   };
 
+  // ─── 分片上传进度面板（新增）───
+  const renderUploadProgress = () => {
+    if (!uploading && !selectedFile) return null;
+
+    return (
+      <div className={styles['chunk-upload-progress']}>
+        <div className={styles['progress-header']}>
+          <span className={styles['progress-filename']}>
+            <LoadingOutlined style={{ marginRight: 8 }} />
+            {selectedFile?.name || fileRef.current?.name || '上传中...'}
+          </span>
+          <span className={styles['progress-filesize']}>
+            {formatFileSize(fileSize)}
+          </span>
+        </div>
+
+        <Progress
+          percent={progressPercent}
+          strokeColor="#1890ff"
+          showInfo={true}
+          className={styles['progress-bar']}
+        />
+
+        <div className={styles['progress-footer']}>
+          <div className={styles['progress-stats']}>
+            {uploadSpeed > 0 && <span>{formatFileSize(uploadSpeed)}/s</span>}
+            {remainingTime > 0 && (
+              <span style={{ marginLeft: 16 }}>
+                约 {formatRemainingTime(remainingTime)} 剩余
+              </span>
+            )}
+          </div>
+          <div className={styles['progress-actions']}>
+            {!paused ? (
+              <Button
+                type="link"
+                icon={<PauseCircleOutlined />}
+                onClick={togglePause}
+                size="small"
+              >
+                暂停
+              </Button>
+            ) : (
+              <Button
+                type="link"
+                onClick={togglePause}
+                size="small"
+                style={{ color: '#52c41a' }}
+              >
+                继续
+              </Button>
+            )}
+            <Button type="link" danger onClick={cancelUpload} size="small">
+              取消
+            </Button>
+          </div>
+        </div>
+
+        {/* 断点续传提示 */}
+        {sessionId && paused && (
+          <div className={styles['resume-hint']}>
+            已暂停 · 可随时点击"继续"恢复上传
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className={styles['add-video-page']}>
       <div className={styles['breadcrumb-wrap']}>
@@ -255,12 +606,14 @@ const AddVideoComponent: React.FC = () => {
             >
               {uploaded && fileUrl ? (
                 renderVideoPreview()
+              ) : uploading ? (
+                renderUploadProgress()
               ) : (
                 <Dragger
                   accept=".mp4,.mov,.avi,.mkv,.webm"
                   fileList={fileList}
                   customRequest={handleCustomRequest}
-                  onChange={handleFileChange}
+                  onChange={(info) => setFileList([...info.fileList])}
                   maxCount={1}
                 >
                   <p className="ant-upload-drag-icon">
@@ -268,7 +621,10 @@ const AddVideoComponent: React.FC = () => {
                   </p>
                   <p className="ant-upload-text">点击或拖拽视频到此区域上传</p>
                   <p className={styles['upload-hint']}>
-                    支持 mp4、mov、avi、mkv、webm 格式，500M 以内
+                    支持 mp4、mov、avi、mkv、webm 格式，最大 5GB
+                    <br />
+                    &lt;50MB: 单次上传 | 50MB~200MB: 分片中转 | ≥200MB:
+                    七牛直传（不占服务器带宽）
                   </p>
                 </Dragger>
               )}
@@ -431,5 +787,18 @@ const AddVideoComponent: React.FC = () => {
     </div>
   );
 };
+
+/** 格式化剩余时间为 mm:ss 或 hh:mm:ss */
+function formatRemainingTime(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return `${h}:${m.toString().padStart(2, '0')}`;
+}
 
 export default AddVideoComponent;
