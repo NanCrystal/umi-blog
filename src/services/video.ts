@@ -138,6 +138,7 @@ export async function batchUpdateVideos(
     description?: string;
     itineraryId?: number;
     status?: string;
+    hidden?: boolean;
   },
 ) {
   return request('/videos/batch', { method: 'PATCH', data: { ids, data } });
@@ -156,4 +157,9 @@ export async function batchDeleteVideos(ids: number[]) {
 /** 一键清空所有视频 */
 export async function clearAllVideos() {
   return request('/videos/clear-all', { method: 'DELETE' });
+}
+
+/** 获取单个视频详情（用于编辑回显） */
+export async function getVideoById(id: number) {
+  return request(`/videos/${id}`, { method: 'GET' });
 }

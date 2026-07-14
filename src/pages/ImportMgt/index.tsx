@@ -80,6 +80,7 @@ const ImportTasksPage: React.FC = () => {
   const [uploadDone, setUploadDone] = useState(false);
   const [dataType, setDataType] = useState<string>('');
   const [selectedArtistId, setSelectedArtistId] = useState<string>('');
+  const [overwriteExisting, setOverwriteExisting] = useState<boolean>(true);
   const abortRef = useRef<(() => void) | null>(null);
 
   // 重新处理
@@ -176,6 +177,7 @@ const ImportTasksPage: React.FC = () => {
     setUploadDone(false);
     setDataType('');
     setSelectedArtistId('');
+    setOverwriteExisting(true);
   };
 
   const handleCloseUploadModal = () => {
@@ -207,6 +209,7 @@ const ImportTasksPage: React.FC = () => {
       type: dataType || undefined,
       artistId: selectedArtistId || undefined,
       artistName: selectedArtist?.name || undefined,
+      overwriteExisting,
       onProgress: (percent) => {
         setUploadProgress(percent);
         // 上传完成(100%)立即关闭弹窗并刷新列表
@@ -669,6 +672,18 @@ const ImportTasksPage: React.FC = () => {
                 onChange={(e) => console.log('隐藏选项:', e.target.checked)}
               >
                 上传后隐藏此数据集内容
+              </Checkbox>
+            </div>
+          )}
+
+          {/* 覆盖已存在视频开关 */}
+          {uploadFile && !uploading && !uploadDone && (
+            <div className={styles['dataset-type-selector']}>
+              <Checkbox
+                checked={overwriteExisting}
+                onChange={(e) => setOverwriteExisting(e.target.checked)}
+              >
+                覆盖已存在的视频（取消则跳过已存在的内容）
               </Checkbox>
             </div>
           )}

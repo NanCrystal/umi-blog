@@ -16,11 +16,10 @@ import {
   EditOutlined,
   LinkOutlined,
   DoubleRightOutlined,
-  PictureOutlined,
   EyeOutlined,
 } from '@ant-design/icons';
-import { Modal, message, Form, Input, Select, DatePicker, Upload } from 'antd';
-import type { UploadFile } from 'antd/es/upload/interface';
+import { Modal, message, Form, Input, Select, DatePicker } from 'antd';
+
 import styles from './index.less';
 import {
   getPhotoTypes,
@@ -29,8 +28,6 @@ import {
 } from '@/services/photoTag';
 
 import { getImageUrl, formatFileSize, formatDateTime } from '@/utils/utils';
-import { uploadImageFull } from '@/services/upload';
-import { uploadVideoFile } from '@/services/video';
 import { getArtistList } from '@/services/artist';
 import { getItineraryList } from '@/services/itinerary';
 import {
@@ -38,7 +35,6 @@ import {
   getVideosByMonth,
   deleteVideo,
   batchDeleteVideos,
-  updateVideo,
   batchUpdateVideos,
   clearAllVideos,
 } from '@/services/video';
@@ -52,7 +48,6 @@ import weiboSvg from '@/assets/images/weibo.svg';
 import douyinSvg from '@/assets/images/douyin.svg';
 import xhsSvg from '@/assets/images/xiaohongshu.svg';
 import igSvg from '@/assets/images/instagram.svg';
-import moment from 'moment';
 
 interface Props {}
 interface TagItem {
@@ -216,19 +211,6 @@ const VideoPage: React.FC<Props> = () => {
   const [cols, setCols] = useState(8);
   const [hoverTop, setHoverTop] = useState<number | null>(null);
   const [hoverLabel, setHoverLabel] = useState('');
-
-  // ── 编辑弹窗相关 ─────────────────────────────────
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editingVideo, setEditingVideo] = useState<Video | null>(null);
-  const [editForm] = Form.useForm();
-  const [editLoading, setEditLoading] = useState(false);
-  // 编辑弹窗 - 封面上传
-  const [editCoverUrl, setEditCoverUrl] = useState('');
-  const [editCoverFileList, setEditCoverFileList] = useState<UploadFile[]>([]);
-  // 编辑弹窗 - 替换视频
-  const [editNewVideoUrl, setEditNewVideoUrl] = useState('');
-  const [editNewVideoKey, setEditNewVideoKey] = useState('');
-  const [editNewVideoSize, setEditNewVideoSize] = useState(0);
 
   // ── 关联帖子 ──
   const [linkPostModalVisible, setLinkPostModalVisible] = useState(false);
@@ -959,28 +941,10 @@ const VideoPage: React.FC<Props> = () => {
     });
   };
 
-  // 编辑视频（弹窗）
+  // 编辑视频（跳转到编辑页面）
   const handleEditVideo = (video: Video, e: React.MouseEvent) => {
     e.stopPropagation();
-    setEditingVideo(video);
-    setEditCoverUrl('');
-    setEditCoverFileList([]);
-    setEditNewVideoUrl('');
-    setEditNewVideoKey('');
-    setEditNewVideoSize(0);
-    setEditModalVisible(true);
-    setTimeout(() => {
-      editForm.setFieldsValue({
-        fileName: video.fileName || '',
-        artistId: video.artistId,
-        shootDate: video.shootDate ? moment(video.shootDate) : undefined,
-        videoTypeId: video.tagTypeId,
-        videoLocationId: video.tagLocationId,
-        videoPlatformId: video.tagPlatformId,
-        itineraryId: video.itineraryId,
-        description: video.description || '',
-      });
-    }, 0);
+    history.push(`/admin/video/edit?id=${video.id}`);
   };
 
   // 预览视频（弹窗）
@@ -1008,64 +972,6 @@ const VideoPage: React.FC<Props> = () => {
     setPreviewIndex(nextIdx);
     setPreviewingVideo(flatVideos[nextIdx]);
     setPreviewPlaying(false);
-  };
-
-  // 编辑提交
-  const handleEditSubmit = async () => {
-    try {
-      if (!editingVideo) return;
-      const values = await editForm.validateFields();
-      setEditLoading(true);
-      const updateData: Record<string, any> = {
-        fileName: values.fileName,
-        artistId: values.artistId,
-        shootDate: values.shootDate
-          ? values.shootDate.format('YYYY-MM-DD HH:mm:ss')
-          : undefined,
-        tagTypeId: values.videoTypeId,
-        tagLocationId: values.videoLocationId,
-        tagPlatformId: values.videoPlatformId,
-        itineraryId: values.itineraryId,
-        description: values.description,
-      };
-      if (editCoverUrl) updateData.coverUrl = editCoverUrl;
-      if (editNewVideoKey) {
-        updateData.qiniuKey = editNewVideoKey;
-        updateData.originalUrl = editNewVideoUrl;
-        updateData.playUrl = editNewVideoUrl;
-        updateData.size = editNewVideoSize;
-      }
-      await updateVideo(editingVideo.id, updateData);
-      message.success('修改成功');
-      setEditModalVisible(false);
-      setEditingVideo(null);
-      Object.keys(groups).forEach((ym) => {
-        if (groups[ym].videos.some((v) => v.id === editingVideo.id)) {
-          const nextGroups = {
-            ...groups,
-            [ym]: { ...groups[ym], loaded: false, videos: [] },
-          };
-          setGroups(nextGroups);
-          loadMonth(ym, nextGroups);
-        }
-      });
-    } catch (err: any) {
-      if (err?.errorFields) return;
-      message.error('修改失败');
-    } finally {
-      setEditLoading(false);
-    }
-  };
-
-  const handleEditCancel = () => {
-    setEditModalVisible(false);
-    setEditingVideo(null);
-    setEditCoverUrl('');
-    setEditCoverFileList([]);
-    setEditNewVideoUrl('');
-    setEditNewVideoKey('');
-    setEditNewVideoSize(0);
-    editForm.resetFields();
   };
 
   // 批量删除视频
@@ -1996,297 +1902,6 @@ const VideoPage: React.FC<Props> = () => {
             个视频关联到选中的帖子
           </div>
         </div>
-      </Modal>
-
-      {/* 编辑弹窗 */}
-      <Modal
-        title="编辑视频"
-        open={editModalVisible}
-        onCancel={handleEditCancel}
-        onOk={handleEditSubmit}
-        confirmLoading={editLoading}
-        okText="保存"
-        cancelText="取消"
-        width={560}
-        destroyOnClose
-      >
-        <Form
-          form={editForm}
-          layout="vertical"
-          className={styles['video-edit-form']}
-          style={{ marginTop: 16 }}
-        >
-          {/* 视频预览（可替换） */}
-          <Form.Item label="视频">
-            {editingVideo && (
-              <div>
-                <div className={styles['edit-video-preview']}>
-                  <div className={styles['edit-video-preview-thumb']}>
-                    <img
-                      src={thumb(
-                        editingVideo.coverUrl || editingVideo.originalUrl,
-                      )}
-                      alt=""
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%22%231a1a1a%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%23555%22 text-anchor=%22middle%22 dominant-baseline=%22central%22 font-size=%2213%22%3E%E6%9A%82%E6%97%A0%E5%B0%81%E9%9D%A2%3C/text%3E%3C/svg%3E';
-                        (e.target as HTMLImageElement).style.objectFit =
-                          'contain';
-                      }}
-                    />
-                    <PlayCircleOutlined
-                      className={styles['edit-video-preview-icon']}
-                    />
-                  </div>
-                  <div className={styles['edit-video-preview-info']}>
-                    <span className={styles['edit-video-preview-name']}>
-                      {editingVideo.fileName || '未命名视频'}
-                    </span>
-                    <span className={styles['edit-video-preview-meta']}>
-                      {editNewVideoSize > 0
-                        ? formatFileSize(editNewVideoSize)
-                        : editingVideo.size != null
-                        ? formatFileSize(editingVideo.size)
-                        : ''}
-                      {editingVideo.duration != null && (
-                        <>
-                          {' '}
-                          · {Math.floor(editingVideo.duration / 60)}:
-                          {String(
-                            Math.floor(editingVideo.duration % 60),
-                          ).padStart(2, '0')}
-                        </>
-                      )}
-                    </span>
-                  </div>
-                </div>
-                <div style={{ marginTop: 8 }}>
-                  <Upload
-                    accept=".mp4,.mov,.avi,.mkv,.webm"
-                    showUploadList={false}
-                    maxCount={1}
-                    customRequest={async (options: any) => {
-                      const { file, onSuccess, onError } = options;
-                      try {
-                        const res = await uploadVideoFile(file as File);
-                        if (!res?.url) {
-                          onError(new Error('上传失败'));
-                          return;
-                        }
-                        setEditNewVideoUrl(res.url);
-                        setEditNewVideoKey(res.key || res.url);
-                        setEditNewVideoSize((file as File).size);
-                        message.success('视频已替换');
-                        onSuccess(res, file);
-                      } catch {
-                        message.error('视频替换失败');
-                        onError(new Error('视频替换失败'));
-                      }
-                    }}
-                  >
-                    <Button
-                      size="small"
-                      icon={<PlayCircleOutlined />}
-                      style={{
-                        background: 'transparent',
-                        border: '1px solid #333',
-                        color: '#ccc',
-                        borderRadius: 0,
-                        fontSize: 12,
-                      }}
-                    >
-                      {editNewVideoSize > 0 ? '已替换' : '替换视频'}
-                    </Button>
-                  </Upload>
-                </div>
-              </div>
-            )}
-          </Form.Item>
-
-          {/* 封面上传 */}
-          <Form.Item label="上传封面（可选）">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {editCoverUrl ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <img
-                    src={getImageUrl(editCoverUrl)}
-                    alt=""
-                    style={{ width: 60, height: 40, objectFit: 'cover' }}
-                  />
-                  <Button
-                    size="small"
-                    danger
-                    ghost
-                    onClick={() => {
-                      setEditCoverUrl('');
-                      setEditCoverFileList([]);
-                    }}
-                    style={{ border: 'none', fontSize: 12 }}
-                  >
-                    移除
-                  </Button>
-                </div>
-              ) : (
-                <Upload
-                  accept=".jpg,.jpeg,.png,.gif,.webp"
-                  fileList={editCoverFileList}
-                  maxCount={1}
-                  showUploadList={false}
-                  customRequest={async (options: any) => {
-                    const { file, onSuccess, onError } = options;
-                    try {
-                      const res = await uploadImageFull(file as File);
-                      if (!res?.url) {
-                        onError(new Error('封面上传失败'));
-                        return;
-                      }
-                      setEditCoverUrl(res.url);
-                      onSuccess(res, file);
-                    } catch {
-                      message.error('封面上传失败');
-                      onError(new Error('封面上传失败'));
-                    }
-                  }}
-                  onChange={(info) => setEditCoverFileList([...info.fileList])}
-                >
-                  <Button
-                    icon={<PictureOutlined />}
-                    size="small"
-                    style={{
-                      background: 'transparent',
-                      border: '1px dashed #333',
-                      color: '#999',
-                      borderRadius: 0,
-                      fontSize: 12,
-                    }}
-                  >
-                    上传封面
-                  </Button>
-                </Upload>
-              )}
-            </div>
-          </Form.Item>
-
-          {/* 文件名称 */}
-          <Form.Item name="fileName" label="文件名称">
-            <Input placeholder="请输入文件名称" maxLength={100} />
-          </Form.Item>
-
-          {/* 艺人 */}
-          <Form.Item
-            name="artistId"
-            label="艺人"
-            rules={[{ required: true, message: '请选择艺人' }]}
-          >
-            <Select
-              placeholder="请选择艺人"
-              loading={dropdownLoading}
-              showSearch
-              optionFilterProp="children"
-            >
-              {artists.map((a) => (
-                <Select.Option key={a.artistId} value={a.artistId}>
-                  {a.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          {/* 拍摄日期 */}
-          <Form.Item name="shootDate" label="拍摄日期">
-            <DatePicker
-              format="YYYY-MM-DD"
-              style={{ width: '100%' }}
-              placeholder="选择拍摄日期"
-            />
-          </Form.Item>
-
-          {/* 视频类型 */}
-          <Form.Item name="videoTypeId" label="视频类型">
-            <Select
-              placeholder="请选择视频类型"
-              allowClear
-              loading={typesLoading}
-            >
-              {videoTypes.map((t) => (
-                <Select.Option key={t.id} value={t.id}>
-                  {t.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          {/* 拍摄地点 */}
-          <Form.Item name="videoLocationId" label="拍摄地点">
-            <Select
-              placeholder="请选择拍摄地点"
-              allowClear
-              loading={locationsLoading}
-            >
-              {videoLocations.map((l) => (
-                <Select.Option key={l.id} value={l.id}>
-                  {l.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          {/* 发布平台 */}
-          <Form.Item name="videoPlatformId" label="发布平台">
-            <Select
-              placeholder="请选择发布平台"
-              allowClear
-              loading={platformsLoading}
-            >
-              {videoPlatforms.map((p) => (
-                <Select.Option key={p.id} value={p.id}>
-                  {p.name}
-                  {p.uuid ? ` (${p.uuid})` : ''}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          {/* 平台ID（只读展示） */}
-          <Form.Item label="平台ID">
-            <Input
-              value={
-                (
-                  videoPlatforms.find(
-                    (p) => p.id === editForm.getFieldValue('videoPlatformId'),
-                  ) as any
-                )?.uuid || ''
-              }
-              disabled
-              placeholder="选择发布平台后自动显示"
-            />
-          </Form.Item>
-          <Form.Item name="itineraryId" label="行程">
-            <Select
-              placeholder="请选择行程"
-              allowClear
-              loading={dropdownLoading}
-              showSearch
-              optionFilterProp="children"
-            >
-              {itineraries.map((i: any) => (
-                <Select.Option key={i.id} value={i.id}>
-                  {i.title} {i.location ? `· ${i.location}` : ''}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          {/* 描述 */}
-          <Form.Item name="description" label="描述">
-            <Input.TextArea
-              placeholder="请输入描述"
-              rows={3}
-              maxLength={500}
-              showCount
-            />
-          </Form.Item>
-        </Form>
       </Modal>
 
       {/* 预览弹窗 */}

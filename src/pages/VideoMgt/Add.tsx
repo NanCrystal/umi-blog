@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { history } from 'umi';
+import { history, useLocation } from 'umi';
 import {
   Breadcrumb,
   Form,
@@ -10,6 +10,7 @@ import {
   Upload,
   message,
   Progress,
+  Spin,
 } from 'antd';
 import {
   InboxOutlined,
@@ -29,7 +30,13 @@ import {
 import { getArtistList } from '@/services/artist';
 import { getItineraryList } from '@/services/itinerary';
 import { getImageUrl, formatFileSize } from '@/utils/utils';
-import { uploadVideoFile, createVideo } from '@/services/video';
+import moment from 'moment';
+import {
+  uploadVideoFile,
+  createVideo,
+  updateVideo,
+  getVideoById,
+} from '@/services/video';
 import {
   uploadImageFull,
   createVideoUploadSession,
@@ -52,6 +59,12 @@ const CHUNK_SIZE = 4 * 1024 * 1024;
 
 const AddVideoComponent: React.FC = () => {
   const [form] = Form.useForm();
+  const location = useLocation();
+
+  // ─── 编辑模式检测 ───
+  const searchParams = new URLSearchParams(location.search);
+  const editId = searchParams.get('id');
+  const isEditMode = !!editId;
 
   // 下拉数据
   const [artists, setArtists] = useState<any[]>([]);
@@ -87,6 +100,10 @@ const AddVideoComponent: React.FC = () => {
   const [coverUrl, setCoverUrl] = useState('');
   const [coverFileList, setCoverFileList] = useState<UploadFile[]>([]);
 
+  // ─── 编辑模式：加载视频数据 ───
+  const [editLoadingData, setEditLoadingData] = useState(false);
+  const [originalVideoData, setOriginalVideoData] = useState<any>(null);
+
   useEffect(() => {
     setLoading(true);
     Promise.all([
@@ -115,6 +132,39 @@ const AddVideoComponent: React.FC = () => {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  // 编辑模式：加载视频详情
+  useEffect(() => {
+    if (!isEditMode || !editId) return;
+    setEditLoadingData(true);
+    getVideoById(Number(editId))
+      .then((res: any) => {
+        setOriginalVideoData(res);
+        // 填充表单
+        form.setFieldsValue({
+          fileName: res.fileName || '',
+          artistId: res.artistId,
+          shootDate: res.shootDate ? moment(res.shootDate) : undefined,
+          videoTypeId: res.tagTypeId,
+          videoLocationId: res.tagLocationId,
+          videoPlatformId: res.tagPlatformId,
+          itineraryId: res.itineraryId,
+          description: res.description || '',
+        });
+        // 设置视频信息（已有视频）
+        setFileKey(res.qiniuKey || '');
+        setFileUrl(res.originalUrl || '');
+        setFileSize(res.size || 0);
+        setCoverUrl(res.coverUrl || '');
+        setUploaded(true);
+      })
+      .catch((err) => {
+        message.error('加载视频数据失败');
+        console.error(err);
+      })
+      .finally(() => setEditLoadingData(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode, editId]);
 
   // 页面离开时提示
   useEffect(() => {
@@ -451,34 +501,73 @@ const AddVideoComponent: React.FC = () => {
     form.setFieldsValue({ fileName: '', shootDate: undefined });
   };
 
-  // ─── 提交（保持不变）───
+  // ─── 提交（支持新增和编辑）───
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      if (!uploaded) {
+
+      // 编辑模式下允许不重新上传视频
+      if (!isEditMode && !uploaded) {
         message.error('请先上传视频');
         return;
       }
+
       setSubmitLoading(true);
-      await createVideo({
-        fileName: values.fileName,
-        artistId: values.artistId,
-        qiniuKey: fileKey,
-        originalUrl: fileUrl,
-        coverUrl: coverUrl || undefined,
-        shootDate: values.shootDate.format('YYYY-MM-DD'),
-        size: fileSize || undefined,
-        tagTypeId: values.videoTypeId,
-        tagLocationId: values.videoLocationId,
-        tagPlatformId: values.videoPlatformId,
-        itineraryId: values.itineraryId,
-        description: values.description,
-      });
-      message.success('视频添加成功');
-      history.push('/admin/video');
+
+      if (isEditMode && editId) {
+        // ─── 编辑模式：调用 updateVideo ───
+        const updateData: Record<string, any> = {
+          fileName: values.fileName,
+          artistId: values.artistId,
+          shootDate: values.shootDate
+            ? values.shootDate.format
+              ? values.shootDate.format('YYYY-MM-DD HH:mm:ss')
+              : values.shootDate
+            : undefined,
+          tagTypeId: values.videoTypeId,
+          tagLocationId: values.videoLocationId,
+          tagPlatformId: values.videoPlatformId,
+          itineraryId: values.itineraryId,
+          description: values.description,
+        };
+        // 如果封面被修改了
+        if (coverUrl !== originalVideoData?.coverUrl) {
+          updateData.coverUrl = coverUrl || null;
+        }
+        // 如果视频文件被替换了（新上传了视频，且与原视频不同）
+        const hasNewVideo = fileKey && fileKey !== originalVideoData?.qiniuKey;
+        if (hasNewVideo) {
+          updateData.qiniuKey = fileKey;
+          updateData.originalUrl = fileUrl;
+          updateData.playUrl = fileUrl;
+          updateData.size = fileSize;
+        }
+
+        await updateVideo(Number(editId), updateData);
+        message.success('修改成功');
+        history.push('/admin/video');
+      } else {
+        // ─── 新增模式：调用 createVideo ───
+        await createVideo({
+          fileName: values.fileName,
+          artistId: values.artistId,
+          qiniuKey: fileKey,
+          originalUrl: fileUrl,
+          coverUrl: coverUrl || undefined,
+          shootDate: values.shootDate.format('YYYY-MM-DD'),
+          size: fileSize || undefined,
+          tagTypeId: values.videoTypeId,
+          tagLocationId: values.videoLocationId,
+          tagPlatformId: values.videoPlatformId,
+          itineraryId: values.itineraryId,
+          description: values.description,
+        });
+        message.success('视频添加成功');
+        history.push('/admin/video');
+      }
     } catch (err: any) {
       if (err?.errorFields) return;
-      message.error(err?.message || '添加失败');
+      message.error(err?.message || (isEditMode ? '修改失败' : '添加失败'));
     } finally {
       setSubmitLoading(false);
     }
@@ -505,10 +594,12 @@ const AddVideoComponent: React.FC = () => {
             {ext} · {fileSize > 0 ? formatFileSize(fileSize) : '已上传'}
           </span>
         </div>
-        <CloseOutlined
-          className={styles['video-preview-remove']}
-          onClick={handleRemoveVideo}
-        />
+        {!isEditMode && (
+          <CloseOutlined
+            className={styles['video-preview-remove']}
+            onClick={handleRemoveVideo}
+          />
+        )}
       </div>
     );
   };
@@ -591,23 +682,50 @@ const AddVideoComponent: React.FC = () => {
               全部视频
             </a>
           </Breadcrumb.Item>
-          <Breadcrumb.Item>添加视频</Breadcrumb.Item>
+          <Breadcrumb.Item>
+            {isEditMode ? '编辑视频' : '添加视频'}
+          </Breadcrumb.Item>
         </Breadcrumb>
       </div>
 
       <div className={styles['tab-panel']}>
         <div className={styles['form-wrap']}>
           <Form form={form} layout="vertical" className={styles['add-form']}>
-            {/* 1. 上传视频 */}
+            {/* 1. 上传视频 / 视频预览（编辑模式） */}
             <Form.Item
-              label="上传视频"
-              required
+              label={isEditMode ? '视频' : '上传视频'}
+              required={!isEditMode}
               className={styles['upload-item']}
             >
-              {uploaded && fileUrl ? (
-                renderVideoPreview()
+              {editLoadingData ? (
+                <div style={{ textAlign: 'center', padding: 24 }}>
+                  <Spin size="large" /> 加载中...
+                </div>
+              ) : isEditMode && uploaded && !uploading ? (
+                /* 编辑模式：显示已有视频预览 + 替换选项 */
+                <div>
+                  {renderVideoPreview()}
+                  <div style={{ marginTop: 8 }}>
+                    <Dragger
+                      accept=".mp4,.mov,.avi,.mkv,.webm"
+                      fileList={[]}
+                      customRequest={handleCustomRequest}
+                      maxCount={1}
+                      showUploadList={false}
+                    >
+                      <p style={{ marginBottom: 4 }}>
+                        <InboxOutlined />
+                      </p>
+                      <p className="ant-upload-text">
+                        点击或拖拽新视频到此处替换
+                      </p>
+                    </Dragger>
+                  </div>
+                </div>
               ) : uploading ? (
                 renderUploadProgress()
+              ) : uploaded && fileUrl ? (
+                renderVideoPreview()
               ) : (
                 <Dragger
                   accept=".mp4,.mov,.avi,.mkv,.webm"
@@ -778,7 +896,7 @@ const AddVideoComponent: React.FC = () => {
                 className={styles['submit-btn']}
                 block
               >
-                提交
+                {isEditMode ? '保存修改' : '提交'}
               </Button>
             </Form.Item>
           </Form>

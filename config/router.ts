@@ -55,6 +55,7 @@ export default [
       { exact: true, path: '/admin/photo/add', component: PhotoMgtAddPage },
       { exact: true, path: '/admin/video', component: VideoMgtPage },
       { exact: true, path: '/admin/video/add', component: VideoMgtAddPage },
+      { exact: true, path: '/admin/video/edit', component: VideoMgtAddPage },
       { exact: true, path: '/admin/voice', component: VoiceMgtPage },
       { exact: true, path: '/admin/voice/add', component: VoiceMgtAddPage },
       { exact: true, path: '/admin/photocards', component: PhotoCardsMgtPage },

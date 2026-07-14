@@ -21,11 +21,13 @@ export function createImportTask(data: {
   type?: string;
   artistId?: string;
   artistName?: string;
+  overwriteExisting?: boolean; // 是否覆盖已存在的视频，默认 true
   onProgress?: (percent: number) => void;
 }) {
   const formData = new FormData();
   formData.append('file', data.file);
   formData.append('name', data.name);
+  formData.append('overwriteExisting', String(data.overwriteExisting ?? true));
   if (data.type) formData.append('type', data.type);
   if (data.artistId) formData.append('artistId', data.artistId);
   if (data.artistName) formData.append('artistName', data.artistName);
